@@ -230,7 +230,7 @@ void LegController::updateCommand(LowlevelCmd* cmd, double* offset, int motionTi
         }
 
         // No Output (Comment out if running)
-        commands[leg].tau << 0,0,0,0,0;
+        // commands[leg].tau << 0,0,0,0,0;
 
         for (int k = 0; k < 5; k++){
             cmd->motorCmd[motor_sequence[k + leg*5]].tau = commands[leg].tau(k);
