@@ -21,7 +21,7 @@ public:
     virtual void receiveHandle(UNITREE_LEGGED_SDK::LowState *lowState){};
     virtual void setHighlevelMsg(UNITREE_LEGGED_SDK::HighState *highState){};
 protected:
-    virtual void *run(void *arg){};
+    // virtual void *run(void *arg);
     UserCommand userCmd;
     UserValue userValue;
     UserCommand gaitNum;
