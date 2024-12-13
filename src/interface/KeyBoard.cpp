@@ -56,6 +56,10 @@ UserCommand KeyBoard::checkCmd(){
 
 UserCommand KeyBoard::checkGait(){
     switch (_c){
+    case '1':
+        return UserCommand::NONE;
+    case '2':
+        return UserCommand::NONE; 
     case '3':
         return UserCommand::WALK; // walking
     case '4':

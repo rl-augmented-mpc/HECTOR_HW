@@ -15,8 +15,8 @@ using namespace ori;
 ConvexMPCLocomotion::ConvexMPCLocomotion(double _dt, int _iterations_between_mpc) : iterationsBetweenMPC(_iterations_between_mpc),
                                                                                     horizonLength(10),
                                                                                     dt(_dt),
-                                                                                    walking(horizonLength, Vec2<int>(200, 200), Vec2<int>(0, 0)),
-                                                                                    standing(horizonLength, Vec2<int>(int(0.0/_dt), int(0.0/_dt)), Vec2<int>(int(0.2/_dt), int(0.2/_dt)))
+                                                                                    walking(horizonLength, Vec2<int>(int(0.0/_dt), int(0.0/_dt)), Vec2<int>(int(0.4/_dt), int(0.4/_dt))),
+                                                                                    standing(horizonLength, Vec2<int>(int(0.2/_dt), int(0.2/_dt)), Vec2<int>(int(0.0/_dt), int(0.0/_dt)))
 {
   dtMPC = dt * iterationsBetweenMPC;
   rpy_int[2] = 0;
@@ -270,15 +270,15 @@ void ConvexMPCLocomotion::updateMPC(int *mpcTable, ControlFSMData &data, bool om
   }
 
   // double Q[12] = {200, 150, 10,   430, 430, 460,   1, 1, 1,   1, 1, 3}; // state weight (original -> p_z weight is too low??)
-  double Q[12] = {200, 150, 300,  300, 200, 300,  1, 1, 2.0,  2.0, 1, 1}; // roll pitch yaw x y z droll dpitch dyaw dx dy dz (from software code)
+  double Q[12] = {300, 300, 150,  300, 300, 100,  1, 1, 1,  5, 3, 3}; // roll pitch yaw x y z droll dpitch dyaw dx dy dz (from software code)
   // double Q[12] = {150, 50, 100,  700, 250, 350,  .5, .5, .5,  .5, .5, .5}; // roll pitch yaw x y z droll dpitch dyaw dx dy dz
   //  double Q[12] = {1000, 1000, 1000,   1000, 1000, 5000,   1, 1, 1,   1, 1, 1};
   // double Q[12] = {3.5*1000, 3.5*1000, 1000,   1000, 1000, 0.25*10000,   1000, 2*1000, 1000,   1000, 1000, 3*1000};
   //double Q[12] = {2000, 2000, 10, 35, 35, 35, 1, 1, 1, 1, 1, 1};
 
   // double Alpha[12] = {1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,   2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2}; // control weight (original)
-  double Alpha[12] = {1e-4, 1e-4, 5e-4, 1e-4, 1e-4, 5e-4,   1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 1e-2}; // control weight (from software code)
-  // double Alpha[12] = {1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,   5e-4, 5e-4, 5e-4, 5e-4, 5e-4, 5e-4};
+  // double Alpha[12] = {1e-4, 1e-4, 5e-4, 1e-4, 1e-4, 5e-4,   1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 1e-2}; // control weight (from software code)
+  double Alpha[12] = {1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,   2e-4, 2e-4, 2e-4, 2e-4, 2e-4, 2e-4};
 
   double *weights = Q;
   double *Alpha_K = Alpha;
@@ -373,10 +373,10 @@ void ConvexMPCLocomotion::updateMPC(int *mpcTable, ControlFSMData &data, bool om
       trajAll[12*i + 2] = yaw + i * dtMPC * v_yaw_des;
     }
 
-    std::cout << "traj " << i << std::endl;
-    for (int j = 0; j < 12; j++) {
-      std::cout << trajAll[12 * i + j] << "  ";
-    }
+    // std::cout << "traj " << i << std::endl;
+    // for (int j = 0; j < 12; j++) {
+    //   std::cout << trajAll[12 * i + j] << "  ";
+    // }
   }
 
   Timer t1;
@@ -389,22 +389,22 @@ void ConvexMPCLocomotion::updateMPC(int *mpcTable, ControlFSMData &data, bool om
   //  update_problem_data(p, v, q, w, r, yaw, weights, trajAll, alpha, mpcTable);
   update_problem_data(p, v, q, w, r, yaw, weights, trajAll, Alpha_K, mpcTable, data);
 
-  for (int i = 0; i < 3; i++){
-    mpc_input << p[i] << "  ";
-  }
-  for (int i = 0; i < 3; i++){
-    mpc_input << v[i] << "  ";
-  }
-  for (int i = 0; i < 4; i++){
-    mpc_input << q[i] << "  ";
-  }
-  for (int i = 0; i < 3; i++){
-    mpc_input << w[i] << "  ";
-  }
-  for (int i = 0; i < 6; i++){
-    mpc_input << r[i] << "  ";
-  }
-  mpc_input << std::endl;
+  // for (int i = 0; i < 3; i++){
+  //   mpc_input << p[i] << "  ";
+  // }
+  // for (int i = 0; i < 3; i++){
+  //   mpc_input << v[i] << "  ";
+  // }
+  // for (int i = 0; i < 4; i++){
+  //   mpc_input << q[i] << "  ";
+  // }
+  // for (int i = 0; i < 3; i++){
+  //   mpc_input << w[i] << "  ";
+  // }
+  // for (int i = 0; i < 6; i++){
+  //   mpc_input << r[i] << "  ";
+  // }
+  // mpc_input << std::endl;
   
   for (int leg = 0; leg < 2; leg++)
   {

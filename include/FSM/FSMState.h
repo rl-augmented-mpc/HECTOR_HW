@@ -78,7 +78,7 @@ class FSMState
         bool buttonB;
         bool buttonX;
         bool left_shoulder;
-        bool flagWalk;
+        bool flagWalk=0;
         bool flagZeroVel;
         bool flagHi;
         double motionTimeHi;

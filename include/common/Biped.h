@@ -35,8 +35,8 @@ class Biped{
     double mass;
 
     // parameters for reference and swing leg controller
-    double foot_height=0.12; // swing foot height
-    double ref_height=0.55; // reference foot height
+    double foot_height=0.1; // swing foot height
+    double ref_height=0.53; // reference foot height
 
     Vec3<double> getHipLocation(int leg){
         assert(leg >=0 && leg <2);

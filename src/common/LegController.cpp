@@ -76,7 +76,7 @@ void LegController::updateData(const LowlevelState* state, double* offset){
             data[leg].q(4) = (data[leg].q(4)-data[leg].q(3));
             data[leg].qd(4) = (data[leg].qd(4)-data[leg].qd(3));
 
-            std::cout << "leg "<< leg<< " angle data: " << std::endl;
+            std::cout << "\nleg "<< leg<< " angle data: " << std::endl;
             for(int j = 0; j<5; j++){
             std::cout << data[leg].q(j)*180/3.1415 << "    ";
             }

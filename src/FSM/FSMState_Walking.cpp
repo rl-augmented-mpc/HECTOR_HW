@@ -48,7 +48,7 @@ void FSMState_Walking::run()
         turn_rate = (double)_userValue.rx;
 
         // set gait number
-        if (_data->_interface->gaitNum == UserCommand::WALK){
+        if (_data->_interface->gaitNum == UserCommand::WALK){ 
             flagGaitTimer_Walk = 1;
         }
         if(flagGaitTimer_Walk == 1 && motionTime%(gaitTime) == gaitTime/2){
@@ -103,6 +103,13 @@ void FSMState_Walking::run()
             flagGaitTimer_Stand = 0;
         }
     }
+    
+    // if (flagWalk==0){
+    //     std::cout << "standing mode" << std::endl; 
+    // }
+    // else if (flagWalk == 1){
+    //     std::cout << "walking mode" << std::endl; 
+    // }
 
 
 

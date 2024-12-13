@@ -24,7 +24,7 @@ protected:
     // virtual void *run(void *arg);
     UserCommand userCmd;
     UserValue userValue;
-    UserCommand gaitNum;
+    UserCommand gaitNum = UserCommand::NONE;
 };
 
 #endif  // CMDPANEL_H

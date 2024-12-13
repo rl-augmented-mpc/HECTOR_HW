@@ -459,7 +459,7 @@ void T265TrackingCameraEstimator::setup(){
 
 //Run T265 Estimator
 void T265TrackingCameraEstimator::run(){
-  std::cout << "Camera Estimator Running " << std::endl;
+  // std::cout << "Camera Estimator Running " << std::endl;
   //Attempt to get the next set of frames from the camera
   rs2::frameset frames;
   if (pipe.try_wait_for_frames(&frames, 0)){
@@ -559,10 +559,10 @@ void T265TrackingCameraEstimator::run(){
     // this->_stateEstimatorData.result->position;
     // this->_stateEstimatorData.result->position(2) = ph_z;
 
-    std::cout << "ph_z is " << ph_z << std::endl;
-    std::cout << "postion 0" << this->_stateEstimatorData.result->position(0) << std::endl;
-    std::cout << "postion 1" << this->_stateEstimatorData.result->position(1) << std::endl;
-    std::cout << "postion 2" << this->_stateEstimatorData.result->position(2) << std::endl;
+    // std::cout << "ph_z is " << ph_z << std::endl;
+    // std::cout << "postion 0" << this->_stateEstimatorData.result->position(0) << std::endl;
+    // std::cout << "postion 1" << this->_stateEstimatorData.result->position(1) << std::endl;
+    // std::cout << "postion 2" << this->_stateEstimatorData.result->position(2) << std::endl;
 
     // this->_stateEstimatorData.result->vBody(0) = - pose_data.velocity.z;
     // this->_stateEstimatorData.result->vBody(1) = - pose_data.velocity.x;
