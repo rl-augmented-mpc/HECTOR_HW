@@ -88,6 +88,13 @@
         //CurrentState& curr;
         //ros::NodeHandle n;
         int counter = 0;
+
+        int motor_sequence[10] = {1, 2, 9, 10, 11, 4, 5, 6, 7, 8};
+        double gear_ratio = 1.545;
+        double beltCompRatio = 1;
+        double JointPDSwitch = 1.0;
+
+        
     };
 
     void computeLegJacobianAndPosition(Biped& _biped, Vec5<double>& q, Mat65<double>* J, Mat35<double>* J2,

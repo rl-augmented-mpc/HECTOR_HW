@@ -7,6 +7,7 @@ FSM::FSM(ControlFSMData *data)
     _stateList.invalid = nullptr;
     _stateList.passive = new FSMState_Passive(_data);
     _stateList.walking = new FSMState_Walking(_data, 0); // 0: keyboard, 1: joystick for cmd_mode
+    _stateList.pdStand = new FSMState_PDStand(_data); //PDStanding!
     // add other FSM states later
 
 
@@ -35,7 +36,6 @@ void FSM::run()
     {
         _data->_interface->setPassive(); // set to L2_B
     }
-
     if(_mode == FSMMode::NORMAL)
     {
         _currentState->run();
@@ -46,7 +46,6 @@ void FSM::run()
             _nextState = getNextState(_nextStateName);
         }
     }
-
     else if(_mode == FSMMode::CHANGE)
     {
         _currentState->exit();
@@ -70,6 +69,10 @@ FSMState* FSM::getNextState(FSMStateName stateName)
         break;
         case FSMStateName::WALKING:
             return _stateList.walking;
+        break;
+        case FSMStateName::PDSTAND: // new state for PDStand
+            return _stateList.pdStand;
+        break;
         default:
             return _stateList.invalid;
         break;
