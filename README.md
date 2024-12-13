@@ -48,6 +48,8 @@ Keyboard is responsible for controlling FSM mode.
 * Press A: Decrease x velocity by 0.025
 * Press W: Increase y velocity by 0.025
 * Press S: Decrease y velocity by 0.025
+* Press L: Increase yaw angular velocity by 0.025
+* Press J: Decrease yaw angular velocity by 0.025
 
 To control the resolution, edit `sensitivityLeft` and `sensitivityRight` in include/interface/KeyBoard.h
 
