@@ -189,6 +189,7 @@ void LegController::updateCommand(LowlevelCmd* cmd, double* offset, int motionti
 
             PDStand = 1;
             JointPDSwitch = 1.0;
+
             
         
         }else{
@@ -207,7 +208,7 @@ void LegController::updateCommand(LowlevelCmd* cmd, double* offset, int motionti
 
         double PDStand_percent = 1;
         // Swing foot===========================================================================================
-        if (~PDStand){
+        if (!PDStand){
 
             //Doing IK to get hip roll, pitch, knee
             //with the given desired foot pos/vel and fixing the hip yaw & ankle pitch (to make it degenerated to 3 DOFs)
@@ -224,12 +225,16 @@ void LegController::updateCommand(LowlevelCmd* cmd, double* offset, int motionti
             // qdDes
             commands[leg].qdDes = data[leg].J2.transpose() * foot_v_des;
 
-        }else{
-
+        }
+        else
+        {
             for (int k = 0; k < 5; k ++) {
-                Kp_joint[k] = Kp_joint[k] * 0.5;
-                Kd_joint[k] = Kd_joint[k] * 0.5;
+                Kp_joint[k] = Kp_joint[k] * 1;
+                Kd_joint[k] = Kd_joint[k] * 1;
+                //  std::cout << "PD Standing in legctrl!!!!!!!!!!!!" << commands[leg].qDes(k) << std::endl;
+                 
             }
+            JointPDSwitch = 1.0;
         }
 
 
@@ -457,7 +462,9 @@ void computeLegJacobianAndPosition(Biped& _biped, Vec5<double>& q, Mat65<double>
     p->operator()(1) = (cos(q0)* (side))/50 - (9*sin(q4)*(cos(q3)*(cos(q2)*sin(q0) + cos(q0)*sin(q1)*sin(q2)) - sin(q3)*(sin(q0)*sin(q2) - cos(q0)*cos(q2)*sin(q1))))/250 - (3*sin(q0))/200 - (11*sin(q0)*sin(q2))/50 - (11*cos(q3)*(sin(q0)*sin(q2) - cos(q0)*cos(q2)*sin(q1)))/50 - (11*sin(q3)*(cos(q2)*sin(q0) + cos(q0)*sin(q1)*sin(q2)))/50 - (9*cos(q4)*(cos(q3)*(sin(q0)*sin(q2) - cos(q0)*cos(q2)*sin(q1)) + sin(q3)*(cos(q2)*sin(q0) + cos(q0)*sin(q1)*sin(q2))))/250 + (23*cos(q0)*cos(q1)* (side))/1000 + (11*cos(q0)*cos(q2)*sin(q1))/50;
     p->operator()(2) = (23*(side)*sin(q1))/1000 - (11*cos(q1)*cos(q2))/50 - (9*cos(q4)*(cos(q1)*cos(q2)*cos(q3) - cos(q1)*sin(q2)*sin(q3)))/250 + (9*sin(q4)*(cos(q1)*cos(q2)*sin(q3) + cos(q1)*cos(q3)*sin(q2)))/250 - (11*cos(q1)*cos(q2)*cos(q3))/50 + (11*cos(q1)*sin(q2)*sin(q3))/50 - 3.0/50.0;
    }   
+
 }
+
 
 
 

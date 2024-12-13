@@ -25,6 +25,8 @@ void PDController_Stand::run(ControlFSMData& data) {
             data._legController->commands[i].tau[k] = 0;
         }
 
+        std::cout<<"running"<<std::endl;
+
         for (int k = 0; k < 3; k ++) {
             data._legController->commands[i].vDes[k] = 1; // Just as a identifier
         }
