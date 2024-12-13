@@ -139,6 +139,8 @@ void LegController::updateCommand(LowlevelCmd* cmd, double* offset, int motionti
 
     auto start = std::chrono::steady_clock::now();
 
+    bool PDStand = 1;
+
     //LIDAR-modified
     //Necessary: To prevent actuating unused joints 
     for (int i = 0; i < 12; i++){
@@ -176,35 +178,16 @@ void LegController::updateCommand(LowlevelCmd* cmd, double* offset, int motionti
 
         
 
-        
-        // Swing foot===========================================================================================
-
-        //Doing IK to get hip roll, pitch, knee
-        //with the given desired foot pos/vel and fixing the hip yaw & ankle pitch (to make it degenerated to 3 DOFs)
-
-        Vec3<double> foot_des = commands[leg].pDes; 
-        Vec3<double> foot_v_des = commands[leg].vDes;
-
-        //qDes
-        commands[leg].qDes.block(1,0, 3,1) = InverseKinematics_swingctrl(foot_des, leg);
-        // hip yaw = 0, ankle pitch is designed to be flat(=0)
-        commands[leg].qDes(0) = 0;
-        commands[leg].qDes(4) = -data[leg].q(3) - data[leg].q(2);
-
-        // qdDes
-        commands[leg].qdDes = data[leg].J2.transpose() * foot_v_des;
-
-
-
 
 
         // Decides joint PD control======================================================================================
 
-        if ( foot_des(2)==0 ){ //means contact
+        if ( commands[leg].pDes(2)==0 ){ //means contact
             JointPDSwitch = 0.0;
 
-        }else if{ //for PDStand
+        }else if( commands[leg].vDes(2) == 1 ){ //for PDStand
 
+            PDStand = 1;
             JointPDSwitch = 1.0;
             
         
@@ -212,8 +195,7 @@ void LegController::updateCommand(LowlevelCmd* cmd, double* offset, int motionti
             JointPDSwitch = 1.0;
         }
 
-
-
+        
         // //// Joint PD gains //
         double Kp_joint[5] = {10.0, 30.0, 30.0, 30.0, 10.};
                            // = {80.0, 80.0, 100.0, 120.0, 20.0};
@@ -221,6 +203,43 @@ void LegController::updateCommand(LowlevelCmd* cmd, double* offset, int motionti
                            = {1.0, 1.0, 1.0, 1.0, 0.5};
                            //= {4, 4, 6, 6, 2};
         //might need to be increased
+
+
+        double PDStand_percent = 1;
+        // Swing foot===========================================================================================
+        if (~PDStand){
+
+            //Doing IK to get hip roll, pitch, knee
+            //with the given desired foot pos/vel and fixing the hip yaw & ankle pitch (to make it degenerated to 3 DOFs)
+
+            Vec3<double> foot_des = commands[leg].pDes; 
+            Vec3<double> foot_v_des = commands[leg].vDes;
+
+            //qDes
+            commands[leg].qDes.block(1,0, 3,1) = InverseKinematics_swingctrl(foot_des, leg);
+            // hip yaw = 0, ankle pitch is designed to be flat(=0)
+            commands[leg].qDes(0) = 0;
+            commands[leg].qDes(4) = -data[leg].q(3) - data[leg].q(2);
+
+            // qdDes
+            commands[leg].qdDes = data[leg].J2.transpose() * foot_v_des;
+
+        }else{
+
+            for (int k = 0; k < 5; k ++) {
+                Kp_joint[k] = Kp_joint[k] * 0.5;
+                Kd_joint[k] = Kd_joint[k] * 0.5;
+            }
+        }
+
+
+
+
+
+
+
+
+
 
 
         // Commands to low-level controller======================================================================

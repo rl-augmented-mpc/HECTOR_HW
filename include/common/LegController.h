@@ -102,4 +102,6 @@
 
     // void computeInverseKinematics(Quadruped& _quad, Vec3<double>& pDes, int leg, Vec3<double>* qDes);
 
+    Vec3<double> InverseKinematics_swingctrl(Vec3<double> &p_Hip2Foot, int leg);
+
 #endif

@@ -19,7 +19,7 @@ void FSMState_PDStand::run()
     _data->_legController->updateData(_data->_lowState, offset); //getting joint state
     _data->_stateEstimator->run(); 
     _userValue = _data->_lowState->userValue;
-    std::cout << "motiontime is " << motionTime << std::endl;
+    std::cout << "PDSTAND NOW!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << motionTime << std::endl;
 
 
 

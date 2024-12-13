@@ -17,6 +17,8 @@ enum class UserCommand{
     L2_X,       // MPC walking
     L2_A,       // Reserved  
     L1_A,      // PDStand -> added!
+    WALK,
+    STAND
     
 };
 
