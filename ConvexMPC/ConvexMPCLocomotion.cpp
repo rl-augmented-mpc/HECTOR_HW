@@ -58,18 +58,6 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
 
   current_gait = gaitNumber;
 
-  // update reference trajectory (TODO: the following has no effect, cmd is set inside MPC??)
-  // Vec3<double> v_des_robot;
-  // Vec3<double> v_des_world;
-  // v_des_world = seResult.rBody.transpose() * v_des_robot;
-  // Vec3<double> v_robot = seResult.vWorld;
-
-  Vec3<double> v_des_robot(stateCommand->data.stateDes[6], stateCommand->data.stateDes[7], 0);
-  Vec3<double> v_des_world = seResult.rBody.transpose() * v_des_robot;
-  world_position_desired[0] += dt * v_des_world[0];
-  world_position_desired[1] += dt * v_des_world[1];
-  world_position_desired[2] = data._biped->ref_height;
-  yaw_desired += dt * stateCommand->data.stateDes[11];
 
   // get then foot location in world frame
   for (int i = 0; i < 2; i++)
@@ -86,38 +74,9 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
     world_position_desired[1] = seResult.position[1];
     world_position_desired[2] = seResult.position[2];
 
-    Vec3<double> v_des_robot(0, 0, 0); // connect to desired state command later
-    Vec3<double> v_des_world(0, 0, 0); // connect to desired state command later
-
-    // has no effect  //
-    Vec3<double> v_robot = seResult.vWorld;
-    pBody_des[0] = world_position_desired[0];
-    pBody_des[1] = world_position_desired[1];
-    pBody_des[2] = world_position_desired[2];
-    vBody_des[0] = v_des_world[0];
-    vBody_des[1] = v_des_world[1];
-    vBody_des[2] = 0;
-
-    pBody_RPY_des[0] = 0;
-    pBody_RPY_des[1] = 0;
-    pBody_RPY_des[2] = 0; // seResult.rpy[2];
-
-    vBody_Ori_des[0] = 0;
-    vBody_Ori_des[1] = 0;
-    vBody_Ori_des[2] = 0; // set this for now
-    /////////////////////
-
-
-    if (gaitNumber == 1) // standing
-    {
-      // When standing, force velocity to 0
-      pBody_des[0] = seResult.position[0];
-      pBody_des[1] = seResult.position[1];
-      pBody_des[2] = data._biped->ref_height;
-
-      vBody_des[0] = 0;
-      vBody_des[0] = 0;
-    }
+    v_des_robot << 0, 0, 0; 
+    v_des_world << 0, 0, 0;
+    v_yaw_des = 0;
 
     for (int i = 0; i < 2; i++) // walking
     {
@@ -127,6 +86,25 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
     }
     firstRun = false;
   }
+
+  // ******* update reference trajectory ************
+  v_des_robot << stateCommand->data.stateDes[6], stateCommand->data.stateDes[7], 0;
+  v_des_world = seResult.rBody.transpose() * v_des_robot;
+  v_yaw_des = stateCommand->data.stateDes[11];
+
+  if (gaitNumber == 1) // standing
+  {
+    // When standing, force velocity to 0
+    v_des_robot << 0, 0, 0;
+    v_des_world << 0, 0, 0; 
+    v_yaw_des = 0;
+  }
+
+  world_position_desired[0] += dt * v_des_world[0];
+  world_position_desired[1] += dt * v_des_world[1];
+  world_position_desired[2] = data._biped->ref_height;
+  yaw_desired += dt * v_yaw_des;
+  // ******* end of update reference trajectory ************
 
 
   // ************ foot placement planning ************
@@ -306,20 +284,12 @@ void ConvexMPCLocomotion::updateMPC(int *mpcTable, ControlFSMData &data, bool om
   double *Alpha_K = Alpha;
 
   double yaw = seResult.rpy[2];
-
-  // reference velocity 
-  Vec3<double> v_des_robot(stateCommand->data.stateDes[6], stateCommand->data.stateDes[7], 0);
-  Vec3<double> v_des_world = seResult.rBody.transpose() * v_des_robot;
-
-
   const double max_pos_error = 0.1;
   const double max_yaw_error = 0.3;
   double xStart = world_position_desired[0];
   double yStart = world_position_desired[1];
   double yawStart = yaw_desired;
 
-  double yaw_des = v_des_robot[1] * 6;
-  double height_add_des = v_des_robot[0] * 0.5;
 
   if(xStart - p[0] > max_pos_error) xStart = p[0] + max_pos_error;
   if(p[0] - xStart > max_pos_error) xStart = p[0] - max_pos_error;
@@ -334,7 +304,6 @@ void ConvexMPCLocomotion::updateMPC(int *mpcTable, ControlFSMData &data, bool om
   world_position_desired[1] = yStart;
   yaw_desired = yawStart;
 
-  double yaw_rate_des = 0.0;
   double roll_comp = 0.0;
   double pitch_comp = 0.0;
   Vec3<double> foot_center = (pFoot[0]+pFoot[1])/2.0;
@@ -343,38 +312,27 @@ void ConvexMPCLocomotion::updateMPC(int *mpcTable, ControlFSMData &data, bool om
   
   if (gaitNumber == 1)
   { //standing
-    v_des_world[0] = 0;
-    v_des_world[1] = 0;
     roll_comp = v_des_robot[0]*0.5;
     pitch_comp = v_des_robot[1]*0.5;
-    // std::cout << "pFoot 0: " << pFoot[0] << std::endl;
-    // std::cout << "pFoot 1: " << pFoot[1] << std::endl;
-    // std::cout << "pFoot center: " << foot_center << std::endl;
   }
 
   else 
   {
-    // yaw_des = 0;
-    height_add_des = 0;
-    yaw_rate_des = v_des_world[1] * 5.0;
-    // v_des_world[1] = 0;
-    // yStart = yStart;
-    // yStart = foot_center[1]-0.0;
-    // yStart = 0;
-    roll_comp = -stateCommand->data.stateDes[11]/30.0;
+    // walking
+    roll_comp = -v_yaw_des/30.0;
     pitch_comp = -v_des_robot[0]*0.15;
   }
 
 
   double trajInitial[12] = {roll_comp,  // roll
                             pitch_comp,    // pitch
-                            seResult.rpy[2],    // yaw
+                            yaw,    // yaw
                             xStart, // x
                             yStart,  // y
                             data._biped->ref_height, // z
                             0, // wx
                             0, // wy
-                            stateCommand->data.stateDes[11],  // wz
+                            v_yaw_des,  // wz
                             v_des_world[0], // vx
                             v_des_world[1], // vy
                             0}; // vz
@@ -384,7 +342,8 @@ void ConvexMPCLocomotion::updateMPC(int *mpcTable, ControlFSMData &data, bool om
   {
     for (int j = 0; j < 12; j++)
       trajAll[12 * i + j] = trajInitial[j];
-
+    
+    // compute reference x position during horizon
     if (v_des_world[0] < 0.01 && v_des_world[0] > -0.01)
     {
       trajAll[12*i + 3] = trajInitial[3] + i * dtMPC * v_des_world[0];
@@ -393,6 +352,8 @@ void ConvexMPCLocomotion::updateMPC(int *mpcTable, ControlFSMData &data, bool om
     {
         trajAll[12*i + 3] = seResult.position[0] + i * dtMPC * v_des_world[0]; 
     }
+
+    // compute reference y position during horizon
     if (v_des_world[1] < 0.01 && v_des_world[1] > -0.01)
     {
       trajAll[12*i + 4] = trajInitial[4] + i * dtMPC * v_des_world[1];
@@ -401,14 +362,17 @@ void ConvexMPCLocomotion::updateMPC(int *mpcTable, ControlFSMData &data, bool om
     {
         trajAll[12*i + 4] = seResult.position[1] + i * dtMPC * v_des_world[1]; 
     }
-    if (stateCommand->data.stateDes[11] == 0)
+
+    // compute reference yaw angle during horizon
+    if (v_yaw_des == 0)
     {
       trajAll[12*i + 2] = trajInitial[2];
     }
     else
     {
-      trajAll[12*i + 2] = yaw + i * dtMPC * stateCommand->data.stateDes[11];
+      trajAll[12*i + 2] = yaw + i * dtMPC * v_yaw_des;
     }
+
     std::cout << "traj " << i << std::endl;
     for (int j = 0; j < 12; j++) {
       std::cout << trajAll[12 * i + j] << "  ";

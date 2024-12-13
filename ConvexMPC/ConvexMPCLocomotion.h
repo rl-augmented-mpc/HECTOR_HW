@@ -68,6 +68,9 @@ private:
   int current_gait;
   int gaitNumber;
 
+  Vec3<double> v_des_robot; 
+  Vec3<double> v_des_world;
+  double v_yaw_des;
   Vec3<double> world_position_desired;
   double yaw_desired;
   Vec3<double> rpy_int;
