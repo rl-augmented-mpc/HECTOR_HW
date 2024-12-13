@@ -16,8 +16,9 @@ enum class UserCommand{
     L2_B,       // passive
     L2_X,       // MPC walking
     L2_A,       // Reserved  
-    WALK,      // walking (gait)
-    STAND      // standing (gait)
+    L1_A,      // PDStand -> added!
+    WALK,
+    STAND
     
 };
 
@@ -31,6 +32,7 @@ enum class FSMStateName{
     WALKING,
     PASSIVE,
     INVALID,
+    PDSTAND,
 };
 
 

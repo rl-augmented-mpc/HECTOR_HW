@@ -4,6 +4,7 @@
 #include "FSMState.h"
 #include "FSMState_Walking.h"
 #include "FSMState_Passive.h"
+#include "FSMState_PDStand.h"
 #include "../common/enumClass.h"
 #include <SDL2/SDL.h>
 
@@ -13,11 +14,13 @@ struct FSMStateList{
     FSMState *invalid;
     FSMState_Walking *walking;
     FSMState_Passive *passive;
+    FSMState_PDStand *pdStand;
    
     void deletePtr(){
         delete invalid;
         delete walking;
         delete passive;
+        delete pdStand;
     }  
 };
 

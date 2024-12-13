@@ -44,8 +44,8 @@ UserCommand KeyBoard::checkCmd(){
         return UserCommand::L2_B; // from FSMWalking to FSMPassive
     case '3':
         return UserCommand::L2_A; // no effect
-    case '4':
-        return UserCommand::START; // no effect
+    case '5':
+        return UserCommand::L1_A; // no effect
     case ' ':
         // userValue.setZero();
         return UserCommand::NONE;

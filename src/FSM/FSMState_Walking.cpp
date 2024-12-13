@@ -301,6 +301,9 @@ FSMStateName FSMState_Walking::checkTransition()
         // abort();
         return FSMStateName::PASSIVE;
     }
+    else if (_lowState->userCmd == UserCommand::L1_A){
+        return FSMStateName::PDSTAND;
+    }
     else{
         return FSMStateName::WALKING;
     }
