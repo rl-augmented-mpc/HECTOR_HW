@@ -4,6 +4,7 @@
 #include "../include/common/FootSwingTrajectory.h"
 #include "../include/common/ControlFSMData.h"
 #include "../include/common/cppTypes.h"
+#include "GaitGenerator.h"
 #include <fstream>
 
 using Eigen::Array4f;
@@ -16,34 +17,6 @@ using Eigen::Array2f;
 struct CMPC_Result {
   LegControllerCommand commands[2];
   Vec2<float> contactPhase;
-};
-
-
-class Gait
-{
-public:
-  Gait(int nMPC_segments, Vec2<int> offsets, Vec2<int>  durations, const std::string& name="");
-  ~Gait();
-  Vec2<double> getContactSubPhase();
-  Vec2<double> getSwingSubPhase();
-  int* mpc_gait();
-  void setIterations(int iterationsPerMPC, int currentIteration);
-  int _stance;
-  int _swing;
-
-
-private:
-  int _nMPC_segments;
-  int* _mpc_table;
-  Array2i _offsets; // offset in mpc segments
-  Array2i _durations; // duration of step in mpc segments
-  Array2d _offsetsPhase; // offsets in phase (0 to 1)
-  Array2d _durationsPhase; // durations in phase (0 to 1)
-  int _iteration;
-  int _nIterations;
-  int currentIteration;
-  double _phase;
-
 };
 
 
@@ -76,8 +49,9 @@ public:
   // ofstream foot_position;
 
 private:
-  void updateMPCIfNeeded(int* mpcTable, ControlFSMData& data, bool omniMode);
+  void updateMPC(int* mpcTable, ControlFSMData& data, bool omniMode);
   int iterationsBetweenMPC;
+  int mpc_decimation; // how many iteration between MPC updates
   int horizonLength;
   double dt;
   double dtMPC;
@@ -86,7 +60,7 @@ private:
   Vec12<double> Forces_Sol;
   Vec2<double> swingTimes;
   FootSwingTrajectory<double> footSwingTrajectories[2];
-  Gait trotting, bounding, pacing, walking, galloping, pronking, standing;
+  Gait walking, standing;
   Mat3<double> Kp, Kd, Kp_stance, Kd_stance;
   bool firstSwing[2];
   double swingTimeRemaining[2];

@@ -54,3 +54,27 @@ Keyboard is responsible for controlling FSM mode.
 To control the resolution, edit `sensitivityLeft` and `sensitivityRight` in include/interface/KeyBoard.h
 
 ## Joystick 
+* Press A: Transition from standing to walking 
+* Press B: Transition from walking to standing
+
+
+# Change default parameters
+There are sets of parameters to tune for stable walking or testing with different conditions. 
+
+* Gait parameters \
+Modify gait durations in `ConvexMPC/ConvexMPCLocomotion.cpp`.
+```cpp
+ConvexMPCLocomotion::ConvexMPCLocomotion(double _dt, int _iterations_between_mpc) : iterationsBetweenMPC(_iterations_between_mpc),
+                                                                                    horizonLength(10),
+                                                                                    dt(_dt),
+                                                                                    walking(horizonLength, Vec2<int>(200, 200), Vec2<int>(0, 0)),
+                                                                                    standing(horizonLength, Vec2<int>(int(0.0/_dt), int(0.0/_dt)), Vec2<int>(int(0.2/_dt), int(0.2/_dt)))
+```
+
+* Swing parameters 
+Modify `foot_height` in `include/common/Biped.h`. \
+Default value is 0.12m
+
+* Reference COM height 
+Modify `ref_height` in `include/common/Biped.h`. \
+Default value is 0.55m

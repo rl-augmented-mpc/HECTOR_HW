@@ -37,7 +37,7 @@ void FSMState_Walking::run()
     std::cout << "motiontime is " << motionTime << std::endl;
 
     // Joystick operation mode //
-    int gaitNum = 7; // standing default
+    int gaitNum = 1; // standing default
     int gaitTime = 250; //0.25s
 
     if (_cmd_mode == 0) // keyboard
@@ -111,7 +111,7 @@ void FSMState_Walking::run()
     }
 
     if(flagWalk == 0){
-        gaitNum = 7; // standing
+        gaitNum = 1; // standing
     }
 
     // rebalance after disturbance:
@@ -140,7 +140,7 @@ void FSMState_Walking::run()
     // }
 
     if(flagWalk == 1){
-        gaitNum = 3; // walking
+        gaitNum = 2; // walking
     }
 
 

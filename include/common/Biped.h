@@ -5,23 +5,23 @@
 #include "cppTypes.h"
 class Biped{
   public:
-    void setBiped(){
-        
-           mass = 13.856;
+    void setBiped()
+    {
+        mass = 13.856;
 
-            leg_offset_x = 0.0;
-            leg_offset_y = -0.047;//0.057;
-            leg_offset_z = -0.1360;//-0.125;
+        leg_offset_x = 0.0;
+        leg_offset_y = -0.047;//0.057;
+        leg_offset_z = -0.1360;//-0.125;
 
-            leg_offset_x2 = 0.0;
-            leg_offset_y2 = -0.047;//0.057;
-            leg_offset_z2 = -0.136;
+        leg_offset_x2 = 0.0;
+        leg_offset_y2 = -0.047;//0.057;
+        leg_offset_z2 = -0.136;
 
-            hipLinkLength = 0.038; // hip offset in const.xacro
-            thighLinkLength = 0.22;
-            calfLinkLength = 0.22;
-        
+        hipLinkLength = 0.038; // hip offset in const.xacro
+        thighLinkLength = 0.22;
+        calfLinkLength = 0.22;
     }
+
     int robot_index; // 1 for Aliengo, 2 for A1
     double hipLinkLength;
     double thighLinkLength;
@@ -33,6 +33,11 @@ class Biped{
     double leg_offset_y2;
     double leg_offset_z2;
     double mass;
+
+    // parameters for reference and swing leg controller
+    double foot_height=0.12; // swing foot height
+    double ref_height=0.55; // reference foot height
+
     Vec3<double> getHipLocation(int leg){
         assert(leg >=0 && leg <2);
         Vec3<double> pHip = Vec3<double>::Zero();
