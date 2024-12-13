@@ -15,6 +15,7 @@ class IOInterface
         void zeroCmdPanel(){cmdPanel->setZero();}
         void setPassive(){cmdPanel->setPassive();}
         CmdPanel *cmdPanel;
+        UserCommand gaitNum; 
 };
 
 #endif

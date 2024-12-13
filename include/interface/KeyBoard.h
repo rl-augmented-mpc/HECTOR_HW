@@ -20,6 +20,7 @@ private:
     void *run(void *arg);
     UserCommand checkCmd();
     void changeValue();
+    UserCommand checkGait();
 
     pthread_t _tid;
     float sensitivityLeft = 0.025;

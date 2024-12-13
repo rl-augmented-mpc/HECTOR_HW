@@ -9,7 +9,7 @@
 class FSMState_Walking: public FSMState
 {
     public:
-        FSMState_Walking(ControlFSMData *data);
+        FSMState_Walking(ControlFSMData *data, int cmd_mode);
         ~FSMState_Walking(){}
         void enter();
         void run();
@@ -18,6 +18,7 @@ class FSMState_Walking: public FSMState
 
     private:
         ConvexMPCLocomotion Cmpc;
+        int _cmd_mode = 0; // 0: keyboard, 1: joystick
         int counter;
         // Desired States
         Vec3<double> v_des_body;
@@ -25,7 +26,6 @@ class FSMState_Walking: public FSMState
         double pitch, roll;
         Eigen::VectorXd trajectory;
         Eigen::VectorXd contactState;
-
         Eigen::VectorXd getTrajectory();
 };
 

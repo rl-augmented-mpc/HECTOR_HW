@@ -1,8 +1,9 @@
 #include "../../include/FSM/FSMState_Walking.h"
 #include <chrono>
 
-FSMState_Walking::FSMState_Walking(ControlFSMData *data)
+FSMState_Walking::FSMState_Walking(ControlFSMData *data, int cmd_mode)
                  :FSMState(data, FSMStateName::WALKING, "walking"),
+                 _cmd_mode(cmd_mode),
                  Cmpc(0.001, 50){}
 
 template<typename T0, typename T1, typename T2>
@@ -15,7 +16,7 @@ void FSMState_Walking::enter()
     v_des_body << 0, 0, 0;
     pitch = 0;
     roll = 0;
-    _data->_interface->zeroCmdPanel();
+    _data->_interface->zeroCmdPanel(); // reset UserValue to all zeros
     counter = 0;
     _data->_desiredStateCommand->firstRun = true;
     _data->_stateEstimator->run();
@@ -26,7 +27,6 @@ void FSMState_Walking::enter()
 
 void FSMState_Walking::run()
 {
-    // abort();
     auto start = std::chrono::steady_clock::now();
     motionTime++;
     std::cout << "Current state is MPC " << std::endl;
@@ -36,58 +36,82 @@ void FSMState_Walking::run()
 
     std::cout << "motiontime is " << motionTime << std::endl;
 
-    joystick.pollEvents();
-    state=joystick.getState();
+    // Joystick operation mode //
+    int gaitNum = 7; // standing default
+    int gaitTime = 250; //0.25s
 
-    xAxis = state.axes[0];
-    yAxis = state.axes[1];
-    zAxis = state.axes[2];
+    if (_cmd_mode == 0) // keyboard
+    {
+        // pull velocity from keyboard (see src/interface/KeyBoard.cpp for key mappings)
+        v_des_body[0] = (double)_userValue.lx;
+        v_des_body[1] = (double)_userValue.ly;
+        turn_rate = (double)_userValue.rx;
 
-    vx_command = -yAxis * 0.1;
-    vy_command = -xAxis * 0.1;
+        // set gait number
+        if (_data->_interface->gaitNum == UserCommand::WALK){
+            flagGaitTimer_Walk = 1;
+        }
+        if(flagGaitTimer_Walk == 1 && motionTime%(gaitTime) == gaitTime/2){
+            flagWalk = 1;
+            flagGaitTimer_Walk = 0;
+        }
 
-    buttonA = state.buttons[0];
-    buttonB = state.buttons[1];
-    buttonX = state.buttons[2];
-    left_shoulder = state.buttons[4];
+        if(_data->_interface->gaitNum == UserCommand::STAND){
+            flagGaitTimer_Stand = 1;
+        }
+        if(flagGaitTimer_Stand == 1 && motionTime%gaitTime == 0){
+            flagWalk = 0;
+            flagGaitTimer_Stand = 0;
+        }
+        
+    }
+
+    else if (_cmd_mode == 1) // joystick
+    {
+        // pull velocity from joystick (see src/interface/Joystick.cpp joy mappings)
+        joystick.pollEvents();
+        state=joystick.getState();
+
+        xAxis = state.axes[0];
+        yAxis = state.axes[1];
+        zAxis = state.axes[2];
+
+        buttonA = state.buttons[0];
+        buttonB = state.buttons[1];
+        buttonX = state.buttons[2];
+        left_shoulder = state.buttons[4];
+
+        // remap stick value to command velocity
+        v_des_body[0] = -yAxis * 0.75 + 0.0;
+        v_des_body[1] = -zAxis * 0.5;
+        turn_rate = -xAxis * 4;
+
+        // set gait number
+        if(buttonA){
+            flagGaitTimer_Walk = 1;
+        }
+        if(flagGaitTimer_Walk == 1 && motionTime%(gaitTime) == gaitTime/2){
+            flagWalk = 1;
+            flagGaitTimer_Walk = 0;
+        }
+
+        if(buttonB){
+            flagGaitTimer_Stand = 1;
+        }
+        if(flagGaitTimer_Stand == 1 && motionTime%gaitTime == 0){
+            flagWalk = 0;
+            flagGaitTimer_Stand = 0;
+        }
+    }
+
+
 
     if (left_shoulder) {
         abort();
     }
 
-    v_des_body[0] = -yAxis * 0.75 + 0.0;
-    v_des_body[1] = -zAxis * 0.5;
-    turn_rate = -xAxis * 4;
-    int gaitTime = 250;
-    if(buttonA){
-        flagGaitTimer_Walk = 1;
-    }
-    if(flagGaitTimer_Walk == 1 && motionTime%(gaitTime) == gaitTime/2){
-        flagWalk = 1;
-        flagGaitTimer_Walk = 0;
-    }
-
-    if(buttonB){
-        flagGaitTimer_Stand = 1;
-    }
-    if(flagGaitTimer_Stand == 1 && motionTime%gaitTime == 0){
-        flagWalk = 0;
-        flagGaitTimer_Stand = 0;
-    }
-
-    // if(buttonA){
-    //     flagWalk = 1;
-    // }else if(buttonB){
-    //     flagWalk = 0;
-    //     flagZeroVel = 0;
-    // }else if(buttonX){
-    //     flagHi = 1;
-    //     motionTimeHi = motionTime;
-    // }
-
-    int gaitNum;
     if(flagWalk == 0){
-        gaitNum = 7;
+        gaitNum = 7; // standing
     }
 
     // rebalance after disturbance:
@@ -116,19 +140,15 @@ void FSMState_Walking::run()
     // }
 
     if(flagWalk == 1){
-        gaitNum = 3;
+        gaitNum = 3; // walking
     }
-
-    // v_des[0] = vx_command;
-    // v_des[1] = vy_command;
-    // v_command = {v_des[0], v_des[1], v_des[2]};
 
 
     for (int i = 0; i < 12; i++){
         angle << _lowState->motorState[i].q << "  ";
     }
 
-        //Angle Constraints
+    //Angle Constraints
     if (motionTime > 50){
         // Hip Constraint
         if ((_data->_legController->data[0].q(0) < Abad_Leg1_Constraint[0]) || 
@@ -194,13 +214,7 @@ void FSMState_Walking::run()
         _data->_desiredStateCommand->setStateCommands(roll, pitch, v_des_body, turn_rate);
         Cmpc.run(*_data);
 
-        // std::cout << "v_des_body is "<< std::endl;
-        // for (int i = 0; i < 3; i++){
-        //     std::cout << v_des_body[i] << " ";
-        // }
-        // std::cout << "\n";
-
-        // std::cout << "turn rate is " << turn_rate << std::endl;
+        std::cout << "vx, vy, wz: " << v_des_body[0] << " " << v_des_body[1] << " " << turn_rate << std::endl;
 
         //Push the Command to Leg Controller
         _data->_legController->updateCommand(_data->_lowCmd, offset, motionTime);
@@ -268,8 +282,8 @@ void FSMState_Walking::run()
 
 void FSMState_Walking::exit()
 {
-    _data->_interface->zeroCmdPanel();
-    _data->_interface->cmdPanel->setCmdNone();
+    _data->_interface->zeroCmdPanel(); // set uservalue to 0
+    _data->_interface->cmdPanel->setCmdNone(); // set cmd to none
 }
 
 FSMStateName FSMState_Walking::checkTransition()
@@ -278,7 +292,7 @@ FSMStateName FSMState_Walking::checkTransition()
     if(_lowState->userCmd == UserCommand::L2_B){
         std::cout << "transition from walking to passive" << std::endl;
         // abort();
-        return FSMStateName::WALKING;
+        return FSMStateName::PASSIVE;
     }
     else{
         return FSMStateName::WALKING;

@@ -110,6 +110,7 @@ void Gait::setIterations(int iterationsPerMPC, int currentIteration)
   _phase = (double)(currentIteration % (iterationsPerMPC * _nIterations)) / (double)(iterationsPerMPC * _nIterations);
 }
 
+
 /* =========================== Controller ============================= */
 ConvexMPCLocomotion::ConvexMPCLocomotion(double _dt, int _iterations_between_mpc) : iterationsBetweenMPC(_iterations_between_mpc),
                                                                                     horizonLength(10),
@@ -169,13 +170,10 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
   else if (gaitNumber == 7)
     gait = &standing;
   current_gait = gaitNumber;
-  // integrate position setpoint
-  // Vec3<double> v_des_robot(stateCommand->data.stateDes[6], stateCommand->data.stateDes[7],0);
+
+  // update command
   Vec3<double> v_des_robot;
   Vec3<double> v_des_world;
-  // v_des_world = coordinateRotation(CoordinateAxis::Z, seResult.rpy[2]).transpose() * v_des_robot;
-  // Vec3<double> v_robot = coordinateRotation(CoordinateAxis::Z, seResult.rpy[2])*seResult.vWorld;
-
   v_des_world = seResult.rBody.transpose() * v_des_robot;
   Vec3<double> v_robot = seResult.vWorld;
 
@@ -234,8 +232,8 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
     vBody_Ori_des[1] = 0;
     vBody_Ori_des[2] = 0; // set this for now
 
-    //
-    if (gaitNumber == 7)
+
+    if (gaitNumber == 7) // standing
     {
       pBody_des[0] = seResult.position[0];
       pBody_des[1] = seResult.position[1];
@@ -245,12 +243,11 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
       vBody_des[0] = 0;
     }
 
-    for (int i = 0; i < 2; i++)
+    for (int i = 0; i < 2; i++) // walking
     {
       footSwingTrajectories[i].setHeight(0.1);
       footSwingTrajectories[i].setInitialPosition(pFoot[i]);
       footSwingTrajectories[i].setFinalPosition(pFoot[i]);
-      // std::cout << "orig foot pos " << i << pFoot[i] << std::endl;
     }
     firstRun = false;
   }
@@ -259,11 +256,7 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
   // foot placement
   swingTimes[0] = dtMPC * gait->_swing;
   swingTimes[1] = dtMPC * gait->_swing;
-  // std::cout << "dt_MPC: " << dtMPC << std::endl;
 
-  // std::cout << "Swing Time: " << swingTimes[0] << std::endl;
-
-  // std::cout << "Swing Time" << swingTimes << std::endl;
   double side_sign[2] = {1, -1};
   double interleave_y[2] = {-0.1, 0.1};
   double interleave_gain = -0.2;

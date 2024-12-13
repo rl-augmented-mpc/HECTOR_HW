@@ -39,23 +39,28 @@ UserCommand KeyBoard::checkCmd(){
     // case ' ':
     //     return UserCommand::EXIT;
     case '1':
-        return UserCommand::L2_B;
+        return UserCommand::L2_X; // from FSMPassive to FSMWalking
     case '2':
-        return UserCommand::L2_A;
+        return UserCommand::L2_B; // from FSMWalking to FSMPassive
     case '3':
-        return UserCommand::L2_X;
+        return UserCommand::L2_A; // no effect
     case '4':
-        return UserCommand::START;
-    // case '5':
-    //     return UserCommand::L2_Y;
-    // case '0':
-    //     return UserCommand::L1_X;
-    // case '9':
-    //     return UserCommand::L1_A;
-    // case '8':
-    //     return UserCommand::L1_Y;
+        return UserCommand::START; // no effect
     case ' ':
-        userValue.setZero();
+        // userValue.setZero();
+        return UserCommand::NONE;
+    default:
+        return UserCommand::NONE;
+    }
+}
+
+UserCommand KeyBoard::checkGait(){
+    switch (_c){
+    case '3':
+        return UserCommand::WALK; // walking
+    case '4':
+        return UserCommand::STAND; // standing
+    case ' ':
         return UserCommand::NONE;
     default:
         return UserCommand::NONE;
@@ -66,28 +71,37 @@ void KeyBoard::changeValue(){
     switch (_c){
     case 'w':case 'W':
         userValue.ly = min<float>(userValue.ly+sensitivityLeft, 1.f);
+        std::cout << "command velocity (vx, vy, wz): " << userValue.lx << " " << userValue.ly << " " << userValue.rx << " " << userValue.ry << std::endl;
         break;
     case 's':case 'S':
         userValue.ly = max<float>(userValue.ly-sensitivityLeft, -1.f);
+        std::cout << "command velocity (vx, vy, wz): " << userValue.lx << " " << userValue.ly << " " << userValue.rx << " " << userValue.ry << std::endl;
         break;
     case 'd':case 'D':
         userValue.lx = min<float>(userValue.lx+sensitivityLeft, 1.f);
+        std::cout << "command velocity (vx, vy, wz): " << userValue.lx << " " << userValue.ly << " " << userValue.rx << " " << userValue.ry << std::endl;
         break;
     case 'a':case 'A':
         userValue.lx = max<float>(userValue.lx-sensitivityLeft, -1.f);
+        std::cout << "command velocity (vx, vy, wz): " << userValue.lx << " " << userValue.ly << " " << userValue.rx << " " << userValue.ry << std::endl;
         break;
-
+    // ignore the following commands
     case 'i':case 'I':
         userValue.ry = min<float>(userValue.ry+sensitivityRight, 1.f);
+        std::cout << "command velocity (vx, vy, wz): " << userValue.lx << " " << userValue.ly << " " << userValue.rx << " " << userValue.ry << std::endl;
         break;
     case 'k':case 'K':
         userValue.ry = max<float>(userValue.ry-sensitivityRight, -1.f);
+        std::cout << "command velocity (vx, vy, wz): " << userValue.lx << " " << userValue.ly << " " << userValue.rx << " " << userValue.ry << std::endl;
         break;
+    /////////////////////////////////
     case 'l':case 'L':
         userValue.rx = min<float>(userValue.rx+sensitivityRight, 1.f);
+        std::cout << "command velocity (vx, vy, wz): " << userValue.lx << " " << userValue.ly << " " << userValue.rx << " " << userValue.ry << std::endl;
         break;
     case 'j':case 'J':
         userValue.rx = max<float>(userValue.rx-sensitivityRight, -1.f);
+        std::cout << "command velocity (vx, vy, wz): " << userValue.lx << " " << userValue.ly << " " << userValue.rx << " " << userValue.ry << std::endl;
         break;
     default:
         break;
@@ -110,8 +124,10 @@ void* KeyBoard::run(void *arg){
         if(res > 0){
             read( fileno( stdin ), &_c, 1 );
             userCmd = checkCmd();
-            if(userCmd == UserCommand::NONE)
+            gaitNum = checkGait();
+            if(userCmd == UserCommand::L2_X){
                 changeValue();
+            }
             _c = '\0';
         }
         usleep(1000);

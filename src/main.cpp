@@ -39,7 +39,7 @@ int main()
     
     double dt = 0.001;    
     int robot_id = 4; // AlienGo=1, A1=2, Biped=4
-    int cmd_panel_id = 2; // Wireless=1, keyboard=2
+    int cmd_panel_id = 2; // Wireless=1, keyboard=2 (ONLY keyboard is supported for now)
 
     
     IOInterface *ioInter;

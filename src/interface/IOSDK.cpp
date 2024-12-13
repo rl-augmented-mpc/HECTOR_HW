@@ -56,6 +56,7 @@ void IOSDK::sendRecv(const LowlevelCmd *cmd, LowlevelState *state){
     cmdPanel->receiveHandle(&_lowState);
     state->userCmd = cmdPanel->getUserCmd();
     state->userValue = cmdPanel->getUserValue();
+    gaitNum = cmdPanel->getGaitNum();
 
     // _control.PowerProtect(_lowCmd, _lowState, 10);
 
