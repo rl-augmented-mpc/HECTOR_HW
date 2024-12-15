@@ -139,7 +139,7 @@ void LegController::updateCommand(LowlevelCmd* cmd, double* offset, int motionti
 
     auto start = std::chrono::steady_clock::now();
 
-    bool PDStand = 1;
+    bool PDStand = 0;
 
     //LIDAR-modified
     //Necessary: To prevent actuating unused joints 
@@ -482,7 +482,7 @@ Vec3<double> InverseKinematics_swingctrl(Vec3<double> &p_Hip2Foot, int leg)
     }
 
     Vec3<double> hip_roll;
-    hip_roll = {0.0665, 0.0*side, -0.197};
+        hip_roll = {0.0465, 0.02*side, -0.197};
     Vec3<double> foot_des_to_hip_roll = p_Hip2Foot - hip_roll;
     double distance_3D = pow( (  pow((foot_des_to_hip_roll(0)+0.06),2.0) + 
                 pow(foot_des_to_hip_roll(1), 2.0) + pow(foot_des_to_hip_roll(2), 2.0) ), 0.5);

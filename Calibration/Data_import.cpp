@@ -44,34 +44,34 @@ void angle_offset(){
         ss >> angle1 >> angle2 >> angle3 >> angle4 >> angle5 >> angle6 >> angle7 >> angle8 >> angle9 >> angle10 >> angle11 >> angle12;
     }
 
-    Eigen::RowVectorXd corrected_angle(10);
-    Eigen::RowVectorXd init_angle(10);
-    Eigen::RowVectorXd corrected_angle_2(10);
     Eigen::RowVectorXd offset(10);
-
     double gear_ratio = 1.545;
-    double knee_joint_pos = -1.5708 * gear_ratio;
-
-
-    // corrected_angle << -0.02152, 0.03086, -0.04939, -2.63111, 1.44497, -0.01307, -0.01974, -0.1187, -2.59689, 1.40156;
-    corrected_angle << 0.0, 0.0, 0.0, knee_joint_pos, 0.0, 0.0, 0.0, 0.0, knee_joint_pos, 0.0;
-    init_angle << angle2, angle3, angle10, angle11, angle12, angle5, angle6, angle7, angle8, angle9;
-
-    corrected_angle_2 = corrected_angle;
-
-    corrected_angle_2(4) = (corrected_angle(4))+(corrected_angle(3)/gear_ratio);
-    corrected_angle_2(9) = (corrected_angle(9))+(corrected_angle(8)/gear_ratio);
-
-    corrected_angle_2(3) = corrected_angle_2(3);
-    corrected_angle_2(8) = corrected_angle_2(8);
-
-    corrected_angle_2(5) = -corrected_angle_2(5);
-    corrected_angle_2(6) = -corrected_angle_2(6);
-    corrected_angle_2(7) = -corrected_angle_2(7);
 
 
 
-    offset = corrected_angle_2 - init_angle;
+    //  ctrl_space_calibration_pose_angle
+    Eigen::RowVectorXd theta_c_0(10);
+    Eigen::RowVectorXd theta_m_0(10);
+    Eigen::RowVectorXd theta_m_raw_0(10);
+
+    theta_c_0 << 0.0, 0.0, 7, -96, 83, 0.0, 0.0, 7, -96, 83;
+
+    // theta_c_0 << 0.0, 0.0, 0, -90, 0, 0.0, 0.0, 0, -90, 0;
+    theta_c_0 = theta_c_0 * M_PI / 180; // convert to radian
+    std::cout<< "calibration pose in ctrl space is " << std::endl << theta_c_0 << std::endl;
+
+    theta_m_0 = theta_c_0;
+    theta_m_0(4) = (theta_c_0(4))+(theta_c_0(3));
+    theta_m_0(9) = (theta_c_0(9))+(theta_c_0(8));
+    theta_m_0(3) = theta_m_0(3)*gear_ratio;
+    theta_m_0(8) = theta_m_0(8)*gear_ratio;
+    theta_m_0(5) = -theta_m_0(5);
+    theta_m_0(6) = -theta_m_0(6);
+    theta_m_0(7) = -theta_m_0(7);
+
+    theta_m_raw_0 << angle2, angle3, angle10, angle11, angle12, angle5, angle6, angle7, angle8, angle9; //already in radian
+
+    offset = theta_m_0 - theta_m_raw_0;
 
     std::cout << offset << std::endl;
     offset_data << offset;
