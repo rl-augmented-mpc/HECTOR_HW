@@ -64,6 +64,7 @@
         "compare": "cpp",
         "concepts": "cpp",
         "semaphore": "cpp",
-        "stop_token": "cpp"
+        "stop_token": "cpp",
+        "matrixfunctions": "cpp"
     }
 }
