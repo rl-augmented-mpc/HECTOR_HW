@@ -78,3 +78,18 @@ Default value is 0.12m
 * Reference COM height 
 Modify `ref_height` in `include/common/Biped.h`. \
 Default value is 0.55m
+
+
+
+
+
+
+
+
+ZIwon
+
+cd hector_system
+mkdir build
+cd build
+cmake .. -DCMAKE_INSTALL_PREFIX=./install
+cmake --build . --target install

@@ -1,1 +1,3 @@
-build/
+hector_system/build
+Interface/HW_interface/build
+build/*
