@@ -3,6 +3,9 @@
 #include <csignal>
 #include <sched.h>
 
+#include <hector_system/interface/IOSDK.h>
+
+
 
 #include "../include/interface/IOSDK.h"
 #include "../include/common/ControlFSMData.h"

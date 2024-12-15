@@ -1,6 +1,6 @@
-if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install" CACHE PATH "Default install path" FORCE)
-endif()
+# if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+#     set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install" CACHE PATH "Default install path" FORCE)
+# endif()
 
 cmake_minimum_required(VERSION 3.5)
 project(hector_system)
@@ -49,5 +49,5 @@ install(TARGETS ${PROJECT_NAME}
 
 
 install(DIRECTORY include/
-        DESTINATION include
+        DESTINATION include/${PROJECT_NAME}
 )

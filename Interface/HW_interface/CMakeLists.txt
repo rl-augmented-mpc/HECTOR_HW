@@ -17,9 +17,8 @@ cmake_minimum_required(VERSION 3.5)
 
 include_directories(${CMAKE_BINARY_DIR})
 
-
-include_directories("../../hector_system/install/include")
-link_directories("../../hector_system/build/install/lib")
+find_package(hector_system REQUIRED)
+# include_directories(${hector_system_INCLUDE_DIR})
 
 #########################################################
 
