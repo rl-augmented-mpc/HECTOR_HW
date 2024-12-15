@@ -42,86 +42,76 @@ void LegController::zeroCommand(){
 
 void LegController::updateData(const LowlevelState* state, double* offset){
 
-    //LIDAR-modified
-    if (state->motorState[2].q != 0){
-        //Joint sequence reassignment: low-lev joint data -> controller space joint data
-        for (int leg = 0; leg < 2; leg++){
+    // LIDAR-modified
+    // Joint sequence reassignment: low-lev joint data -> controller space joint data
+    for (int leg = 0; leg < 2; leg++)
+    {
 
-            
-            //get from low-lev motorstate
-            for (int j = 0; j < 5; j++){
-                data[leg].q(j) = state->motorState[motor_sequence[j + leg*5]].q;
-                data[leg].qd(j) = state->motorState[motor_sequence[j + leg*5]].dq;
-                data[leg].tau(j) = state->motorState[motor_sequence[j + leg*5]].tauEst;
-            }
+        // get from low-lev motorstate
+        for (int j = 0; j < 5; j++)
+        {
+            data[leg].q(j) = state->motorState[motor_sequence[j + leg * 5]].q;
+            data[leg].qd(j) = state->motorState[motor_sequence[j + leg * 5]].dq;
+            data[leg].tau(j) = state->motorState[motor_sequence[j + leg * 5]].tauEst;
 
-
-            
-            std::cout << "\n\nleg " << leg << " angle raw data: " << std::endl;
-            for (int j = 0; j < 5; j++)
+            if (state->motorState[motor_sequence[j + leg * 5]].q == 0)
             {
-                std::cout << data[leg].q(j) * 180 / 3.1415 << "    ";
+                std::cout << "Motor Connection on leg " << leg << "at" << j << " LOST!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+                abort();
             }
-            if (data[leg].q(2) == 0){
-                std::cout << "Motor Connection at hip pitch lost!!!!!!!!!!!!!!!!!!!!!!!!!!" <<std::endl;
-            }
-
-            //offset importing
-            for(int i = 0; i < 5; i++){
-                data[leg].q(i) = data[leg].q(i) + offset[i+leg*5];
-            }
-
-            //Unitree-related calibration
-            if (leg == 1){
-                data[leg].q(0)  = -data[leg].q(0);
-                data[leg].q(1)  = -data[leg].q(1);
-                data[leg].q(2)  = -data[leg].q(2);
-                data[leg].qd(0) = -data[leg].qd(0);
-                data[leg].qd(1) = -data[leg].qd(1);
-                data[leg].qd(2) = -data[leg].qd(2);
-            }
-
-            //For knee pully system
-            double compensation = 1.0;
-            data[leg].q(3) = data[leg].q(3) / gear_ratio;
-            data[leg].qd(3) = data[leg].qd(3) / gear_ratio;
-            data[leg].tau(3) = -data[leg].tau(3) * gear_ratio * compensation;
-
-            //For Ankle actuation linkage
-            data[leg].q(4) = data[leg].q(4)-data[leg].q(3);
-            data[leg].qd(4) = data[leg].qd(4)-data[leg].qd(3);
-
-
-
-            computeLegJacobianAndPosition(_biped,data[leg].q, &(data[leg].J),&(data[leg].J2),&(data[leg].p),leg);
-            // data[leg].J = _robot.HiptoFootJacobian(data[leg].q, leg, 1);
-            // data[leg].J2 = data[leg].J.block(0,0, 3,5);
-            // data[leg].p = _robot.HiptoFoot(data[leg].q, leg, 1);
-            data[leg].v = data[leg].J2 * data[leg].qd;
-
-
-            for (int i = 0; i < 5; i++){
-                feedback_torque << data[leg].tau(i) << "    ";
-            }
-
-            std::cout << "\nleg "<< leg<< " angle calibrated data: " << std::endl;
-            for(int j = 0; j<5; j++){
-            std::cout << data[leg].q(j)*180/3.1415 << "    ";
-            }
-
-
-
         }
-        feedback_torque << std::endl;
 
-    }else{
-        counter++;
-        std::cout << "skipped counter: " << counter << std::endl;
+        std::cout << "\n\nleg " << leg << " angle raw data: " << std::endl;
+        for (int j = 0; j < 5; j++)
+        {
+            std::cout << data[leg].q(j) * 180 / 3.1415 << "    ";
+        }
+
+        // offset importing
+        for (int i = 0; i < 5; i++)
+        {
+            data[leg].q(i) = data[leg].q(i) + offset[i + leg * 5];
+        }
+
+        // Unitree-related calibration
+        if (leg == 1)
+        {
+            data[leg].q(0) = -data[leg].q(0);
+            data[leg].q(1) = -data[leg].q(1);
+            data[leg].q(2) = -data[leg].q(2);
+            data[leg].qd(0) = -data[leg].qd(0);
+            data[leg].qd(1) = -data[leg].qd(1);
+            data[leg].qd(2) = -data[leg].qd(2);
+        }
+
+        // For knee pully system
+        double compensation = 1.0;
+        data[leg].q(3) = data[leg].q(3) / gear_ratio;
+        data[leg].qd(3) = data[leg].qd(3) / gear_ratio;
+        data[leg].tau(3) = -data[leg].tau(3) * gear_ratio * compensation;
+
+        // For Ankle actuation linkage
+        data[leg].q(4) = data[leg].q(4) - data[leg].q(3);
+        data[leg].qd(4) = data[leg].qd(4) - data[leg].qd(3);
+
+        computeLegJacobianAndPosition(_biped, data[leg].q, &(data[leg].J), &(data[leg].J2), &(data[leg].p), leg);
+        // data[leg].J = _robot.HiptoFootJacobian(data[leg].q, leg, 1);
+        // data[leg].J2 = data[leg].J.block(0,0, 3,5);
+        // data[leg].p = _robot.HiptoFoot(data[leg].q, leg, 1);
+        data[leg].v = data[leg].J2 * data[leg].qd;
+
+        for (int i = 0; i < 5; i++)
+        {
+            feedback_torque << data[leg].tau(i) << "    ";
+        }
+
+        std::cout << "\nleg " << leg << " angle calibrated data: " << std::endl;
+        for (int j = 0; j < 5; j++)
+        {
+            std::cout << data[leg].q(j) * 180 / 3.1415 << "    ";
+        }
     }
-
-
-
-
+    feedback_torque << std::endl;
 }
 
 
