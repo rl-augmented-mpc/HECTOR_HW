@@ -28,18 +28,6 @@ void FSMState_PDStand::run()
 
 
 
-    joystick.pollEvents();
-    state=joystick.getState();
-
-    buttonA = state.buttons[0];
-    buttonB = state.buttons[1];
-    left_shoulder = state.buttons[4];
-
-    if (left_shoulder) {
-        abort();
-    }
-
-
 
 
 

@@ -6,7 +6,7 @@
 #include "FSMState_Passive.h"
 #include "FSMState_PDStand.h"
 #include "../common/enumClass.h"
-#include <SDL2/SDL.h>
+// #include <SDL2/SDL.h>
 
 // #include "../common/PoseData.h"
 

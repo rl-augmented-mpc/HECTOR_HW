@@ -1,0 +1,12 @@
+USERVALUE, USERCMD setting and syncronization should be done
+
+
+
+TODO: Joystick as like Keyboard
+
+FSMstate -> calibration and constraints
+
+
+FSM.cpp -> maked_shared
+
+

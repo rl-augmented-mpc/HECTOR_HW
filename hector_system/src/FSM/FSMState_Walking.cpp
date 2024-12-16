@@ -42,69 +42,29 @@ void FSMState_Walking::run()
     int gaitNum = 1; // standing default
     int gaitTime = 250; //0.25s
 
-    if (_cmd_mode == 0) // keyboard
-    {
-        // pull velocity from keyboard (see src/interface/KeyBoard.cpp for key mappings)
-        v_des_body[0] = (double)_userValue.lx;
-        v_des_body[1] = (double)_userValue.ly;
-        turn_rate = (double)_userValue.rx;
 
-        // set gait number
-        if (_data->_lowState->userCmd == UserCommand::WALK){ 
-            flagGaitTimer_Walk = 1;
-        }
-        if(flagGaitTimer_Walk == 1 && motionTime%(gaitTime) == gaitTime/2){
-            flagWalk = 1;
-            flagGaitTimer_Walk = 0;
-        }
+    // pull velocity from keyboard (see src/interface/KeyBoard.cpp for key mappings)
+    v_des_body[0] = (double)_userValue.lx;
+    v_des_body[1] = (double)_userValue.ly;
+    turn_rate = (double)_userValue.rx;
 
-        if(_data->_lowState->userCmd == UserCommand::STAND){
-            flagGaitTimer_Stand = 1;
-        }
-        if(flagGaitTimer_Stand == 1 && motionTime%gaitTime == 0){
-            flagWalk = 0;
-            flagGaitTimer_Stand = 0;
-        }
-        
+    // set gait number
+    if (_data->_lowState->userCmd == UserCommand::WALK){ 
+        flagGaitTimer_Walk = 1;
+    }
+    if(flagGaitTimer_Walk == 1 && motionTime%(gaitTime) == gaitTime/2){
+        flagWalk = 1;
+        flagGaitTimer_Walk = 0;
     }
 
-    else if (_cmd_mode == 1) // joystick
-    {
-        // pull velocity from joystick (see src/interface/Joystick.cpp joy mappings)
-        joystick.pollEvents();
-        state=joystick.getState();
-
-        xAxis = state.axes[0];
-        yAxis = state.axes[1];
-        zAxis = state.axes[2];
-
-        buttonA = state.buttons[0];
-        buttonB = state.buttons[1];
-        buttonX = state.buttons[2];
-        left_shoulder = state.buttons[4];
-
-        // remap stick value to command velocity
-        v_des_body[0] = -yAxis * 0.75 + 0.0;
-        v_des_body[1] = -zAxis * 0.5;
-        turn_rate = -xAxis * 4;
-
-        // set gait number
-        if(buttonA){
-            flagGaitTimer_Walk = 1;
-        }
-        if(flagGaitTimer_Walk == 1 && motionTime%(gaitTime) == gaitTime/2){
-            flagWalk = 1;
-            flagGaitTimer_Walk = 0;
-        }
-
-        if(buttonB){
-            flagGaitTimer_Stand = 1;
-        }
-        if(flagGaitTimer_Stand == 1 && motionTime%gaitTime == 0){
-            flagWalk = 0;
-            flagGaitTimer_Stand = 0;
-        }
+    if(_data->_lowState->userCmd == UserCommand::STAND){
+        flagGaitTimer_Stand = 1;
     }
+    if(flagGaitTimer_Stand == 1 && motionTime%gaitTime == 0){
+        flagWalk = 0;
+        flagGaitTimer_Stand = 0;
+    }
+    
     
     // if (flagWalk==0){
     //     std::cout << "standing mode" << std::endl; 

@@ -24,16 +24,16 @@ void FSMState_Passive::run()
     // _data->_stateEstimator->setContactPhase(contactphase);
     _data->_stateEstimator->run();
 
-    joystick.pollEvents();
-    state=joystick.getState();
+    // joystick.pollEvents();
+    // state=joystick.getState();
 
-    buttonA = state.buttons[0];
-    buttonB = state.buttons[1];
-    left_shoulder = state.buttons[4];
+    // buttonA = state.buttons[0];
+    // buttonB = state.buttons[1];
+    // left_shoulder = state.buttons[4];
 
-    if (left_shoulder) {
-        abort();
-    }
+    // if (left_shoulder) {
+    //     abort();
+    // }
 
 
     for (int i = 0; i < 12; i++){

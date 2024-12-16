@@ -19,12 +19,6 @@ struct ControlFSMData {
   LowlevelCmd *_lowCmd;
   LowlevelState *_lowState;
 
-  // void sendRecv(){
-  //   _interface->sendRecv(_lowCmd, _lowState);
-  //   // _legController->updateData(_lowState, offset);
-
-  //   // _legController->updateCommand(_lowCmd);
-  // }
 };
 
 
