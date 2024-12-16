@@ -24,7 +24,7 @@ include_directories(${SDL2_INCLUDE_DIRS})
 
 set(DEPENDENCIES realsense2 SDL2)
 
-
+link_directories(include/sdk/lib)
 set(EXTRA_LIBS -pthread libunitree_legged_sdk_amd64.so lcm)
 
 set(CMAKE_CXX_FLAGS "-O3")
