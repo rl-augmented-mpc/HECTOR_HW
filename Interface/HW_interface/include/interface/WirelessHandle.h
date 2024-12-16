@@ -1,9 +1,9 @@
 #ifndef WIRELESSHANDLE_H
 #define WIRELESSHANDLE_H
 
-#include "../messages/unitree_joystick.h"
+#include "../../../../hector_system/include/messages/unitree_joystick.h"
 #include "CmdPanel.h"
-#include "../sdk/include/comm.h"
+#include "../../../../hector_system/include/sdk/include/comm.h"
 
 class WirelessHandle : public CmdPanel{
 public:

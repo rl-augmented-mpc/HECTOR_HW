@@ -5,8 +5,8 @@
 
 
 
-#include "../../../hector_system/include/interface/IOSDK.h"
-#include "../../../hector_system/include/interface/WirelessHandle.h"
+#include "../include/interface/IOSDK.h"
+#include "../include/interface/WirelessHandle.h"
 
 #include "../../../hector_system/include/common/ControlFSMData.h"
 #include "../../../hector_system/include/FSM/FSM.h"

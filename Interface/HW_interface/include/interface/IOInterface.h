@@ -1,9 +1,9 @@
 #ifndef IOINTERFACE_H
 #define IOINTERFACE_H
 
-#include "../messages/LowLevelCmd.h"
-#include "../messages/LowlevelState.h"
-#include "../common/ControlFSMData.h"
+#include "../../../../hector_system/include/messages/LowLevelCmd.h"
+#include "../../../../hector_system/include/messages/LowlevelState.h"
+#include "../../../../hector_system/include/common/ControlFSMData.h"
 #include "CmdPanel.h"
 #include <string>
 

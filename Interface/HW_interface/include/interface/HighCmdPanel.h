@@ -1,9 +1,9 @@
 #ifndef HIGHCMDPENAL_H
 #define HIGHCMDPENAL_H
 
-#include "../common/cppTypes.h"
+#include "../../../../hector_system/include/common/cppTypes.h"
 #include "CmdPanel.h"
-#include "../sdk/include/unitree_legged_sdk.h"
+#include "../../../../hector_system/include/sdk/include/unitree_legged_sdk.h"
 
 using namespace UNITREE_LEGGED_SDK;
 
