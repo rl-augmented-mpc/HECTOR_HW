@@ -30,10 +30,18 @@ set(EXTRA_LIBS -pthread libunitree_legged_sdk_amd64.so lcm)
 set(CMAKE_CXX_FLAGS "-O3")
 
 
-file(GLOB_RECURSE sources "../../hector_system/include/*/*.h" "../../hector_system/src/*/*.cpp" "../../hector_system/ConvexMPC/*.cpp" "../../hector_system/include/*/*/*.h" 
-"../../hector_system/PDController/*.cpp")
+file(GLOB_RECURSE sources
+"../../hector_system/include/*/*.h"
+"../../hector_system/src/*/*.cpp"
+"../../hector_system/ConvexMPC/*.cpp"
+"../../hector_system/include/*/*/*.h" 
+"../../hector_system/PDController/*.cpp"
 
-add_library(src ${sources} "../../hector_system/src/common/PoseData.cpp")
+"include/*/*.h"
+"src/*/*.cpp"
+)
+
+add_library(src ${sources} "src/stateestimator/PoseData.cpp")
 target_link_libraries(src ${EXTRA_LIBS} ${DEPENDENCIES})
 
 add_executable(biped_ctrl src/main.cpp)

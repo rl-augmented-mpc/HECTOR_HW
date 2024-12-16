@@ -1,5 +1,5 @@
-#include "../../include/common/PositionVelocityEstimator.h"
-#include "../../include/FSM/FSMState.h"
+#include "../../include/stateestimator/PositionVelocityEstimator.h"
+#include "../../../../hector_system/include/FSM/FSMState.h"
 
 void LinearKFPositionVelocityEstimator::setup() {
 //   double dt = 0.001;

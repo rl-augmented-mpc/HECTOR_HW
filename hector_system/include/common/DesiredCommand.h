@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <termios.h>
 #include "StateEstimatorContainer.h"
-#include "../interface/CmdPanel.h"
+// #include "../interface/CmdPanel.h"
 
 struct DesiredStateData{
 

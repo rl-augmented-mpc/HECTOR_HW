@@ -7,9 +7,9 @@
 
 #ifndef PROJECT_POSITIONVELOCITYESTIMATOR_H
 #define PROJECT_POSITIONVELOCITYESTIMATOR_H
-#include "StateEstimatorContainer.h"
 #include <librealsense2/rs.hpp>
-#include "Math/orientation_tools.h"
+#include "../../../../hector_system/include/common/StateEstimatorContainer.h"
+#include "../../../../hector_system/include/common/Math/orientation_tools.h"
 
 
 class LinearKFPositionVelocityEstimator : public GenericEstimator{
