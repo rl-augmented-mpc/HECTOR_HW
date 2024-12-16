@@ -23,7 +23,11 @@ _udp(LOWLEVEL)
 
 }
 
-void IOSDK::sendRecv(const LowlevelCmd *cmd, LowlevelState *state){
+void IOSDK::sendRecv(){
+
+    const LowlevelCmd *cmd = _data->_lowCmd;
+    LowlevelState *state = _data->_lowState;
+
     _udp.Recv();
     _udp.GetRecv(_lowState);
     for(int i(0); i < 12; ++i){

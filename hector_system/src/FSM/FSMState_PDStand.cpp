@@ -6,7 +6,8 @@ FSMState_PDStand::FSMState_PDStand(ControlFSMData *data)
 
 void FSMState_PDStand::enter()
 {
-    _data->_interface->zeroCmdPanel();
+    // _data->_interface->zeroCmdPanel();
+    _data->_lowState->userValue.setZero();
     _data->_desiredStateCommand->firstRun = true;
     _data->_stateEstimator->run(); 
     _data->_legController->zeroCommand();
@@ -129,16 +130,18 @@ void FSMState_PDStand::run()
 
 void FSMState_PDStand::exit()
 {      
-    _data->_interface->zeroCmdPanel();
-    _data->_interface->cmdPanel->setCmdNone();
+    // _data->_interface->zeroCmdPanel();
+    // _data->_interface->cmdPanel->setCmdNone();
+    _data->_lowState->userValue.setZero();
+    _data->_lowState->userCmd = UserCommand::NONE;
 }
 
 FSMStateName FSMState_PDStand::checkTransition()
 {
-    if(_lowState->userCmd == UserCommand::L2_B){
+    if(_lowState->userCmd == UserCommand::PASSIVE){
         return FSMStateName::PASSIVE;
     }
-    else if (_lowState->userCmd == UserCommand::L2_X){
+    else if (_lowState->userCmd == UserCommand::WALK){
         return FSMStateName::WALKING;
     }
     else {

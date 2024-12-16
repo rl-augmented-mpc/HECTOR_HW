@@ -9,7 +9,7 @@ void WirelessHandle::receiveHandle(UNITREE_LEGGED_SDK::LowState *lowState){
 
     if(((int)_keyData.btn.components.L2 == 1) && 
        ((int)_keyData.btn.components.B  == 1)){
-        userCmd = UserCommand::L2_B;
+        userCmd = UserCommand::PASSIVE;
     }
     else if(((int)_keyData.btn.components.L2 == 1) && 
             ((int)_keyData.btn.components.A  == 1)){
@@ -17,7 +17,7 @@ void WirelessHandle::receiveHandle(UNITREE_LEGGED_SDK::LowState *lowState){
     }
     else if(((int)_keyData.btn.components.L2 == 1) && 
             ((int)_keyData.btn.components.X  == 1)){
-        userCmd = UserCommand::L2_X;
+        userCmd = UserCommand::WALK;
     }
 
     // else if(((int)_keyData.btn.components.L2 == 1) && 

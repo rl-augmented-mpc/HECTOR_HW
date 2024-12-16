@@ -16,7 +16,9 @@ void FSMState_Walking::enter()
     v_des_body << 0, 0, 0;
     pitch = 0;
     roll = 0;
-    _data->_interface->zeroCmdPanel(); // reset UserValue to all zeros
+    // _data->_interface->zeroCmdPanel(); // reset UserValue to all zeros
+    _data->_lowState->userValue.setZero();
+
     counter = 0;
     _data->_desiredStateCommand->firstRun = true;
     _data->_stateEstimator->run();
@@ -48,7 +50,7 @@ void FSMState_Walking::run()
         turn_rate = (double)_userValue.rx;
 
         // set gait number
-        if (_data->_interface->gaitNum == UserCommand::WALK){ 
+        if (_data->_lowState->userCmd == UserCommand::WALK){ 
             flagGaitTimer_Walk = 1;
         }
         if(flagGaitTimer_Walk == 1 && motionTime%(gaitTime) == gaitTime/2){
@@ -56,7 +58,7 @@ void FSMState_Walking::run()
             flagGaitTimer_Walk = 0;
         }
 
-        if(_data->_interface->gaitNum == UserCommand::STAND){
+        if(_data->_lowState->userCmd == UserCommand::STAND){
             flagGaitTimer_Stand = 1;
         }
         if(flagGaitTimer_Stand == 1 && motionTime%gaitTime == 0){
@@ -289,19 +291,21 @@ void FSMState_Walking::run()
 
 void FSMState_Walking::exit()
 {
-    _data->_interface->zeroCmdPanel(); // set uservalue to 0
-    _data->_interface->cmdPanel->setCmdNone(); // set cmd to none
+    // _data->_interface->zeroCmdPanel(); // set uservalue to 0
+    // _data->_interface->cmdPanel->setCmdNone(); // set cmd to none
+    _data->_lowState->userValue.setZero();
+    _data->_lowState->userCmd = UserCommand::NONE;
 }
 
 FSMStateName FSMState_Walking::checkTransition()
 {
 
-    if(_lowState->userCmd == UserCommand::L2_B){
+    if(_lowState->userCmd == UserCommand::PASSIVE){
         std::cout << "transition from walking to passive" << std::endl;
         // abort();
         return FSMStateName::PASSIVE;
     }
-    else if (_lowState->userCmd == UserCommand::L1_A){
+    else if (_lowState->userCmd == UserCommand::PDSTAND){
         return FSMStateName::PDSTAND;
     }
     else{

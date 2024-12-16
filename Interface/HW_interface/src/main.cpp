@@ -48,16 +48,18 @@ int main()
     int cmd_panel_id = 2; // Wireless=1, keyboard=2 (ONLY keyboard is supported for now)
 
     
-    IOInterface *ioInter;
-    if(robot_id == 1){
-    ioInter = new IOSDK(LeggedType::Aliengo, cmd_panel_id);
-    }
-    else if(robot_id == 2){
-    ioInter = new IOSDK(LeggedType::A1, cmd_panel_id);
-    }
-    else if(robot_id == 4){
-    ioInter = new IOSDK(LeggedType::A1, cmd_panel_id);
-    }
+    // IOInterface *ioInter;
+    // if(robot_id == 1){
+    // ioInter = new IOSDK(LeggedType::Aliengo, cmd_panel_id);
+    // }
+    // else if(robot_id == 2){
+    // ioInter = new IOSDK(LeggedType::A1, cmd_panel_id);
+    // }
+    // else if(robot_id == 4){
+    // ioInter = new IOSDK(LeggedType::A1, cmd_panel_id);
+    // }
+
+    IOSDK* ioInter = new IOSDK(LeggedType::A1, 2);
     Biped biped;
     biped.setBiped();
 
@@ -85,15 +87,17 @@ int main()
     _controlData->_stateEstimator = stateEstimator;
     _controlData->_legController = legController;
     _controlData->_desiredStateCommand = desiredStateCommand;
-    _controlData->_interface = ioInter;
+    // _controlData->_interface = ioInter;
     _controlData->_lowCmd = lowCmd;
     _controlData->_lowState = lowState;
 
     FSM* _FSMController = new FSM(_controlData);
+    ioInter->_data = _controlData;
 
 
     LoopFunc loop_control("control_loop", dt, boost::bind(&FSM::run, _FSMController));
-    LoopFunc loop_udpSend("udp_send",     dt, 3, boost::bind(&ControlFSMData::sendRecv, _controlData));
+    // LoopFunc loop_udpSend("udp_send",     dt, 3, boost::bind(&ControlFSMData::sendRecv, _controlData));
+    LoopFunc loop_udpSend("udp_send",     dt, 3, boost::bind(&IOSDK::sendRecv, ioInter));
 
 
     loop_udpSend.start();

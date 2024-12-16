@@ -11,14 +11,23 @@ enum class CtrlPlatform{//Should I change to GAZEBO_HECTOR, REAL_HECTOR
 
 enum class UserCommand{
     // EXIT,
+    // NONE,
+    // START,      // walking
+    // L2_B,       // passive
+    // L2_X,       // MPC walking
+    // L2_A,       // Reserved  
+    // L1_A,      // PDStand -> added!
+    // WALK,
+    // STAND
+
+
     NONE,
     START,      // walking
-    L2_B,       // passive
-    L2_X,       // MPC walking
+    PASSIVE,       // passive
+    WALK,       // MPC walking
+    STAND,     // Standing 
     L2_A,       // Reserved  
-    L1_A,      // PDStand -> added!
-    WALK,
-    STAND
+    PDSTAND,      // PDStand -> added!
     
 };
 

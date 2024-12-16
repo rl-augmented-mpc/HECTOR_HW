@@ -15,7 +15,7 @@ public:
     UserCommand getUserCmd(){return userCmd;}
     UserValue getUserValue(){return userValue;}
     UserCommand getGaitNum(){return gaitNum;}
-    void setPassive(){userCmd = UserCommand::L2_B;}
+    void setPassive(){userCmd = UserCommand::PASSIVE;}
     void setZero(){userValue.setZero();}
     void setCmdNone(){userCmd = UserCommand::NONE;}
     virtual void receiveHandle(UNITREE_LEGGED_SDK::LowState *lowState){};

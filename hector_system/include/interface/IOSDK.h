@@ -11,7 +11,8 @@ class IOSDK : public IOInterface{
 public:
 IOSDK(LeggedType robot, int cmd_panel_id);
 ~IOSDK(){}
-void sendRecv(const LowlevelCmd *cmd, LowlevelState *state);
+// void sendRecv(const LowlevelCmd *cmd, LowlevelState *state);
+void sendRecv();
 
 
 UDP _udp;

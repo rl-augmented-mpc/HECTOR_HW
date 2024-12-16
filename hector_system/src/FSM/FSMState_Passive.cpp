@@ -63,16 +63,19 @@ void FSMState_Passive::exit()
     {
         _data->_legController->commands[i].kdJoint.setZero();
     }
-    _data->_interface->cmdPanel->setCmdNone();
+    // _data->_interface->cmdPanel->setCmdNone();
+
+    _data->_lowState->userValue.setZero();
+    _data->_lowState->userCmd = UserCommand::NONE;
 }
 
 FSMStateName FSMState_Passive::checkTransition()
 {
-    if(_lowState->userCmd == UserCommand::L2_X){
+    if(_lowState->userCmd == UserCommand::WALK){
         std::cout << "transition from passive to Walking" << std::endl;
         return FSMStateName::WALKING;
     }
-    else if (_lowState->userCmd == UserCommand::L1_A){
+    else if (_lowState->userCmd == UserCommand::PDSTAND){
         return FSMStateName::PDSTAND;
     }
     else{

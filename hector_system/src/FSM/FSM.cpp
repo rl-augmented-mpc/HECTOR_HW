@@ -34,7 +34,8 @@ void FSM::run()
 
     if(!checkSafty())
     {
-        _data->_interface->setPassive(); // set to L2_B
+        // _data->_interface->setPassive(); // set to L2_B
+        _data->_lowState->userCmd = UserCommand::PASSIVE;
     }
     if(_mode == FSMMode::NORMAL)
     {

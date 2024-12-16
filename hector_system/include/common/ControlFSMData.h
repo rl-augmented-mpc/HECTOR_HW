@@ -6,7 +6,7 @@
 #include "Biped.h"
 #include "../messages/LowLevelCmd.h"
 #include "../messages/LowlevelState.h"
-#include "../interface/IOInterface.h"
+// #include "../interface/IOInterface.h"
 #include "StateEstimatorContainer.h"
 
 struct ControlFSMData {
@@ -15,16 +15,16 @@ struct ControlFSMData {
   StateEstimatorContainer *_stateEstimator;
   LegController *_legController;
   DesiredStateCommand *_desiredStateCommand;
-  IOInterface *_interface;
+  // IOInterface *_interface;
   LowlevelCmd *_lowCmd;
   LowlevelState *_lowState;
 
-  void sendRecv(){
-    _interface->sendRecv(_lowCmd, _lowState);
-    // _legController->updateData(_lowState, offset);
+  // void sendRecv(){
+  //   _interface->sendRecv(_lowCmd, _lowState);
+  //   // _legController->updateData(_lowState, offset);
 
-    // _legController->updateCommand(_lowCmd);
-  }
+  //   // _legController->updateCommand(_lowCmd);
+  // }
 };
 
 

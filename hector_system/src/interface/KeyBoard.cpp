@@ -39,13 +39,13 @@ UserCommand KeyBoard::checkCmd(){
     // case ' ':
     //     return UserCommand::EXIT;
     case '1':
-        return UserCommand::L2_X; // from FSMPassive to FSMWalking
+        return UserCommand::WALK; // from FSMPassive to FSMWalking
     case '2':
-        return UserCommand::L2_B; // from FSMWalking to FSMPassive
+        return UserCommand::PASSIVE; // from FSMWalking to FSMPassive
     case '3':
         return UserCommand::L2_A; // no effect
     case '5':
-        return UserCommand::L1_A; // no effect
+        return UserCommand::PDSTAND; // PDSTAND
     case ' ':
         // userValue.setZero();
         return UserCommand::NONE;
@@ -129,7 +129,7 @@ void* KeyBoard::run(void *arg){
             read( fileno( stdin ), &_c, 1 );
             userCmd = checkCmd();
             gaitNum = checkGait();
-            if(userCmd == UserCommand::L2_X){
+            if(userCmd == UserCommand::WALK){
                 changeValue();
             }
             _c = '\0';
