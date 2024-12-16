@@ -71,7 +71,7 @@ void FSMState_Passive::exit()
 
 FSMStateName FSMState_Passive::checkTransition()
 {
-    if(_lowState->userCmd == UserCommand::WALK){
+    if(_lowState->userCmd == UserCommand::WALK || _lowState->userCmd == UserCommand::STAND){
         std::cout << "transition from passive to Walking" << std::endl;
         return FSMStateName::WALKING;
     }

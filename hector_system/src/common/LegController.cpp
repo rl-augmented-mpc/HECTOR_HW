@@ -56,7 +56,7 @@ void LegController::updateData(const LowlevelState* state, double* offset){
 
             if (state->motorState[motor_sequence[j + leg * 5]].q == 0)
             {
-                std::cout << "Motor Connection on leg " << leg << "at" << j << " LOST!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+                std::cout << "\nMotor Connection on leg " << leg << " at " << j << " LOST!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
                 // abort();
             }
         }

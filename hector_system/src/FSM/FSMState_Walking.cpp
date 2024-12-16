@@ -34,6 +34,8 @@ void FSMState_Walking::run()
     std::cout << "Current state is MPC " << std::endl;
     _data->_legController->updateData(_data->_lowState, offset);
     _data->_stateEstimator->run();
+
+    UserValue _userValue;
     _userValue = _data->_lowState->userValue;
 
     std::cout << "motiontime is " << motionTime << std::endl;

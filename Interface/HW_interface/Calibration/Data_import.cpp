@@ -54,9 +54,9 @@ void angle_offset(){
     Eigen::RowVectorXd theta_m_0(10);
     Eigen::RowVectorXd theta_m_raw_0(10);
 
-    theta_c_0 << 0.0, 0.0, 7, -96, 83, 0.0, 0.0, 7, -96, 83;
+    // theta_c_0 << 0.0, 0.0, 7, -96, 83, 0.0, 0.0, 7, -96, 83;
 
-    // theta_c_0 << 0.0, 0.0, 0, -90, 0, 0.0, 0.0, 0, -90, 0;
+    theta_c_0 << 0.0, 0.0, 0, -90, 0, 0.0, 0.0, 0, -90, 0;
     theta_c_0 = theta_c_0 * M_PI / 180; // convert to radian
     std::cout<< "calibration pose in ctrl space is " << std::endl << theta_c_0 << std::endl;
 

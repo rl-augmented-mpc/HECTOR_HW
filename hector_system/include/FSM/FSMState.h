@@ -36,7 +36,6 @@ class FSMState
 
         LowlevelCmd *_lowCmd;
         LowlevelState *_lowState;
-        UserValue _userValue;
 
 
 

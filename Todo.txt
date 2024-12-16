@@ -1,4 +1,3 @@
-USERVALUE, USERCMD setting and syncronization should be done
 
 
 

@@ -39,13 +39,13 @@ UserCommand KeyBoard::checkCmd(){
     // case ' ':
     //     return UserCommand::EXIT;
     case '1':
-        return UserCommand::WALK; // from FSMPassive to FSMWalking
+        return UserCommand::PASSIVE;
     case '2':
-        return UserCommand::PASSIVE; // from FSMWalking to FSMPassive
+        return UserCommand::PDSTAND; // from FSMWalking to FSMPassive
     case '3':
-        return UserCommand::L2_A; // no effect
-    case '5':
-        return UserCommand::PDSTAND; // PDSTAND
+        return UserCommand::STAND; // no effect
+    case '4':
+        return UserCommand::WALK; // PDSTAND
     case ' ':
         // userValue.setZero();
         return UserCommand::NONE;

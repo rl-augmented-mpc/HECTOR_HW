@@ -5,12 +5,9 @@ include_directories(${CMAKE_BINARY_DIR})
 set(CMAKE_C_FLAGS "-O3 -ggdb -std=gnu99 -I -fPIC")
 set(CMAKE_CXX_STANDARD 14)
 
-# set(CMAKE_CXX_FLAGS "-O3 -no-pie -ggdb -Wall")
-
 include_directories(${CMAKE_BINARY_DIR})
 
 add_subdirectory(third_party/qpOASES)
-#add_subdirectory(third_party/JCQP)
 include_directories("../../hector_system/include")
 include_directories("/usr/local/include/eigen3") 
 include_directories("../../hector_system/include/sdk/include")
