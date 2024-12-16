@@ -2,7 +2,7 @@
 #include "../../include/interface/IOSDK.h"
 #include "../../include/interface/WirelessHandle.h"
 #include "../../include/interface/KeyBoard.h"
-#include "../../../../hector_system/include/sdk/include/unitree_legged_sdk.h"
+#include "../../include/sdk/include/unitree_legged_sdk.h"
 #include <stdio.h>
 #include <chrono>
 

@@ -3,7 +3,7 @@
 
 #include "../../../../hector_system/include/messages/unitree_joystick.h"
 #include "CmdPanel.h"
-#include "../../../../hector_system/include/sdk/include/comm.h"
+#include "../sdk/include/comm.h"
 
 class WirelessHandle : public CmdPanel{
 public:

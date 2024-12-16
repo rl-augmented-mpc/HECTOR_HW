@@ -3,7 +3,7 @@
 
 #include "../../../../hector_system/include/common/cppTypes.h"
 #include "CmdPanel.h"
-#include "../../../../hector_system/include/sdk/include/unitree_legged_sdk.h"
+#include "../sdk/include/unitree_legged_sdk.h"
 
 using namespace UNITREE_LEGGED_SDK;
 

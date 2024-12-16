@@ -2,7 +2,7 @@
 #define IOSDK_H
 
 #include "IOInterface.h"
-#include "../../../../hector_system/include/sdk/include/unitree_legged_sdk.h"
+#include "../sdk/include/unitree_legged_sdk.h"
 #include <fstream>
 
 using namespace UNITREE_LEGGED_SDK;

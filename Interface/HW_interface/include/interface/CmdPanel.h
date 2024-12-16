@@ -3,7 +3,7 @@
 
 #include "../../../../hector_system/include/messages/unitree_joystick.h"
 #include "../../../../hector_system/include/common/enumClass.h"
-#include "../../../../hector_system/include/sdk/include/unitree_legged_sdk.h"
+#include "../sdk/include/unitree_legged_sdk.h"
 #include "../../../../hector_system/include/messages/LowlevelState.h"
 #include <pthread.h>
 
