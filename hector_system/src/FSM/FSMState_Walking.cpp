@@ -52,64 +52,12 @@ void FSMState_Walking::run()
 
     // set gait number
     if (_data->_lowState->userCmd == UserCommand::WALK){ 
-        gaitNum = 2; // walking
+        gaitNum = 3; // walking
     }
 
     if(_data->_lowState->userCmd == UserCommand::STAND){
-        flagGaitTimer_Stand = 1;
+        gaitNum = 7; // stnad
     }
-    if(flagGaitTimer_Stand == 1 && motionTime%gaitTime == 0){
-        flagWalk = 0;
-        flagGaitTimer_Stand = 0;
-    }
-    
-    
-    // if (flagWalk==0){
-    //     std::cout << "standing mode" << std::endl; 
-    // }
-    // else if (flagWalk == 1){
-    //     std::cout << "walking mode" << std::endl; 
-    // }
-
-
-
-    if (left_shoulder) {
-        abort();
-    }
-
-    if(flagWalk == 0){
-        gaitNum = 7; // standing
-    }
-
-    // rebalance after disturbance:
-    // if (motionTime > 5000){
-    //     for (int i=0; i<3; i++){
-    //         p_act[i] = _data->_stateEstimator->getResult().position(i);
-    //         footCenter[i] = (_data->_legController->data[0].p[i] + _data->_legController->data[1].p[i])/2;
-    //     }
-
-    //     if (abs(footCenter[0]) > balanceToleranceX){
-    //         if (flagRebalance == 0) {
-    //             motionTimeRebalance = motionTime;
-    //         }
-    //         flagRebalance = 1;
-    //     }
-
-    //     if (motionTime < motionTimeRebalance + 1350){
-    //         gaitNum = 3;
-    //     }
-    //     else if (motionTime >= motionTimeRebalance + 1350 && motionTime <= motionTimeRebalance + 1800){
-    //         gaitNum = 7;
-    //     }
-    //     else if (motionTime > motionTimeRebalance + 1800){
-    //         flagRebalance = 0;
-    //     }
-    // }
-
-    if(flagWalk == 1){
-        gaitNum = 2; // walking
-    }
-
 
     for (int i = 0; i < 12; i++){
         angle << _lowState->motorState[i].q << "  ";
