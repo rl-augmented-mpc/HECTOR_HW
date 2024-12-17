@@ -181,7 +181,7 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
 
   world_position_desired[0] += dt * v_des_world[0];
   world_position_desired[1] += dt * v_des_world[1];
-  world_position_desired[2] = 0.55; //.5;;;
+  world_position_desired[2] = 0.5; //.5;;;
   yaw_desired += dt * stateCommand->data.stateDes[11];
 
   // printf("p_des \t%.6f\n", dt * v_des_world[0]);
@@ -239,7 +239,7 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
     {
       pBody_des[0] = seResult.position[0];
       pBody_des[1] = seResult.position[1];
-      pBody_des[2] = 0.55;
+      pBody_des[2] = 0.5;
 
       vBody_des[0] = 0;
       vBody_des[0] = 0;
@@ -715,7 +715,7 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData &data,
                               seResult.rpy[2],    // 2
                               xStart*1.0,                                   // 3
                               yStart*1.0,                                   // 4
-                              0.56 + height_add_des*0,   // 5
+                              0.5 + height_add_des*0,   // 5
                               0,                                        // 6
                               0,                                        // 7
                               stateCommand->data.stateDes[11],  // 8

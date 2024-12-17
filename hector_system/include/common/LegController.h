@@ -25,7 +25,7 @@
 
         Vec5<double> qDes, qdDes, tau;
         Vec3<double> pDes, vDes;
-        Mat5<double> kpJoint, kdJoint;
+        Vec5<double> kpJoint, kdJoint;
         Vec6<double> feedforwardForce;
         Vec3<double> hiptoeforce;
         Mat3<double> kpCartesian;

@@ -47,6 +47,7 @@ void FSMState_Walking::run()
 
     // pull velocity from keyboard (see src/interface/KeyBoard.cpp for key mappings)
     v_des_body[0] = (double)_userValue.lx;
+    v_des_body[0] =0;
     v_des_body[1] = (double)_userValue.ly;
     turn_rate = (double)_userValue.rx;
 
