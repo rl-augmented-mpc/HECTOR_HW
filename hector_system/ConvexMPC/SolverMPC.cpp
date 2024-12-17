@@ -6,7 +6,7 @@
 #include <eigen3/Eigen/Dense>
 #include <cmath>
 #include <eigen3/unsupported/Eigen/MatrixFunctions>
-#include "../../Interface/HW_interface/third_party/qpOASES/include/qpOASES.hpp"
+#include "../third_party/qpOASES/include/qpOASES.hpp"
 #include <stdio.h>
 #include <sys/time.h>
 // #include "../include/Utilities/Timer.h"

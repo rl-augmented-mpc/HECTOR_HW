@@ -288,6 +288,12 @@ void LegController::updateCommand(LowlevelCmd* cmd, double* offset, int motionti
     }
 
 
+            for (int i = 0; i< 2; i++){
+        commands[i].tau << 0,0,0,0,0;
+        commands[i].qDes << 0,0,0,0,0;
+        commands[i].qdDes << 0,0,0,0,0;
+    }
+        
     auto end =std::chrono::steady_clock::now();
 
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);

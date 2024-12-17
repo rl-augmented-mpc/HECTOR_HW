@@ -52,11 +52,7 @@ void FSMState_Walking::run()
 
     // set gait number
     if (_data->_lowState->userCmd == UserCommand::WALK){ 
-        flagGaitTimer_Walk = 1;
-    }
-    if(flagGaitTimer_Walk == 1 && motionTime%(gaitTime) == gaitTime/2){
-        flagWalk = 1;
-        flagGaitTimer_Walk = 0;
+        gaitNum = 2; // walking
     }
 
     if(_data->_lowState->userCmd == UserCommand::STAND){
@@ -82,7 +78,7 @@ void FSMState_Walking::run()
     }
 
     if(flagWalk == 0){
-        gaitNum = 1; // standing
+        gaitNum = 7; // standing
     }
 
     // rebalance after disturbance:
