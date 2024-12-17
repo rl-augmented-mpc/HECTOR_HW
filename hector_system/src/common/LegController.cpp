@@ -117,7 +117,6 @@ void LegController::updateCommand(LowlevelCmd* cmd){
         // //// Joint PD gains //
         commands[leg].kpJoint << 10.0, 30.0, 30.0, 30.0, 10.0;
         commands[leg].kdJoint << 1.5, 1.5, 1.5, 1.5, 1;
-        //might need to be increased
 
 
         // ramping up for first few seconds==============================================================
@@ -137,19 +136,7 @@ void LegController::updateCommand(LowlevelCmd* cmd){
 
 
 
-
-
         // Decides control modes and assign inputs ======================================================================================
-
-
-        // ToDo: do this in convexmpc
-        // if ( commands[leg].pDes(2)==0 ){ //means contact
-        //     commands[leg].which_control = 2;
-        // }else{
-        //     commands[leg].which_control = 3;
-        // }
-
-
 
 
 
@@ -162,6 +149,8 @@ void LegController::updateCommand(LowlevelCmd* cmd){
         }else if (commands[leg].which_control == 1){ // PDStand
 
             commands[leg].kpJoint *= 1.5;
+            commands[leg].kpJoint[4] *= 1.5;
+            
             commands[leg].kdJoint *= 1.5;
 
         }else if (commands[leg].which_control == 2){ // stance
@@ -237,7 +226,7 @@ void LegController::updateCommand(LowlevelCmd* cmd){
             cmd->motorCmd[motor_sequence[k + leg*5]].Kd = commands[leg].kdJoint[k];
         }
 
-        //For unused actuators - could be removed after testing
+        //For unused actuators - just for safety
         cmd->motorCmd[0].tau = 0;
         cmd->motorCmd[3].tau = 0;
         cmd->motorCmd[0].Kp = 0;

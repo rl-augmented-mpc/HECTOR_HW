@@ -27,12 +27,16 @@ void FSMState_Walking::enter()
 
 void FSMState_Walking::run()
 {
-    auto start = std::chrono::steady_clock::now();
-    std::cout << "Current state is MPC " << std::endl;
     _data->_legController->updateData(_data->_lowState);
+    CheckJointSafety();
     _data->_stateEstimator->run();
 
 
+
+
+
+
+    //////////////////// MPC ///////////////////
     // pull velocity from keyboard (see src/interface/KeyBoard.cpp for key mappings)
     UserValue _userValue;
     _userValue = _data->_lowState->userValue;
@@ -41,9 +45,6 @@ void FSMState_Walking::run()
     v_des_body[1] = (double)_userValue.ly;
     turn_rate = (double)_userValue.rx;
 
-
-
-    // set gait number
     int gaitNum = 1;
     if (_data->_lowState->userCmd == UserCommand::WALK){ 
         gaitNum = 3; // walking
@@ -52,18 +53,19 @@ void FSMState_Walking::run()
         gaitNum = 7; // stnad
     }
 
-    //////////////////// MPC ///////////////////
-      Cmpc.setGaitNum(gaitNum);
-      _data->_desiredStateCommand->setStateCommands(roll, pitch, v_des_body, turn_rate);
-      Cmpc.run(*_data);
-
-      // std::cout << "vx, vy, wz: " << v_des_body[0] << " " << v_des_body[1] << " " << turn_rate << std::endl;
-
-      //Push the Command to Leg Controller
-      _data->_legController->updateCommand(_data->_lowCmd);
+    Cmpc.setGaitNum(gaitNum);
+    _data->_desiredStateCommand->setStateCommands(roll, pitch, v_des_body, turn_rate);
+    Cmpc.run(*_data);
 
 
-    CheckJointSafety();
+
+
+
+
+
+
+    //Push the Command to Leg Controller
+    _data->_legController->updateCommand(_data->_lowCmd);
 
 
 

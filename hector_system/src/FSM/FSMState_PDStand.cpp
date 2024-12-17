@@ -16,25 +16,20 @@ void FSMState_PDStand::enter()
 
 void FSMState_PDStand::run()
 {
-    auto start = std::chrono::steady_clock::now();
-
-    _data->_legController->motiontime++;
-    _data->_legController->updateData(_data->_lowState); //getting joint state
-    _data->_stateEstimator->run(); 
-
-
+    _data->_legController->updateData(_data->_lowState);
     CheckJointSafety();
-
-
+    _data->_stateEstimator->run();
 
 
 
 
 
     //////////////////// PDStand ///////////////////
-        
     pdStand.run(*_data); // run PD controller
     // PD results were directly stored in _data->_legController->command
+
+
+    
 
     _data->_legController->updateCommand(_data->_lowCmd);  
 

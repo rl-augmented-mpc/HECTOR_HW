@@ -5,6 +5,7 @@ FSMState_Passive::FSMState_Passive(ControlFSMData *data):
 
 void FSMState_Passive::enter()
 {
+    
     _data->_legController->zeroCommand();
     _data->_stateEstimator->run(); 
 
@@ -19,17 +20,16 @@ void FSMState_Passive::enter()
 
 void FSMState_Passive::run()
 {
+
     _data->_legController->updateData(_data->_lowState);
     _data->_stateEstimator->run();
 
+
+    /////////////// PASSIVE //////////////////
     for (int leg = 0; leg < 2; leg++)
     {
         _data->_legController->commands[leg].which_control = 0;
     }
-
-    _data->_legController->updateCommand(_data->_lowCmd);
-
-
     //needed for joint angle calibration
     std::ofstream angle;
     angle.open("angle.txt");
@@ -37,6 +37,12 @@ void FSMState_Passive::run()
         angle << _lowState->motorState[i].q << "  ";
     }
     angle << std::endl;
+
+
+
+    _data->_legController->updateCommand(_data->_lowCmd);
+
+
 
 }
 
