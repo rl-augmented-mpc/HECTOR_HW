@@ -20,7 +20,7 @@ void FSMState_Passive::enter()
 void FSMState_Passive::run()
 {
     // std::cout << "Current state is passive state" << std::endl;
-    _data->_legController->updateData(_data->_lowState, offset); //Pass by reference?
+    _data->_legController->updateData(_data->_lowState); //Pass by reference?
     // _data->_stateEstimator->setContactPhase(contactphase);
     _data->_stateEstimator->run();
 
@@ -51,7 +51,7 @@ void FSMState_Passive::run()
     angle << std::endl;
     corrected_angle<<std::endl;
 
-    _data->_legController->updateCommand(_data->_lowCmd, offset, motionTime);
+    _data->_legController->updateCommand(_data->_lowCmd);
 
     com_pos << std::endl;
     rpy_input << std::endl;

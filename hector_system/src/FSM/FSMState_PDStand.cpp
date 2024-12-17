@@ -18,7 +18,7 @@ void FSMState_PDStand::run()
 {
     auto start = std::chrono::steady_clock::now();
     motionTime++;
-    _data->_legController->updateData(_data->_lowState, offset); //getting joint state
+    _data->_legController->updateData(_data->_lowState); //getting joint state
     _data->_stateEstimator->run(); 
     std::cout << "PDSTAND NOW!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << motionTime << std::endl;
 
@@ -109,7 +109,7 @@ void FSMState_PDStand::run()
 
         // PD results were directly stored in _data->_legController->command
         // They are converted and transited to _data->lowCmd
-        _data->_legController->updateCommand(_data->_lowCmd, offset, motionTime);  
+        _data->_legController->updateCommand(_data->_lowCmd);  
 
 
     }

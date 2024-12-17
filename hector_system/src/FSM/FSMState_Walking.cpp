@@ -32,7 +32,7 @@ void FSMState_Walking::run()
     auto start = std::chrono::steady_clock::now();
     motionTime++;
     std::cout << "Current state is MPC " << std::endl;
-    _data->_legController->updateData(_data->_lowState, offset);
+    _data->_legController->updateData(_data->_lowState);
     _data->_stateEstimator->run();
 
     UserValue _userValue;
@@ -132,7 +132,7 @@ void FSMState_Walking::run()
         std::cout << "vx, vy, wz: " << v_des_body[0] << " " << v_des_body[1] << " " << turn_rate << std::endl;
 
         //Push the Command to Leg Controller
-        _data->_legController->updateCommand(_data->_lowCmd, offset, motionTime);
+        _data->_legController->updateCommand(_data->_lowCmd);
 
     }
 

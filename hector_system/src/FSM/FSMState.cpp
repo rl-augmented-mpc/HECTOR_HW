@@ -27,7 +27,7 @@ FSMState::FSMState(ControlFSMData *data, FSMStateName stateName, std::string sta
     T265_qua.open("T265_quaternion.txt");
     fullStateTraj.open("fullState.txt");
 
-    offset = Angle_Caliberation();
+    // offset = Angle_Caliberation();
 
     // if (!rs2_initialized) {
     //     // cfg.enable_stream(RS2_STREAM_POSE, RS2_FORMAT_6DOF);
@@ -38,23 +38,23 @@ FSMState::FSMState(ControlFSMData *data, FSMStateName stateName, std::string sta
 }
 
 
-double *FSMState::Angle_Caliberation(){
-    std::ifstream angle_file;
-    std::string angle_name;
-    int i = 0;
+// double *FSMState::Angle_Caliberation(){
+//     std::ifstream angle_file;
+//     std::string angle_name;
+//     int i = 0;
 
-    angle_file.open("../Calibration/offset.txt");
+//     angle_file.open("../Calibration/offset.txt");
 
-    getline(angle_file, angle_name);
-    std::cout << "Angle string is " << angle_name << std::endl;
+//     getline(angle_file, angle_name);
+//     std::cout << "Angle string is " << angle_name << std::endl;
 
-    std::stringstream ss(angle_name);
-    double angle1, angle2, angle3, angle4, angle5, 
-            angle6, angle7, angle8, angle9, angle10;
-    ss >> angle1 >> angle2 >> angle3 >> angle4 >> angle5 >> angle6 >> angle7 >> angle8 >> angle9 >> angle10;
+//     std::stringstream ss(angle_name);
+//     double angle1, angle2, angle3, angle4, angle5, 
+//             angle6, angle7, angle8, angle9, angle10;
+//     ss >> angle1 >> angle2 >> angle3 >> angle4 >> angle5 >> angle6 >> angle7 >> angle8 >> angle9 >> angle10;
 
-    static double offset_angle[10] = {angle1, angle2, angle3, angle4, angle5, angle6, angle7, angle8, angle9, angle10};
-    std::cout << "Offset in function is " << angle1 << std::endl;
+//     static double offset_angle[10] = {angle1, angle2, angle3, angle4, angle5, angle6, angle7, angle8, angle9, angle10};
+//     std::cout << "Offset in function is " << angle1 << std::endl;
 
-    return offset_angle;
-}
+//     return offset_angle;
+// }

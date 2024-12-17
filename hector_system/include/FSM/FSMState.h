@@ -24,7 +24,7 @@ class FSMState
         FSMStateName _stateName;
         std::string _stateNameStr;
 
-        double *Angle_Caliberation();
+        // double *Angle_Caliberation();
 
         double* offset;
 

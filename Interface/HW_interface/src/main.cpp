@@ -61,7 +61,7 @@ int main()
 
     IOSDK* ioInter = new IOSDK(LeggedType::A1, 2);
     Biped biped;
-    biped.setBiped();
+    biped.setBiped(1);
 
 
     LegController* legController = new LegController(biped);

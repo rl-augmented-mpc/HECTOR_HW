@@ -14,7 +14,6 @@
 #include "../messages/LowlevelState.h"
 #include "../messages/LowLevelCmd.h"
 #include "Biped.h"
-#include <fstream>
 
 /*!
  * Data sent from control algorithm to legs
@@ -33,6 +32,9 @@
         Mat3<double> kdCartesian;
         double kptoe;
         double kdtoe;
+
+        int which_control; // To indicate which control mode is being used -> necessary.
+        // 0 for none, 1 for PDStand, 2 for stance, 3 for swing
     };
 
 /*!
@@ -63,21 +65,15 @@
                 data[i].zero();
             }
 
-            tau_leg_controller.open("Tau_in_leg.txt");
-            feedforward_force.open("MPC_force.txt");
-            feedback_torque.open("Feedback_torque.txt");
         };
         
         void zeroCommand();
         void edampCommand(double gain);
-        void updateData(const LowlevelState* state, double* offset);
-        void updateCommand(LowlevelCmd* cmd, double* offset, int motionTime);
+        void updateData(const LowlevelState* state);
+        void updateCommand(LowlevelCmd* cmd);
         void setEnabled(bool enabled) {_legsEnabled = enabled;};  
 
 
-        std::ofstream tau_leg_controller;
-        std::ofstream feedforward_force;
-        std::ofstream feedback_torque;
 
         LegControllerCommand commands[2];
         LegControllerData data[2];
@@ -85,15 +81,10 @@
         std::string limbName[5] = {"Hip 1", "Hip 2", "Thigh", "Knee", "Toe"};
         std::string side[2] = {"Left", "Right"};
         Biped& _biped;
-        //CurrentState& curr;
-        //ros::NodeHandle n;
-        int counter = 0;
 
-        int motor_sequence[10] = {1, 2, 9, 10, 11, 4, 5, 6, 7, 8};
-        double gear_ratio = 1.545;
-        double beltCompRatio = 1;
+
         double JointPDSwitch = 1.0;
-
+        int motiontime = 0;
         
     };
 
