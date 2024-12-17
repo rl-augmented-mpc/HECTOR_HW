@@ -16,15 +16,13 @@ void FSMState_Walking::enter()
     v_des_body << 0, 0, 0;
     pitch = 0;
     roll = 0;
-    // _data->_interface->zeroCmdPanel(); // reset UserValue to all zeros
-    _data->_lowState->userValue.setZero();
-
     counter = 0;
     _data->_desiredStateCommand->firstRun = true;
     _data->_stateEstimator->run();
     _data->_legController->zeroCommand();
     Cmpc.firstRun = true;
-    // motionTime = 5000;
+
+    _data->_lowState->userValue.setZero();
 }
 
 void FSMState_Walking::run()
@@ -35,27 +33,22 @@ void FSMState_Walking::run()
     _data->_legController->updateData(_data->_lowState);
     _data->_stateEstimator->run();
 
-    UserValue _userValue;
-    _userValue = _data->_lowState->userValue;
-
-    std::cout << "motiontime is " << motionTime << std::endl;
-
-    // Joystick operation mode //
-    int gaitNum = 1; // standing default
-    int gaitTime = 250; //0.25s
-
 
     // pull velocity from keyboard (see src/interface/KeyBoard.cpp for key mappings)
+    UserValue _userValue;
+    _userValue = _data->_lowState->userValue;
     v_des_body[0] = (double)_userValue.lx;
     v_des_body[0] =0;
     v_des_body[1] = (double)_userValue.ly;
     turn_rate = (double)_userValue.rx;
 
+
+
     // set gait number
+    int gaitNum = 1;
     if (_data->_lowState->userCmd == UserCommand::WALK){ 
         gaitNum = 3; // walking
     }
-
     if(_data->_lowState->userCmd == UserCommand::STAND){
         gaitNum = 7; // stnad
     }
@@ -192,14 +185,22 @@ void FSMState_Walking::run()
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
     std::cout << "Execution time for FSM_walk(): " << duration.count() << " microseconds" << std::endl;
+    Cmpc.setGaitNum(gaitNum);
+    Cmpc.run(*_data);
+    _data->_legController->updateCommand(_data->_lowCmd, offset, 0);
+
+
+    CheckJointSafety();
+
+
+
 
 
 }
 
 void FSMState_Walking::exit()
 {
-    // _data->_interface->zeroCmdPanel(); // set uservalue to 0
-    // _data->_interface->cmdPanel->setCmdNone(); // set cmd to none
+    counter = 0;
     _data->_lowState->userValue.setZero();
     _data->_lowState->userCmd = UserCommand::NONE;
 }
@@ -208,8 +209,6 @@ FSMStateName FSMState_Walking::checkTransition()
 {
 
     if(_lowState->userCmd == UserCommand::PASSIVE){
-        std::cout << "transition from walking to passive" << std::endl;
-        // abort();
         return FSMStateName::PASSIVE;
     }
     else if (_lowState->userCmd == UserCommand::PDSTAND){
@@ -256,3 +255,6 @@ Eigen::VectorXd FSMState_Walking::getTrajectory(){
   trajectory(totalSize - 1) = contactState(1);
   return trajectory;
 }
+
+
+

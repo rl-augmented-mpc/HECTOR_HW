@@ -17,102 +17,27 @@ void FSMState_PDStand::enter()
 void FSMState_PDStand::run()
 {
     auto start = std::chrono::steady_clock::now();
-    motionTime++;
     _data->_legController->updateData(_data->_lowState); //getting joint state
     _data->_stateEstimator->run(); 
-    std::cout << "PDSTAND NOW!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << motionTime << std::endl;
+    std::cout << "PDSTAND NOW!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+
+
+    CheckJointSafety();
 
 
 
 
 
-
-
-
-
-
-
-
-
-    for (int i = 0; i < 12; i++){
-        angle << _lowState->motorState[i].q << "  ";
-    }
-
-        //Angle Constraints
-    if (motionTime > 50){
-        // Hip Constraint
-        if ((_data->_legController->data[0].q(0) < Abad_Leg1_Constraint[0]) || 
-          (_data->_legController->data[0].q(0) > Abad_Leg1_Constraint[1])) {
-            std::cout << "Abad R Angle Exceeded" << _data->_legController->data[0].q(0) << std::endl;
-            abort();
-          }
-        if ((_data->_legController->data[1].q(0) < Abad_Leg2_Constraint[0]) || 
-            (_data->_legController->data[1].q(0) > Abad_Leg2_Constraint[1])) {
-            std::cout << "Abad L Angle Exceeded" << _data->_legController->data[1].q(0) << std::endl;
-            abort();
-            }
-
-        // AbAd Constraint
-        if ((_data->_legController->data[0].q(1) < Hip_Leg1_Constraint[0]) ||
-            (_data->_legController->data[0].q(1) > Hip_Leg1_Constraint[1])) {
-            std::cout << "Hip R Angle Exceeded" << std::endl;
-            abort();
-            }
-        if ((_data->_legController->data[1].q(1) < Hip_Leg2_Constraint[0]) ||
-            (_data->_legController->data[1].q(1) > Hip_Leg2_Constraint[1])) {
-            std::cout << "Hip L Angle Exceeded" << std::endl;
-            abort();
-            }
-
-        //Thigh Constraint
-        for (int leg = 0; leg < 2; leg++){
-            if ((_data->_legController->data[leg].q(2) < Thigh_Constraint[0]) || 
-            (_data->_legController->data[leg].q(2) > Thigh_Constraint[1])) {
-                std::cout << "Thigh Angle Exceeded" << std::endl;
-                abort();
-            }
-        }
-
-        //Calf Constraint
-        for (int leg = 0; leg < 2; leg++){
-            if ((_data->_legController->data[leg].q(3) < Calf_Constraint[0]) || 
-            (_data->_legController->data[leg].q(3) > Calf_Constraint[1])) {
-                std::cout << "Calf Angle Exceeded" << std::endl;
-                abort();
-            }
-        }
-
-        //Ankle Constraint
-        for (int leg = 0; leg < 2; leg++){
-            if ((_data->_legController->data[leg].q(4) < Ankle_Constraint[0]) || 
-            (_data->_legController->data[leg].q(4) > Ankle_Constraint[1])) {
-                std::cout << "Ankle Angle Exceeded" << std::endl;
-                abort();
-            }
-        }
-
-        //Pitch Constraint
-        if ((_data->_stateEstimator->getResult().rpy(1)) < -0.3){
-            std::cout << "Pitch Angle Exceeded" << std::endl;
-            abort();
-        }
-    }
 
 
     //////////////////// PDStand ///////////////////
-    if(motionTime >= 0){
-
-        // set desired state, all set to 0 by default in FSMState_PDStand.h
-        _data->_desiredStateCommand->setStateCommands(roll, pitch, v_des_body, turn_rate);
         
-        pdStand.run(*_data); // run PD controller
+    pdStand.run(*_data); // run PD controller
 
         // PD results were directly stored in _data->_legController->command
         // They are converted and transited to _data->lowCmd
         _data->_legController->updateCommand(_data->_lowCmd);  
 
-
-    }
 
 }
 

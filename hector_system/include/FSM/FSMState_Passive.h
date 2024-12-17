@@ -10,7 +10,6 @@ class FSMState_Passive: public FSMState
         void enter();
         void run();
         void exit();
-        // double contactStateScheduled[2] = {1, 1};
         FSMStateName checkTransition();
 };
 

@@ -16,10 +16,6 @@ class FSMState_PDStand: public FSMState
     
     private:
         PDController_Stand pdStand;
-        Vec3<double> v_des_body = Vec3<double>(0, 0, 0);; // desired body velocity = 0 in x y z
-        double turn_rate = 0;
-        double pitch = 0;
-        double roll = 0;
 };
 
 #endif

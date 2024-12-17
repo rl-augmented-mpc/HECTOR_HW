@@ -2,8 +2,6 @@
 #define WALKING_H
 
 #include "FSMState.h"
-// #include "../../BalanceController/BalanceController.hpp"
-// #include "../../ConvexMPC/convexMPC_interface.h"
 #include "../../ConvexMPC/ConvexMPCLocomotion.h"
 
 class FSMState_Walking: public FSMState
@@ -20,6 +18,8 @@ class FSMState_Walking: public FSMState
         ConvexMPCLocomotion Cmpc;
         int _cmd_mode = 0; // 0: keyboard, 1: joystick
         int counter;
+
+        
         // Desired States
         Vec3<double> v_des_body;
         double turn_rate = 0;
@@ -27,6 +27,9 @@ class FSMState_Walking: public FSMState
         Eigen::VectorXd trajectory;
         Eigen::VectorXd contactState;
         Eigen::VectorXd getTrajectory();
+
+
+
 };
 
 #endif

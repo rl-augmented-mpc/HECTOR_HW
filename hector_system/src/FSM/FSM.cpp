@@ -30,13 +30,7 @@ void FSM::initialize()
 
 void FSM::run()
 {
-    // _data->sendRecv();
 
-    if(!checkSafty())
-    {
-        // _data->_interface->setPassive(); // set to L2_B
-        _data->_lowState->userCmd = UserCommand::PASSIVE;
-    }
     if(_mode == FSMMode::NORMAL)
     {
         _currentState->run();
@@ -80,14 +74,5 @@ FSMState* FSM::getNextState(FSMStateName stateName)
     }
 }
 
-bool FSM::checkSafty()
-{
-    if(_data->_stateEstimator->getResult().rBody(2,2) < 0.5) // TODO: Does this need to be changed?
-    {
-        return false;
-    }
-    else
-    {
-        return true;
-    }
-}
+
+

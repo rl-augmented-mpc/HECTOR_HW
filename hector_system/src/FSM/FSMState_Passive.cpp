@@ -24,37 +24,18 @@ void FSMState_Passive::run()
     // _data->_stateEstimator->setContactPhase(contactphase);
     _data->_stateEstimator->run();
 
-    // joystick.pollEvents();
-    // state=joystick.getState();
 
-    // buttonA = state.buttons[0];
-    // buttonB = state.buttons[1];
-    // left_shoulder = state.buttons[4];
-
-    // if (left_shoulder) {
-    //     abort();
-    // }
-
-
+    //needed for joint angle calibration
+    std::ofstream angle;
+    angle.open("angle.txt");
     for (int i = 0; i < 12; i++){
-    angle << _lowState->motorState[i].q << "  ";
+        angle << _lowState->motorState[i].q << "  ";
     }
-
-    for (int leg = 0; leg < 2; leg++)
-    {
-        for (int i = 0; i< 5; i++){
-            corrected_angle << _data->_legController->data[leg].q(i) << " ";
-            corrected_angle << _data->_legController->data[leg].qd(i) << " ";
-        }
-    }
-
     angle << std::endl;
-    corrected_angle<<std::endl;
+
 
     _data->_legController->updateCommand(_data->_lowCmd);
 
-    com_pos << std::endl;
-    rpy_input << std::endl;
 }
 
 void FSMState_Passive::exit()
@@ -63,7 +44,6 @@ void FSMState_Passive::exit()
     {
         _data->_legController->commands[i].kdJoint.setZero();
     }
-    // _data->_interface->cmdPanel->setCmdNone();
 
     _data->_lowState->userValue.setZero();
     _data->_lowState->userCmd = UserCommand::NONE;
@@ -72,7 +52,6 @@ void FSMState_Passive::exit()
 FSMStateName FSMState_Passive::checkTransition()
 {
     if(_lowState->userCmd == UserCommand::WALK || _lowState->userCmd == UserCommand::STAND){
-        std::cout << "transition from passive to Walking" << std::endl;
         return FSMStateName::WALKING;
     }
     else if (_lowState->userCmd == UserCommand::PDSTAND){
