@@ -44,7 +44,12 @@ void LegController::zeroCommand(){
 
 void LegController::updateData(const LowlevelState* state){
 
-    // LIDAR-modified
+
+    for (int i = 0; i< 2; i++){
+        data[i].zero();
+    }
+
+
     // Joint sequence reassignment: low-lev joint data -> controller space joint data
     int *motor_sequence = _biped.motor_sequence;
 
@@ -125,9 +130,8 @@ void LegController::updateCommand(LowlevelCmd* cmd){
         if (motiontime > 1000+duration) {
             percent = 1.0;
         }
-        motiontime++;
 
-        std::cout<< motiontime << std::endl;
+        std::cout<< "\n motiontime is " << motiontime << std::endl;
 
 
 
@@ -139,11 +143,11 @@ void LegController::updateCommand(LowlevelCmd* cmd){
 
 
         // ToDo: do this in convexmpc
-        if ( commands[leg].pDes(2)==0 ){ //means contact
-            commands[leg].which_control = 2;
-        }else{
-            commands[leg].which_control = 3;
-        }
+        // if ( commands[leg].pDes(2)==0 ){ //means contact
+        //     commands[leg].which_control = 2;
+        // }else{
+        //     commands[leg].which_control = 3;
+        // }
 
 
 
@@ -243,11 +247,10 @@ void LegController::updateCommand(LowlevelCmd* cmd){
 
     }
 
-
+    // Necessary for stabilization. Should not go earlier than assigning inputs.
     for (int i = 0; i< 2; i++){
-        commands[i].tau << 0,0,0,0,0;
-        commands[i].qDes << 0,0,0,0,0;
-        commands[i].qdDes << 0,0,0,0,0;
+
+        commands[i].zero();
     }
         
 

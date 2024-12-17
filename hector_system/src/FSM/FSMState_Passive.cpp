@@ -19,10 +19,15 @@ void FSMState_Passive::enter()
 
 void FSMState_Passive::run()
 {
-    // std::cout << "Current state is passive state" << std::endl;
-    _data->_legController->updateData(_data->_lowState); //Pass by reference?
-    // _data->_stateEstimator->setContactPhase(contactphase);
+    _data->_legController->updateData(_data->_lowState);
     _data->_stateEstimator->run();
+
+    for (int leg = 0; leg < 2; leg++)
+    {
+        _data->_legController->commands[leg].which_control = 0;
+    }
+
+    _data->_legController->updateCommand(_data->_lowCmd);
 
 
     //needed for joint angle calibration
@@ -32,9 +37,6 @@ void FSMState_Passive::run()
         angle << _lowState->motorState[i].q << "  ";
     }
     angle << std::endl;
-
-
-    _data->_legController->updateCommand(_data->_lowCmd);
 
 }
 
@@ -52,12 +54,15 @@ void FSMState_Passive::exit()
 FSMStateName FSMState_Passive::checkTransition()
 {
     if(_lowState->userCmd == UserCommand::WALK || _lowState->userCmd == UserCommand::STAND){
+        _data->_legController->motiontime = 0;
         return FSMStateName::WALKING;
     }
     else if (_lowState->userCmd == UserCommand::PDSTAND){
+        _data->_legController->motiontime = 0;
         return FSMStateName::PDSTAND;
     }
     else{
+        _data->_legController->motiontime++;
         return FSMStateName::PASSIVE;
     }
 }

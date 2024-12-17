@@ -45,4 +45,12 @@ enum class FSMStateName{
 };
 
 
+enum class ControlMode{
+    NONE,
+    PDSTAND,
+    STANCE,
+    SWING
+};
+
+
 #endif  // ENUMCLASS_H

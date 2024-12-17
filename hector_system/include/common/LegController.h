@@ -83,7 +83,6 @@
         Biped& _biped;
 
 
-        double JointPDSwitch = 1.0;
         int motiontime = 0;
         
     };

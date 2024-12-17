@@ -27,8 +27,6 @@ class FSMState
         void CheckJointSafety();
 
 
-        double* offset;
-
 
     protected:
         

@@ -25,64 +25,15 @@ void PDController_Stand::run(ControlFSMData& data) {
             data._legController->commands[i].tau[k] = 0;
         }
 
-        std::cout<<"running"<<std::endl;
 
-        for (int k = 0; k < 3; k ++) {
-            data._legController->commands[i].vDes[k] = 1; // Just as a identifier
-        }
 
         data._legController->commands[i].feedforwardForce << 0,0,0,0,0,0;
 
 
+        data._legController->commands[i].which_control = int(ControlMode::PDSTAND);
 
 
 
-
-
-
-        // // Extract data from data._legController->data
-        // q_curr = data._legController->data[i].q;
-        
-        // // Calculate error
-        // for (int j = 0; j < 5; j++) {
-        //     error[j] = q_target[j] - q_curr[j];
-
-        //     if (firstRun) { //init prevError values
-        //         prevError[i][j] = error[j];
-        //         firstRun = false;
-        //         std::cout << "init prevError" << firstRun << std::endl;
-        //     }
-        // }
-
-        // // Calculate control signal
-        // for (int j = 0; j < 5; j++) {
-        //     controlSignal[j] = kp[j] * error[j] + kd[j] * (error[j] - prevError[i][j]) / dt;
-        // }
-
-        // // Assign output control values to data._legController->commands
-        // for (int j = 0; j < 5; j++) {
-        //     data._legController->commands[i].tau[j] = controlSignal[j];
-        //     // data._legController->commands[i]->qDes[j] = q_target[j];
-        //     // data._legController->commands[i]->qdDes[j] = controlSignal[j];
-        // }
-
-        // // Update previous error
-        // prevError[i] = error;
-
-        // // debug statements
-        // if (i == 0) {
-        //     // std::cout << "qTargetLeft: \n" << q_target << std::endl;
-        //     // std::cout << "qCurrLeft: \n" << q_curr << std::endl;
-        //     std::cout << "errorLeft: \n" << error << std::endl;
-        //     std::cout << "controlSignalLeft: \n" << controlSignal << std::endl;
-        // }
-        // else {
-        //     // std::cout << "qTargetRight: \n" << q_target << std::endl;
-        //     // std::cout << "qCurrRight: \n" << q_curr << std::endl;
-        //     std::cout << "errorRight: \n" << error << std::endl;
-        //     std::cout << "controlSignalRight: \n" << controlSignal << std::endl;
-        //     std::cout << std::endl;
-        // }   
 
 
 

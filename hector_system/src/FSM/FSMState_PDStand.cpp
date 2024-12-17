@@ -17,9 +17,10 @@ void FSMState_PDStand::enter()
 void FSMState_PDStand::run()
 {
     auto start = std::chrono::steady_clock::now();
+
+    _data->_legController->motiontime++;
     _data->_legController->updateData(_data->_lowState); //getting joint state
     _data->_stateEstimator->run(); 
-    std::cout << "PDSTAND NOW!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
 
 
     CheckJointSafety();
@@ -33,10 +34,9 @@ void FSMState_PDStand::run()
     //////////////////// PDStand ///////////////////
         
     pdStand.run(*_data); // run PD controller
+    // PD results were directly stored in _data->_legController->command
 
-        // PD results were directly stored in _data->_legController->command
-        // They are converted and transited to _data->lowCmd
-        _data->_legController->updateCommand(_data->_lowCmd);  
+    _data->_legController->updateCommand(_data->_lowCmd);  
 
 
 }
@@ -52,12 +52,15 @@ void FSMState_PDStand::exit()
 FSMStateName FSMState_PDStand::checkTransition()
 {
     if(_lowState->userCmd == UserCommand::PASSIVE){
+        _data->_legController->motiontime = 0;
         return FSMStateName::PASSIVE;
     }
     else if (_lowState->userCmd == UserCommand::WALK || _lowState->userCmd == UserCommand::STAND){
+        _data->_legController->motiontime = 0;
         return FSMStateName::WALKING;
     }
     else {
+        _data->_legController->motiontime++;
         return FSMStateName::PDSTAND;
     }
 }

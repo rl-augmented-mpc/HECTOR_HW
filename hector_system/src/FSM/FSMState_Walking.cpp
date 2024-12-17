@@ -28,7 +28,6 @@ void FSMState_Walking::enter()
 void FSMState_Walking::run()
 {
     auto start = std::chrono::steady_clock::now();
-    motionTime++;
     std::cout << "Current state is MPC " << std::endl;
     _data->_legController->updateData(_data->_lowState);
     _data->_stateEstimator->run();
@@ -53,141 +52,15 @@ void FSMState_Walking::run()
         gaitNum = 7; // stnad
     }
 
-    for (int i = 0; i < 12; i++){
-        angle << _lowState->motorState[i].q << "  ";
-    }
-
-    //Angle Constraints
-    if (motionTime > 50){
-        // Hip Constraint
-        if ((_data->_legController->data[0].q(0) < Abad_Leg1_Constraint[0]) || 
-          (_data->_legController->data[0].q(0) > Abad_Leg1_Constraint[1])) {
-            std::cout << "Abad R Angle Exceeded" << _data->_legController->data[0].q(0) << std::endl;
-            abort();
-          }
-        if ((_data->_legController->data[1].q(0) < Abad_Leg2_Constraint[0]) || 
-            (_data->_legController->data[1].q(0) > Abad_Leg2_Constraint[1])) {
-            std::cout << "Abad L Angle Exceeded" << _data->_legController->data[1].q(0) << std::endl;
-            abort();
-            }
-
-        // AbAd Constraint
-        if ((_data->_legController->data[0].q(1) < Hip_Leg1_Constraint[0]) ||
-            (_data->_legController->data[0].q(1) > Hip_Leg1_Constraint[1])) {
-            std::cout << "Hip R Angle Exceeded" << std::endl;
-            abort();
-            }
-        if ((_data->_legController->data[1].q(1) < Hip_Leg2_Constraint[0]) ||
-            (_data->_legController->data[1].q(1) > Hip_Leg2_Constraint[1])) {
-            std::cout << "Hip L Angle Exceeded" << std::endl;
-            abort();
-            }
-
-        //Thigh Constraint
-        for (int leg = 0; leg < 2; leg++){
-            if ((_data->_legController->data[leg].q(2) < Thigh_Constraint[0]) || 
-            (_data->_legController->data[leg].q(2) > Thigh_Constraint[1])) {
-                std::cout << "Thigh Angle Exceeded" << std::endl;
-                abort();
-            }
-        }
-
-        //Calf Constraint
-        for (int leg = 0; leg < 2; leg++){
-            if ((_data->_legController->data[leg].q(3) < Calf_Constraint[0]) || 
-            (_data->_legController->data[leg].q(3) > Calf_Constraint[1])) {
-                std::cout << "Calf Angle Exceeded" << std::endl;
-                abort();
-            }
-        }
-
-        //Ankle Constraint
-        for (int leg = 0; leg < 2; leg++){
-            if ((_data->_legController->data[leg].q(4) < Ankle_Constraint[0]) || 
-            (_data->_legController->data[leg].q(4) > Ankle_Constraint[1])) {
-                std::cout << "Ankle Angle Exceeded" << std::endl;
-                abort();
-            }
-        }
-
-        //Pitch Constraint
-        if ((_data->_stateEstimator->getResult().rpy(1)) < -0.3){
-            std::cout << "Pitch Angle Exceeded" << std::endl;
-            abort();
-        }
-    }
-
     //////////////////// MPC ///////////////////
-    if(motionTime >= 0){
-        Cmpc.setGaitNum(gaitNum);
-        _data->_desiredStateCommand->setStateCommands(roll, pitch, v_des_body, turn_rate);
-        Cmpc.run(*_data);
+      Cmpc.setGaitNum(gaitNum);
+      _data->_desiredStateCommand->setStateCommands(roll, pitch, v_des_body, turn_rate);
+      Cmpc.run(*_data);
 
-        std::cout << "vx, vy, wz: " << v_des_body[0] << " " << v_des_body[1] << " " << turn_rate << std::endl;
+      // std::cout << "vx, vy, wz: " << v_des_body[0] << " " << v_des_body[1] << " " << turn_rate << std::endl;
 
-        //Push the Command to Leg Controller
-        _data->_legController->updateCommand(_data->_lowCmd);
-
-    }
-
-
-    // //Data Recording
-    contactState = Cmpc.contact_state;
-
-    fullStateTraj << getTrajectory().transpose() << std::endl;
-
-
-    for (int i = 0; i <3; i++){
-        com_pos << _data->_stateEstimator->getResult().position(i) << "  ";
-        rpy_input << _data->_stateEstimator->getResult().rpy(i) << " ";
-    }
-
-    for (int i = 0; i < 3; i++){
-        com_pos << _data->_stateEstimator->getResult().vWorld(i) << "  ";
-        rpy_input << _data->_stateEstimator->getResult().omegaWorld(i) << " ";
-    }
-
- 
-
-    for (int leg = 0; leg < 2; leg++){
-        for (int i = 0; i< 5; i++){
-            corrected_angle << _data->_legController->data[leg].q(i) << " ";
-        }
-    }
-    for (int leg = 0; leg < 2; leg++){
-        for (int i = 0; i< 5; i++){
-            corrected_angle << _data->_legController->data[leg].qd(i) << " ";
-        }
-    }
-
-    for (int i = 0; i < 4; i++){
-        T265_qua << _data->_stateEstimator->getResult().orientation(i) << " ";
-    }
-
-    // for (int i = 0; i < 12; i++){
-    //     tau_est << _data->_lowState->motorState->tauEst[i] << " ";
-    // }
-
-    angle << std::endl;
-    torque << std::endl;
-    com_pos << std::endl;
-    footposition << std::endl;
-    QP << std::endl;
-    myfile << std::endl;
-    force << std::endl;
-    rpy_input << std::endl;
-    b_des << std::endl;
-    tau_est << std::endl;
-    corrected_angle<<std::endl;
-    T265_pos << std::endl;
-    T265_qua << std::endl;
-    auto end =std::chrono::steady_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-
-    std::cout << "Execution time for FSM_walk(): " << duration.count() << " microseconds" << std::endl;
-    Cmpc.setGaitNum(gaitNum);
-    Cmpc.run(*_data);
-    _data->_legController->updateCommand(_data->_lowCmd, offset, 0);
+      //Push the Command to Leg Controller
+      _data->_legController->updateCommand(_data->_lowCmd);
 
 
     CheckJointSafety();
@@ -209,12 +82,15 @@ FSMStateName FSMState_Walking::checkTransition()
 {
 
     if(_lowState->userCmd == UserCommand::PASSIVE){
+        _data->_legController->motiontime = 0;
         return FSMStateName::PASSIVE;
     }
     else if (_lowState->userCmd == UserCommand::PDSTAND){
+        _data->_legController->motiontime = 0;
         return FSMStateName::PDSTAND;
     }
     else{
+        _data->_legController->motiontime++;
         return FSMStateName::WALKING;
     }
 }
