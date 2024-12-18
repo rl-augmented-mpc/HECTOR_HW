@@ -283,7 +283,8 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
     // if (firstSwing[i])
     // {
 
-      footSwingTrajectories[i].setHeight(.07);
+      // footSwingTrajectories[i].setHeight(.07);
+      footSwingTrajectories[i].setHeight(.1);
       Vec3<double> offset(0.0, side_sign[i] * 0.0, 0.0);
       // simple heuristic function
       // std::cout << "swing time" << swingTimeRemaining[i] << std::endl;
@@ -308,7 +309,7 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
       // std::cout << "Pf =" << Pf << "\n";
       //+ seResult.vWorld * swingTimeRemaining[i];
 
-      double p_rel_max = 0.3;
+      double p_rel_max = 0.2;
       double pfx_rel = 1.0*seResult.vWorld[0] * 0.5 * gait->_stance * dtMPC +
                        0.05 * (seResult.vWorld[0] - v_des_world[0]);
 
@@ -601,7 +602,7 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData &data,
       double Q[12] = {200, 150, 10,   430, 430, 460,   1, 1, 1,   1, 1, 3};
     // }
 
-    std::cout << "gait " << gaitNumber <<std::endl;
+    // std::cout << "gait " << gaitNumber <<std::endl;
     // double Q[12] = {150, 50, 100,  700, 250, 350,  .5, .5, .5,  .5, .5, .5}; // roll pitch yaw x y z droll dpitch dyaw dx dy dz
     //  double Q[12] = {1000, 1000, 1000,   1000, 1000, 5000,   1, 1, 1,   1, 1, 1};
     // double Q[12] = {3.5*1000, 3.5*1000, 1000,   1000, 1000, 0.25*10000,   1000, 2*1000, 1000,   1000, 1000, 3*1000};
@@ -683,8 +684,8 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData &data,
     double roll_comp = 0.0;
     double pitch_comp = 0.0;
     Vec3<double> foot_center = (pFoot[0]+pFoot[1])/2.0;
-    std::cout << "pFoot 0: " << pFoot[0] << std::endl;
-    std::cout << "pFoot 1: " << pFoot[1] << std::endl;
+    // std::cout << "pFoot 0: " << pFoot[0] << std::endl;
+    // std::cout << "pFoot 1: " << pFoot[1] << std::endl;
     
     // xStart = foot_center[0];
     // yStart = foot_center[1];
@@ -767,10 +768,10 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData &data,
         //std::cout << "yaw traj" <<  trajAll[12*i + 2] << std::endl;
         }
       // }
-      std::cout << "traj " << i << std::endl;
-      for (int j = 0; j < 12; j++) {
-        std::cout << trajAll[12 * i + j] << "  ";
-      }
+      // std::cout << "traj " << i << std::endl;
+      // for (int j = 0; j < 12; j++) {
+      //   std::cout << trajAll[12 * i + j] << "  ";
+      // }
       //     std::cout<< " " <<std::endl;
     }
     // }
@@ -785,22 +786,22 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData &data,
     //  update_problem_data(p, v, q, w, r, yaw, weights, trajAll, alpha, mpcTable);
     update_problem_data(p, v, q, w, r, yaw, weights, trajAll, Alpha_K, mpcTable, data);
 
-    for (int i = 0; i < 3; i++){
-      mpc_input << p[i] << "  ";
-    }
-    for (int i = 0; i < 3; i++){
-      mpc_input << v[i] << "  ";
-    }
-    for (int i = 0; i < 4; i++){
-      mpc_input << q[i] << "  ";
-    }
-    for (int i = 0; i < 3; i++){
-      mpc_input << w[i] << "  ";
-    }
-    for (int i = 0; i < 6; i++){
-      mpc_input << r[i] << "  ";
-    }
-    mpc_input << std::endl;
+    // for (int i = 0; i < 3; i++){
+    //   mpc_input << p[i] << "  ";
+    // }
+    // for (int i = 0; i < 3; i++){
+    //   mpc_input << v[i] << "  ";
+    // }
+    // for (int i = 0; i < 4; i++){
+    //   mpc_input << q[i] << "  ";
+    // }
+    // for (int i = 0; i < 3; i++){
+    //   mpc_input << w[i] << "  ";
+    // }
+    // for (int i = 0; i < 6; i++){
+    //   mpc_input << r[i] << "  ";
+    // }
+    // mpc_input << std::endl;
     // std::cout << "p is " << std::endl;
     // for (int i = 0; i < 3; i ++)
     // {
@@ -832,7 +833,7 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData &data,
     // }
     // std::cout << std::endl;
     // t2.stopPrint("Run MPC");
-    printf("MPC Solve time %f ms\n", t2.getMs());
+    // printf("MPC Solve time %f ms\n", t2.getMs());
     // std::cout << t2.getSeconds() << std::endl;
     for (int leg = 0; leg < 2; leg++)
     {
@@ -859,7 +860,7 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData &data,
       // f_ff[leg].setZero();
 
       // std::cout << f_ff[leg] << std::endl;
-      std::cout << "mpc solution" << leg << "\n" << f << std::endl;
+      // std::cout << "mpc solution" << leg << "\n" << f << std::endl;
       //  Update for WBC
       //  Fr_des[leg] = f;
     }

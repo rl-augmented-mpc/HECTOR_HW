@@ -28,7 +28,8 @@ FSMState::FSMState(ControlFSMData *data, FSMStateName stateName, std::string sta
     {
         realorsim = "Sim_";
     }
-    std::string targetDir = "../../results/" + realorsim + currentTime;
+    // std::string targetDir = "../../results/" + realorsim + currentTime;
+    std::string targetDir = "../results/" + realorsim + currentTime;
 
     // Create the target directory using mkdir command to ensure it exists
     std::string mkdirCommand = "mkdir -p " + targetDir;

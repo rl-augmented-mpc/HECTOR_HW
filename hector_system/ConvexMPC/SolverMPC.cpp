@@ -798,7 +798,7 @@ void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data
     if (rval2 != qpOASES::SUCCESSFUL_RETURN)
       printf("failed to solve!\n");
 
-    printf("solve time: %.3f ms, size %d, %d\n", solve_timer.getMs(), new_vars, new_cons);
+    // printf("solve time: %.3f ms, size %d, %d\n", solve_timer.getMs(), new_vars, new_cons);
 
     // Reformats solution and stores into q_red
     vc = 0;

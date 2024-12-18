@@ -44,6 +44,7 @@ void FSMState_Walking::run()
     v_des_body[0] = (double)_userValue.lx;
     v_des_body[1] = (double)_userValue.ly;
     turn_rate = (double)_userValue.rx;
+    std::cout << "vx: " << v_des_body[0] << " vy: " << v_des_body[1] << " turn_rate: " << turn_rate << std::endl;
 
     int gaitNum = 1;
     if (_data->_lowState->userCmd == UserCommand::WALK){ 

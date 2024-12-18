@@ -10,7 +10,8 @@ using namespace std;
 
 size_t count_lines_angle(const char *filename)
 {
-    ifstream myfile("../build/angle.txt");
+    // ifstream myfile("../build/angle.txt");
+    ifstream myfile("../../../build/angle.txt");
     string line;
     size_t count = 0;
     while (getline(myfile,line))
@@ -22,7 +23,8 @@ size_t count_lines_angle(const char *filename)
 
 void angle_offset(){
      //Angle Offset Calculation
-    const char filename[] = "../build/angle.txt";
+    // const char filename[] = "../build/angle.txt";
+    const char filename[] = "../../../build/angle.txt";
     size_t i, count = count_lines_angle(filename);
     ofstream offset_data;
     ifstream myfile(filename);

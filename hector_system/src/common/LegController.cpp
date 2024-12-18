@@ -70,7 +70,7 @@ void LegController::updateData(const LowlevelState* state){
 
 
 
-
+        // ConnectionIsFine = false;
         if (!ConnectionIsFine){
             // Print the joint angles for debugging
             std::cout << "\n\nleg " << leg << " angle raw data: " << std::endl;
@@ -81,7 +81,7 @@ void LegController::updateData(const LowlevelState* state){
         }
 
         _biped.Joint_Remapping_lowfromhigh(leg, data[leg].q, data[leg].qd, data[leg].tau);
-
+        // ConnectionIsFine = false;
         if (!ConnectionIsFine){
             // Print the joint angles for debugging
             std::cout << "\nleg " << leg << " angle calibrated data: " << std::endl;

@@ -121,9 +121,9 @@ void update_problem_data(double* p, double* v, double* q, double* w,
       //   std::cout << state_trajectory[i*12+j] << " "; 
       // }
       // std::cout << std::endl;
-      std::cout << "weights " << i <<": "; 
+      // std::cout << "weights " << i <<": "; 
       for (int j = 0; j < 12; j++){
-        std::cout << weights[j] << " "; 
+        // std::cout << weights[j] << " "; 
       }
       std::cout << std::endl;
   }

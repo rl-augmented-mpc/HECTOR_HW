@@ -161,7 +161,8 @@ class Biped{
         std::string angle_name;
         int i = 0;
 
-        angle_file.open("../Calibration/offset.txt");
+        // angle_file.open("../Calibration/offset.txt");
+        angle_file.open("../Interface/HW_interface/Calibration/offset.txt");
 
         getline(angle_file, angle_name);
         std::cout << "Calibration Done." << std::endl;
