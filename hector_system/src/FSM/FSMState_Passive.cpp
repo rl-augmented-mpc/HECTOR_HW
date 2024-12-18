@@ -28,7 +28,7 @@ void FSMState_Passive::run()
     /////////////// PASSIVE //////////////////
     for (int leg = 0; leg < 2; leg++)
     {
-        _data->_legController->commands[leg].control_mode;
+        _data->_legController->commands[leg].control_mode = int(ControlMode::PASSIVE);
     }
     //needed for joint angle calibration
     std::ofstream angle;

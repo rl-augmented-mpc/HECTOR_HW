@@ -177,9 +177,9 @@ void LegController::updateCommand(LowlevelCmd* cmd){
 
             //qDes
             commands[leg].qDes.block(1,0, 3,1) = _biped.InverseKinematics_swingctrl(foot_des, leg);
-            // hip yaw = 0, ankle pitch is designed to be flat(=0)
+            // To remove 2 redundancies in DoFs (3D foot pos constraint versus 5 DoFs in each leg) -> hip yaw = 0, ankle pitch designed to be parallel to the ground
             commands[leg].qDes(0) = 0;
-            commands[leg].qDes(4) = -data[leg].q(3) - data[leg].q(2);
+            commands[leg].qDes(4) = 0 -data[leg].q(3) - data[leg].q(2); // Assuming that the ground is flat
 
             // qdDes
             commands[leg].qdDes = data[leg].J2.transpose() * foot_v_des;

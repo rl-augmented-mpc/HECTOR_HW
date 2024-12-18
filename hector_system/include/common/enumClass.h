@@ -46,7 +46,7 @@ enum class FSMStateName{
 
 
 enum class ControlMode{
-    NONE,
+    PASSIVE,
     PDSTAND,
     STANCE,
     SWING

@@ -543,6 +543,8 @@ class Biped{
     }
 
 
+    //It is a customized inverse kinematics function provided from USC specifically designed for swing leg control
+    // TODO: Verify which one between the above and this one is correct
     Vec3<double> InverseKinematics_swingctrl(Vec3<double> &p_Hip2Foot, int leg)
     {
         Vec3<double> q; //joint angles of hip roll, hip pitch, knee pitch. hip yaw and ankle pitch are assumed to be 0.
