@@ -20,7 +20,8 @@ void LegControllerCommand::zero(){
     kptoe = 0;
     kdtoe = 0;
 
-    control_mode = 0;
+    //control_mode should be not touched
+
 }
 
 /*!
@@ -156,6 +157,7 @@ void LegController::updateCommand(LowlevelCmd* cmd){
             commands[leg].kpJoint = Vec5<double>::Zero();
             commands[leg].kdJoint = Vec5<double>::Zero();
 
+            // std::cout << "control_mode 0" << std::endl;
         
         }else if (commands[leg].control_mode == 1){ // PDStand
 
@@ -163,6 +165,8 @@ void LegController::updateCommand(LowlevelCmd* cmd){
             commands[leg].kpJoint[4] *= 1.5;
             
             commands[leg].kdJoint *= 1.5;
+
+            // std::cout << "control_mode 1" << std::endl;
 
         }else if (commands[leg].control_mode == 2){ // stance
 
@@ -173,6 +177,7 @@ void LegController::updateCommand(LowlevelCmd* cmd){
             commands[leg].qdDes = Vec5<double>::Zero();
 
             // Stance foot force to torque mapping is already done
+
 
 
 
@@ -194,6 +199,8 @@ void LegController::updateCommand(LowlevelCmd* cmd){
 
             // qdDes
             commands[leg].qdDes = data[leg].J2.transpose() * foot_v_des;
+
+            // std::cout << "control_mode 3" << std::endl;
 
         }
 
