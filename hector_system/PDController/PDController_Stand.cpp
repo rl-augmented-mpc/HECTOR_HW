@@ -30,7 +30,7 @@ void PDController_Stand::run(ControlFSMData& data) {
         data._legController->commands[i].feedforwardForce << 0,0,0,0,0,0;
 
 
-        data._legController->commands[i].which_control = int(ControlMode::PDSTAND);
+        data._legController->commands[i].control_mode =  int(ControlMode::PDSTAND);
 
 
 

@@ -474,7 +474,7 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
       // std::cout << "check 3" << std::endl;
       data._legController->commands[foot].kptoe = 10; // 0
       data._legController->commands[foot].kdtoe = 0.2;
-      data._legController->commands[foot].which_control = int(ControlMode::SWING);
+      data._legController->commands[foot].control_mode = int(ControlMode::SWING);
       // std::cout << "foot Des world" << foot << ": \n " << pDesFootWorld(0) << std::endl;
       // std::cout << "foot Des world" << foot << ": \n " << pDesFootWorld(1) << std::endl;
       // std::cout << "foot Des world" << foot << ": \n " << pDesFootWorld(2) << std::endl;
@@ -529,6 +529,8 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
       data._legController->commands[foot].kdtoe = 0;
 
       data._legController->commands[foot].feedforwardForce = f_ff[foot];
+
+
       // std::cout << "y: " << pDesLeg[1] << std::endl;
       // std::cout << "contact " << foot << " : \n" << contactState << std::endl;
       // std::cout << "foot force " << foot << " : \n " << data._legController->commands[foot].feedforwardForce(2) << std::endl;
@@ -536,7 +538,10 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
 
       //            cout << "Foot " << foot << " force: " << f_ff[foot].transpose() << "\n";
       se_contactState[foot] = contactState;
-      data._legController->commands[foot].which_control = int(ControlMode::STANCE);
+
+      
+      data._legController->commands[foot].tau = data._legController->data[foot].J.transpose()* f_ff[foot];
+      data._legController->commands[foot].control_mode = int(ControlMode::STANCE);
 
       // Update for WBC
       // Fr_des[foot] = -f_ff[foot];

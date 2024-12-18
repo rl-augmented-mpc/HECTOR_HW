@@ -2,3 +2,4 @@ hector_system/build
 Interface/HW_interface/build
 build/*
 Interface/HW_interface/Calibration/offset.txt
+Interface/results

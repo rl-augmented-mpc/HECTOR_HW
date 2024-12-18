@@ -20,7 +20,7 @@ void LegControllerCommand::zero(){
     kptoe = 0;
     kdtoe = 0;
 
-    which_control = 0;
+    control_mode = 0;
 }
 
 /*!
@@ -140,20 +140,20 @@ void LegController::updateCommand(LowlevelCmd* cmd){
 
 
 
-        if (commands[leg].which_control == 0){ // none
+        if (commands[leg].control_mode == 0){ // none
 
             commands[leg].kpJoint = Vec5<double>::Zero();
             commands[leg].kdJoint = Vec5<double>::Zero();
 
         
-        }else if (commands[leg].which_control == 1){ // PDStand
+        }else if (commands[leg].control_mode == 1){ // PDStand
 
             commands[leg].kpJoint *= 1.5;
             commands[leg].kpJoint[4] *= 1.5;
             
             commands[leg].kdJoint *= 1.5;
 
-        }else if (commands[leg].which_control == 2){ // stance
+        }else if (commands[leg].control_mode == 2){ // stance
 
             commands[leg].kpJoint = Vec5<double>::Zero();
 
@@ -161,22 +161,13 @@ void LegController::updateCommand(LowlevelCmd* cmd){
             // Stabilizing the motor control and prevent jittering: Giving D target to 0 joint velocity
             commands[leg].qdDes = Vec5<double>::Zero();
 
-            // Stance foot force to torque mapping======================================================================
-            Vec6<double> footWrench =  commands[leg].feedforwardForce;
-            Vec5<double> legTorque = (data[leg].J.transpose() * footWrench);
-            commands[leg].tau = legTorque;
-
-            commands[leg].tau(0) = legTorque[0] * percent;
-            commands[leg].tau(1) = legTorque[1] * percent;
-            commands[leg].tau(2) = legTorque[2] * percent;
-            commands[leg].tau(3) = legTorque[3] * percent;
-            commands[leg].tau(4) = legTorque[4] * percent;
+            // Stance foot force to torque mapping is already done
 
 
 
 
 
-        }else if (commands[leg].which_control == 3){ // swing
+        }else if (commands[leg].control_mode == 3){ // swing
 
             //Doing IK to get hip roll, pitch, knee
             //with the given desired foot pos/vel and fixing the hip yaw & ankle pitch (to make it degenerated to 3 DOFs)
@@ -219,7 +210,7 @@ void LegController::updateCommand(LowlevelCmd* cmd){
 
         // Assigning to lowCmd
         for (int k = 0; k < 5; k ++) {
-            cmd->motorCmd[motor_sequence[k + leg*5]].tau = tau_temp(k);
+            cmd->motorCmd[motor_sequence[k + leg*5]].tau = tau_temp(k) * percent;
             cmd->motorCmd[motor_sequence[k + leg*5]].q = qDes_temp(k);
             cmd->motorCmd[motor_sequence[k + leg*5]].dq = qdDes_temp(k);
             cmd->motorCmd[motor_sequence[k + leg*5]].Kp = commands[leg].kpJoint[k] * percent;

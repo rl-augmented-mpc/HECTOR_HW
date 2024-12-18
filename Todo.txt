@@ -3,12 +3,7 @@
 
 TODO: Joystick as like Keyboard
 
-FSMstate -> calibration and constraints
 
 
 FSM.cpp -> maked_shared
 
-'legcontroller
-
-
-angle logging for calibration

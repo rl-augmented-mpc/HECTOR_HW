@@ -38,10 +38,10 @@ void FSMState_Walking::run()
 
     //////////////////// MPC ///////////////////
     // pull velocity from keyboard (see src/interface/KeyBoard.cpp for key mappings)
+    // message from Ziwon: Let's keep this structure of using UserValue and UserCmd
     UserValue _userValue;
     _userValue = _data->_lowState->userValue;
     v_des_body[0] = (double)_userValue.lx;
-    v_des_body[0] =0;
     v_des_body[1] = (double)_userValue.ly;
     turn_rate = (double)_userValue.rx;
 
@@ -63,7 +63,7 @@ void FSMState_Walking::run()
 
 
 
-
+    Logging();
     //Push the Command to Leg Controller
     _data->_legController->updateCommand(_data->_lowCmd);
 

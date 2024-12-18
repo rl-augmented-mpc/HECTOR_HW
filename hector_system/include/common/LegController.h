@@ -33,7 +33,7 @@
         double kptoe;
         double kdtoe;
 
-        int which_control; // To indicate which control mode is being used -> necessary.
+        int control_mode; // To indicate which control mode is being used -> necessary.
         // 0 for none, 1 for PDStand, 2 for stance, 3 for swing
     };
 

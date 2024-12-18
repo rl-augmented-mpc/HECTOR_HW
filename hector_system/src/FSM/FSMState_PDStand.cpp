@@ -30,7 +30,7 @@ void FSMState_PDStand::run()
 
 
     
-
+    Logging();
     _data->_legController->updateCommand(_data->_lowCmd);  
 
 
