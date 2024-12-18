@@ -55,6 +55,8 @@ void LegController::updateData(const LowlevelState* state){
 
     for (int leg = 0; leg < 2; leg++)
     {
+
+
         // get from low-lev motorstate
         for (int j = 0; j < 5; j++)
         {
@@ -63,25 +65,32 @@ void LegController::updateData(const LowlevelState* state){
             data[leg].tau(j) = state->motorState[motor_sequence[j + leg * 5]].tauEst;
 
         }
+        bool ConnectionIsFine = _biped.CheckMotorConnection(leg, data[leg].q);
 
-        if (!_biped.CheckMotorConnection(leg, data[leg].q)){
-            // abort();
-        }
 
-        std::cout << "\n\nleg " << leg << " angle raw data: " << std::endl;
-        for (int j = 0; j < 5; j++)
-        {
-            std::cout << data[leg].q(j) * 180 / 3.1415 << "    ";
+
+
+        if (!ConnectionIsFine){
+            // Print the joint angles for debugging
+            std::cout << "\n\nleg " << leg << " angle raw data: " << std::endl;
+            for (int j = 0; j < 5; j++)
+            {
+                std::cout << data[leg].q(j) * 180 / 3.1415 << "    ";
+            }
         }
 
         _biped.Joint_Remapping_lowfromhigh(leg, data[leg].q, data[leg].qd, data[leg].tau);
 
+        if (!ConnectionIsFine){
+            // Print the joint angles for debugging
+            std::cout << "\nleg " << leg << " angle calibrated data: " << std::endl;
+            for (int j = 0; j < 5; j++)
+            {
+                std::cout << data[leg].q(j) * 180 / 3.1415 << "    ";
+            }
 
-        std::cout << "\nleg " << leg << " angle calibrated data: " << std::endl;
-        for (int j = 0; j < 5; j++)
-        {
-            std::cout << data[leg].q(j) * 180 / 3.1415 << "    ";
         }
+
 
 
         data[leg].J = _biped.HiptoFootJacobian(data[leg].q, leg);
@@ -126,11 +135,13 @@ void LegController::updateCommand(LowlevelCmd* cmd){
         if (motiontime < 1000) {
             percent = 0.0;
         }
+
         if (motiontime > 1000+duration) {
             percent = 1.0;
+        }else{
+            std::cout<< "\n Gradual command increasement: now " << percent*100 << "%" <<std::endl;
         }
 
-        std::cout<< "\n motiontime is " << motiontime << std::endl;
 
 
 
