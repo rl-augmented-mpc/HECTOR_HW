@@ -445,7 +445,8 @@ void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data
   // I_world = rs.R_yaw.transpose() * rs.I_body * rs.R_yaw;
   // cout<<rs.R_yaw<<endl;
   // ct_ss_mats(I_world, rs.m, rs.r_feet, rs.R_yaw, A_ct, B_ct_r);
-  ct_ss_mats(I_world, 13.0, rs.r_feet, Rb, A_ct, B_ct_r);
+  float mass = 15.5; 
+  ct_ss_mats(I_world, mass, rs.r_feet, Rb, A_ct, B_ct_r);
   // std::cout << "rsrfeet is " << rs.r_feet << std::endl;
  
   // Rotation of Foot:

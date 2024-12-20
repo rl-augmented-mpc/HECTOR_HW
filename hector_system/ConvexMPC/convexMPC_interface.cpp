@@ -80,30 +80,6 @@ inline void mint_to_u8(u8* dst, mint* src, s32 n_items)
 
 int has_solved = 0;
 
-//void *call_solve(void* ptr)
-//{
-//  solve_mpc(&update, &problem_configuration);
-//}
-//safely copies problem data and starts the solver
-// void update_problem_data(double* p, double* v, double* q, double* w, double* r, double yaw, double* weights, double* state_trajectory, double alpha, int* gait)
-// {
-//   mfp_to_flt(update.p,p,3);
-//   mfp_to_flt(update.v,v,3);
-//   mfp_to_flt(update.q,q,4);
-//   mfp_to_flt(update.w,w,3);
-//   mfp_to_flt(update.r,r,6);
-//   update.yaw = yaw;
-//   mfp_to_flt(update.weights,weights,12);
-//   //this is safe, the solver isn't running, and update_problem_data and setup_problem
-//   //are called from the same thread
-//   mfp_to_flt(update.traj,state_trajectory,12*problem_configuration.horizon);
-//   update.alpha = alpha;
-//   mint_to_u8(update.gait,gait,2*problem_configuration.horizon);
-
-//   solve_mpc(&update, &problem_configuration);
-//   has_solved = 1;
-// }
-
 void update_problem_data(double* p, double* v, double* q, double* w, 
                          double* r, double yaw, double* weights, 
                          double* state_trajectory, double* Alpha_K, int* gait, ControlFSMData &data)
@@ -115,18 +91,6 @@ void update_problem_data(double* p, double* v, double* q, double* w,
   mfp_to_flt(update.r,r,6);
   update.yaw = yaw;
   mfp_to_flt(update.weights,weights,12);
-  for (int i = 0;  i<10; i++){
-      // std::cout << "state traj " << i <<": "; 
-      // for (int j = 0; j < 12; j++){
-      //   std::cout << state_trajectory[i*12+j] << " "; 
-      // }
-      // std::cout << std::endl;
-      // std::cout << "weights " << i <<": "; 
-      for (int j = 0; j < 12; j++){
-        // std::cout << weights[j] << " "; 
-      }
-      std::cout << std::endl;
-  }
   
   //this is safe, the solver isn't running, and update_problem_data and setup_problem
   //are called from the same thread
@@ -157,25 +121,6 @@ void update_problem_data_floats(float* p, float* v, float* q, float* w,
   has_solved = 1;
 
 }
-
-// void update_problem_data_floats(float* p, float* v, float* q, float* w,
-//                                 float* r, float yaw, float* weights,
-//                                 float* state_trajectory, float alpha, int* gait)
-// {
-//   update.alpha = alpha;
-//   update.yaw = yaw;
-//   mint_to_u8(update.gait,gait,4*problem_configuration.horizon);
-//   memcpy((void*)update.p,(void*)p,sizeof(float)*3);
-//   memcpy((void*)update.v,(void*)v,sizeof(float)*3);
-//   memcpy((void*)update.q,(void*)q,sizeof(float)*4);
-//   memcpy((void*)update.w,(void*)w,sizeof(float)*3);
-//   memcpy((void*)update.r,(void*)r,sizeof(float)*12);
-//   memcpy((void*)update.weights,(void*)weights,sizeof(float)*12);
-//   memcpy((void*)update.traj,(void*)state_trajectory, sizeof(float) * 12 * problem_configuration.horizon);
-//   solve_mpc(&update, &problem_configuration);
-//   has_solved = 1;
-
-// }
 
 double get_solution(int index)
 {

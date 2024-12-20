@@ -21,11 +21,9 @@ KeyBoard::KeyBoard(){
     tcsetattr( fileno( stdin ), TCSANOW, &_newSettings );
 
     int result = pthread_create(&_tid, NULL, runKeyBoard, (void*)this);
-    std::cout << "result = " << result << std::endl;
     if (result != 0) {
         std::cerr << "Error creating keyboard thread: " << strerror(result) << std::endl;
     }
-    // abort();
 }
 
 KeyBoard::~KeyBoard(){
@@ -36,34 +34,14 @@ KeyBoard::~KeyBoard(){
 
 UserCommand KeyBoard::checkCmd(){
     switch (_c){
-    // case ' ':
-    //     return UserCommand::EXIT;
     case '1':
         return UserCommand::PASSIVE;
     case '2':
-        return UserCommand::PDSTAND; // from FSMWalking to FSMPassive
+        return UserCommand::PDSTAND; // from any mode to FSMPDStand
     case '3':
-        return UserCommand::STAND; // no effect
+        return UserCommand::STAND; // from any mode to FSMWALK + standing gait
     case '4':
-        return UserCommand::WALK; // PDSTAND
-    case ' ':
-        // userValue.setZero();
-        return UserCommand::NONE;
-    default:
-        return UserCommand::NONE;
-    }
-}
-
-UserCommand KeyBoard::checkGait(){
-    switch (_c){
-    case '1':
-        return UserCommand::NONE;
-    case '2':
-        return UserCommand::NONE; 
-    case '3':
-        return UserCommand::WALK; // walking
-    case '4':
-        return UserCommand::STAND; // standing
+        return UserCommand::WALK; // from any mode to FSMWALK + walking gait
     case ' ':
         return UserCommand::NONE;
     default:
@@ -73,37 +51,27 @@ UserCommand KeyBoard::checkGait(){
 
 void KeyBoard::changeValue(){
     switch (_c){
-    case 'w':case 'W':
-        userValue.ly = min<float>(userValue.ly+sensitivityLeft, 1.f);
-        std::cout << "command velocity (vx, vy, wz): " << userValue.lx << " " << userValue.ly << " " << userValue.rx << " " << userValue.ry << std::endl;
-        break;
-    case 's':case 'S':
-        userValue.ly = max<float>(userValue.ly-sensitivityLeft, -1.f);
-        std::cout << "command velocity (vx, vy, wz): " << userValue.lx << " " << userValue.ly << " " << userValue.rx << " " << userValue.ry << std::endl;
-        break;
-    case 'd':case 'D':
+    case 'w':
         userValue.lx = min<float>(userValue.lx+sensitivityLeft, 1.f);
         std::cout << "command velocity (vx, vy, wz): " << userValue.lx << " " << userValue.ly << " " << userValue.rx << " " << userValue.ry << std::endl;
         break;
-    case 'a':case 'A':
+    case 's':
         userValue.lx = max<float>(userValue.lx-sensitivityLeft, -1.f);
         std::cout << "command velocity (vx, vy, wz): " << userValue.lx << " " << userValue.ly << " " << userValue.rx << " " << userValue.ry << std::endl;
         break;
-    // ignore the following commands
-    case 'i':case 'I':
-        userValue.ry = min<float>(userValue.ry+sensitivityRight, 1.f);
+    case 'a':
+        userValue.ly = min<float>(userValue.ly+sensitivityLeft, 1.f);
         std::cout << "command velocity (vx, vy, wz): " << userValue.lx << " " << userValue.ly << " " << userValue.rx << " " << userValue.ry << std::endl;
         break;
-    case 'k':case 'K':
-        userValue.ry = max<float>(userValue.ry-sensitivityRight, -1.f);
+    case 'd':
+        userValue.ly = max<float>(userValue.ly-sensitivityLeft, -1.f);
         std::cout << "command velocity (vx, vy, wz): " << userValue.lx << " " << userValue.ly << " " << userValue.rx << " " << userValue.ry << std::endl;
         break;
-    /////////////////////////////////
-    case 'l':case 'L':
+    case 'q':
         userValue.rx = min<float>(userValue.rx+sensitivityRight, 1.f);
         std::cout << "command velocity (vx, vy, wz): " << userValue.lx << " " << userValue.ly << " " << userValue.rx << " " << userValue.ry << std::endl;
         break;
-    case 'j':case 'J':
+    case 'e':
         userValue.rx = max<float>(userValue.rx-sensitivityRight, -1.f);
         std::cout << "command velocity (vx, vy, wz): " << userValue.lx << " " << userValue.ly << " " << userValue.rx << " " << userValue.ry << std::endl;
         break;
@@ -114,21 +82,21 @@ void KeyBoard::changeValue(){
 
 void* KeyBoard::runKeyBoard(void *arg){
     ((KeyBoard*)arg)->run(NULL);
+    return nullptr;
 }
 
 void* KeyBoard::run(void *arg){
     while(1){
-        std::cout << "key test" << std::endl;
-        // abort();
         FD_ZERO(&set);
         FD_SET( fileno( stdin ), &set );
 
         res = select( fileno( stdin )+1, &set, NULL, NULL, NULL);
 
         if(res > 0){
-            read( fileno( stdin ), &_c, 1 );
-            userCmd = checkCmd();
-            gaitNum = checkGait();
+            ssize_t bytesRead = read( fileno( stdin ), &_c, 1 );
+            if (_c >= '1' && _c <= '4') {
+                    userCmd = checkCmd(); // Update userCmd only for command keys
+                }
             if(userCmd == UserCommand::WALK){
                 changeValue();
             }
@@ -136,4 +104,6 @@ void* KeyBoard::run(void *arg){
         }
         usleep(1000);
     }
+
+    return nullptr;
 }

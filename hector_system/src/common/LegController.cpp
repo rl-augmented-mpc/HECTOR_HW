@@ -130,21 +130,35 @@ void LegController::updateCommand(LowlevelCmd* cmd){
 
 
         // ramping up for first few seconds==============================================================
-        double percent;
-        double duration = 4000;
-        percent = (double)(motiontime-1000)/duration;
-        if (motiontime < 1000) {
-            percent = 0.0;
+        double progress;
+        double duration = 4000; //4second
+        double offset_time = 500; // within this time, the command is not sent
+        progress = (double)(motiontime-offset_time)/duration;
+        if (motiontime < offset_time) {
+            progress = 0.0;
         }
 
-        if (motiontime > 1000+duration) {
-            percent = 1.0;
-        }else{
-            std::cout<< "\n Gradual command increasement: now " << percent*100 << "%" <<std::endl;
+        if (motiontime > offset_time+duration){
+            progress = 1.0;
         }
-
-
-
+        else{
+            int barWidth = 50; 
+            double percentage = progress * 100.0;
+            int pos = static_cast<int>(barWidth * percentage / 100);
+            std::cout << "\r" << std::string(barWidth + 10, ' ') << "\r";
+            std::cout << "Gradual command increase: [";
+            for (int i = 0; i < barWidth; ++i) {
+                if (i < pos)
+                    std::cout << "=";
+                else if (i == pos)
+                    std::cout << ">";
+                else
+                    std::cout << " ";
+            }
+            // std::cout << "] " << percentage << "%\r"; // \r brings the cursor back to the beginning
+            std::cout << "] " << std::fixed << std::setprecision(2) << percentage << "%";
+            std::cout.flush(); // Ensure the output is shown immediately
+        }
 
 
 
@@ -228,10 +242,10 @@ void LegController::updateCommand(LowlevelCmd* cmd){
 
         // Assigning to lowCmd
         for (int k = 0; k < 5; k ++) {
-            cmd->motorCmd[motor_sequence[k + leg*5]].tau = tau_temp(k) * percent;
+            cmd->motorCmd[motor_sequence[k + leg*5]].tau = tau_temp(k) * progress;
             cmd->motorCmd[motor_sequence[k + leg*5]].q = qDes_temp(k);
             cmd->motorCmd[motor_sequence[k + leg*5]].dq = qdDes_temp(k);
-            cmd->motorCmd[motor_sequence[k + leg*5]].Kp = commands[leg].kpJoint[k] * percent;
+            cmd->motorCmd[motor_sequence[k + leg*5]].Kp = commands[leg].kpJoint[k] * progress;
             cmd->motorCmd[motor_sequence[k + leg*5]].Kd = commands[leg].kdJoint[k];
         }
 

@@ -28,34 +28,30 @@ Hardware code for HECTOR V1
   
 # Build Instruction
 ```bash
+cd {/path/to/root}
 mkdir build && cd build
 cmake ..
-cmake --build .  # use -j to speed up the process
+make -j8
 ```
 
 
 # Operation instruction 
-To operate the robot, you have two options: keyboard and joystick. 
-Keyboard is responsible for controlling FSM mode. 
+To operate the robot, you need keyboard.
 
-* Press 1: Transition from Passive mode to Walking mode 
-* Press 2: Transition from Walking mode to Passive mode
-* Press 3: Set walking gait (Only activated in WalkingFSM)
-* Press 4: Set standing gait (Only activated in WalkingFSM)
+* Press 1: Transition to Passive mode
+* Press 2: Transition to PDStand mode
+* Press 3: Transition to walking gait (Only activated in WalkingFSM)
+* Press 4: Transition to standing gait (Only activated in WalkingFSM)
 
 ## Keyboard
-* Press D: Increase x velocity by 0.025
-* Press A: Decrease x velocity by 0.025
-* Press W: Increase y velocity by 0.025
-* Press S: Decrease y velocity by 0.025
-* Press L: Increase yaw angular velocity by 0.025
-* Press J: Decrease yaw angular velocity by 0.025
+* Press w: Increase x velocity by 0.05
+* Press s: Decrease x velocity by 0.05
+* Press d: Increase y velocity by 0.05
+* Press a: Decrease y velocity by 0.05
+* Press q: Increase yaw angular velocity by 0.05
+* Press e: Decrease yaw angular velocity by 0.05
 
 To control the resolution, edit `sensitivityLeft` and `sensitivityRight` in include/interface/KeyBoard.h
-
-## Joystick 
-* Press A: Transition from standing to walking 
-* Press B: Transition from walking to standing
 
 
 # Change default parameters
@@ -78,18 +74,3 @@ Default value is 0.12m
 * Reference COM height 
 Modify `ref_height` in `include/common/Biped.h`. \
 Default value is 0.55m
-
-
-
-
-
-
-
-
-ZIwon
-
-cd hector_system
-mkdir build
-cd build
-cmake .. -DCMAKE_INSTALL_PREFIX=./install
-cmake --build . --target install

@@ -14,7 +14,6 @@ public:
     ~CmdPanel(){}
     UserCommand getUserCmd(){return userCmd;}
     UserValue getUserValue(){return userValue;}
-    UserCommand getGaitNum(){return gaitNum;}
     void setPassive(){userCmd = UserCommand::PASSIVE;}
     void setZero(){userValue.setZero();}
     void setCmdNone(){userCmd = UserCommand::NONE;}

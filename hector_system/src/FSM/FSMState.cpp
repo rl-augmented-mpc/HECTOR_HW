@@ -186,35 +186,35 @@ void FSMState::CheckJointSafety(){
         // Hip Constraint
         if ((_data->_legController->data[leg].q(0) < _data->_biped->Abad_Leg_Constraint[0]) || 
           (_data->_legController->data[leg].q(0) > _data->_biped->Abad_Leg_Constraint[1])) {
-            std::cout << "Abad R Angle Exceeded" << _data->_legController->data[0].q(0) << std::endl;
+            std::cout << "Abad R Angle Exceeded " << _data->_legController->data[0].q(0) << std::endl;
             abort();
         }
 
         // AbAd Constraint
         if ((_data->_legController->data[leg].q(1) < _data->_biped->Hip_Leg_Constraint[0]) ||
             (_data->_legController->data[leg].q(1) > _data->_biped->Hip_Leg_Constraint[1])) {
-            std::cout << "Hip R Angle Exceeded" << std::endl;
+            std::cout << "Hip R Angle Exceeded " << _data->_legController->data[0].q(1) << std::endl;
             abort();
         }
 
         //Thigh Constraint
         if ((_data->_legController->data[leg].q(2) < _data->_biped->Thigh_Constraint[0]) || 
         (_data->_legController->data[leg].q(2) > _data->_biped->Thigh_Constraint[1])) {
-            std::cout << "Thigh Angle Exceeded" << std::endl;
+            std::cout << "Thigh Angle Exceeded " << _data->_legController->data[0].q(2) << std::endl;
             abort();
         }
 
         //Calf Constraint
         if ((_data->_legController->data[leg].q(3) < _data->_biped->Calf_Constraint[0]) || 
         (_data->_legController->data[leg].q(3) > _data->_biped->Calf_Constraint[1])) {
-            std::cout << "Calf Angle Exceeded" << std::endl;
+            std::cout << "Calf Angle Exceeded " << _data->_legController->data[0].q(3) << std::endl;
             abort();
         }
 
         //Ankle Constraint
         if ((_data->_legController->data[leg].q(4) < _data->_biped->Ankle_Constraint[0]) || 
         (_data->_legController->data[leg].q(4) > _data->_biped->Ankle_Constraint[1])) {
-            std::cout << "Ankle Angle Exceeded" << std::endl;
+            std::cout << "Ankle Angle Exceeded " << _data->_legController->data[0].q(4) << std::endl;
             abort();
         }
 

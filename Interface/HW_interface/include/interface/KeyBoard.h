@@ -20,11 +20,10 @@ private:
     void *run(void *arg);
     UserCommand checkCmd();
     void changeValue();
-    UserCommand checkGait();
 
     pthread_t _tid;
-    float sensitivityLeft = 0.025;
-    float sensitivityRight = 0.025;
+    float sensitivityLeft = 0.05;
+    float sensitivityRight = 0.05;
     struct termios _oldSettings, _newSettings;
     fd_set set;
     int res;

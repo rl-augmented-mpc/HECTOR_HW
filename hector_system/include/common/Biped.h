@@ -144,7 +144,8 @@ class Biped{
 
     //Angle Constraints for Safety
     double Abad_Leg_Constraint[2] = {-30 * (3.1415/180), 30 * (3.1415/180)};
-    double Hip_Leg_Constraint[2] = {-25* (3.1415/180.0), 55 * (3.1415/180)};
+    // double Hip_Leg_Constraint[2] = {-* (3.1415/180.0), 55 * (3.1415/180)};
+    double Hip_Leg_Constraint[2] = {-35* (3.1415/180.0), 55 * (3.1415/180)};
     double Thigh_Constraint[2] = {0 * (3.1415/180), 80 * (3.1415/180)};
     double Calf_Constraint[2] = {-150 * (3.1415/180), -30 * (3.1415/180)};
     double Ankle_Constraint[2] = {-10 * (3.1415/180), 95 * (3.1415/180)};

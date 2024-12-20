@@ -10,6 +10,7 @@
 #ifndef LEGCONTROLLER_H
 #define LEGCONTROLLER_H
 
+#include <iomanip>
 #include "cppTypes.h"
 #include "../messages/LowlevelState.h"
 #include "../messages/LowLevelCmd.h"

@@ -4,6 +4,7 @@
 #include "../include/common/FootSwingTrajectory.h"
 #include "../include/common/ControlFSMData.h"
 #include "../include/common/cppTypes.h"
+#include "GaitGenerator.h"
 #include <fstream>
 
 using Eigen::Array4f;
@@ -19,41 +20,13 @@ struct CMPC_Result {
 };
 
 
-class Gait
-{
-public:
-  Gait(int nMPC_segments, Vec2<int> offsets, Vec2<int>  durations, const std::string& name="");
-  ~Gait();
-  Vec2<double> getContactSubPhase();
-  Vec2<double> getSwingSubPhase();
-  int* mpc_gait();
-  void setIterations(int iterationsPerMPC, int currentIteration);
-  int _stance;
-  int _swing;
-
-
-private:
-  int _nMPC_segments;
-  int* _mpc_table;
-  Array2i _offsets; // offset in mpc segments
-  Array2i _durations; // duration of step in mpc segments
-  Array2d _offsetsPhase; // offsets in phase (0 to 1)
-  Array2d _durationsPhase; // durations in phase (0 to 1)
-  int _iteration;
-  int _nIterations;
-  int currentIteration;
-  double _phase;
-
-};
-
-
 class ConvexMPCLocomotion {
 public:
   ConvexMPCLocomotion(double _dt, int _iterations_between_mpc);
   void initialize();
 
   void run(ControlFSMData& data);
-  void setGaitNum(int gaitNum){gaitNumber = gaitNum % 7; if(gaitNum%7 ==0) gaitNumber = 7; return;}
+  void setGaitNum(int gaitNum){gaitNumber = gaitNum % 2; if(gaitNum%2 ==0) gaitNumber = 2; return;}
   Vec3<double> pBody_des;
   Vec3<double> vBody_des;
   Vec3<double> aBody_des;
@@ -68,8 +41,6 @@ public:
   Vec3<double> Fr_des[2];
 
   Vec2<double> contact_state;
-
-  std::ofstream mpc_input;
 
   bool climb = 0;
   bool firstRun = true;
@@ -86,7 +57,7 @@ private:
   Vec12<double> Forces_Sol;
   Vec2<double> swingTimes;
   FootSwingTrajectory<double> footSwingTrajectories[2];
-  Gait trotting, bounding, pacing, walking, galloping, pronking, standing;
+  Gait walking, standing;
   Mat3<double> Kp, Kd, Kp_stance, Kd_stance;
   bool firstSwing[2];
   double swingTimeRemaining[2];
