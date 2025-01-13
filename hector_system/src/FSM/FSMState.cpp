@@ -178,53 +178,52 @@ void FSMState::Logging()
 
 
 void FSMState::CheckJointSafety(){
-    
 
+    if (_data->_biped->_real_flag == 1){
+        for (int leg = 0; leg < 2; leg++){
 
-    for (int leg = 0; leg < 2; leg++){
+            // Hip Constraint
+            if ((_data->_legController->data[leg].q(0) < _data->_biped->Abad_Leg_Constraint[0]) || 
+            (_data->_legController->data[leg].q(0) > _data->_biped->Abad_Leg_Constraint[1])) {
+                std::cout << "leg: " << leg << " Hip Yaw Angle Exceeded " << _data->_legController->data[leg].q(0) << std::endl;
+                abort();
+            }
 
-        // Hip Constraint
-        if ((_data->_legController->data[leg].q(0) < _data->_biped->Abad_Leg_Constraint[0]) || 
-          (_data->_legController->data[leg].q(0) > _data->_biped->Abad_Leg_Constraint[1])) {
-            std::cout << "Abad R Angle Exceeded " << _data->_legController->data[0].q(0) << std::endl;
-            abort();
+            // AbAd Constraint
+            if ((_data->_legController->data[leg].q(1) < _data->_biped->Hip_Leg_Constraint[0]) ||
+                (_data->_legController->data[leg].q(1) > _data->_biped->Hip_Leg_Constraint[1])) {
+                std::cout << "leg: " << leg << " Hip Roll Angle Exceeded " << _data->_legController->data[leg].q(1) << std::endl;
+                abort();
+            }
+
+            //Thigh Constraint
+            if ((_data->_legController->data[leg].q(2) < _data->_biped->Thigh_Constraint[0]) || 
+            (_data->_legController->data[leg].q(2) > _data->_biped->Thigh_Constraint[1])) {
+                std::cout << "leg: " << leg << " Thigh Angle Exceeded " << _data->_legController->data[leg].q(2) << std::endl;
+                abort();
+            }
+
+            //Calf Constraint
+            if ((_data->_legController->data[leg].q(3) < _data->_biped->Calf_Constraint[0]) || 
+            (_data->_legController->data[leg].q(3) > _data->_biped->Calf_Constraint[1])) {
+                std::cout << "leg: " << leg << " Calf Angle Exceeded " << _data->_legController->data[leg].q(3) << std::endl;
+                abort();
+            }
+
+            //Ankle Constraint
+            if ((_data->_legController->data[leg].q(4) < _data->_biped->Ankle_Constraint[0]) || 
+            (_data->_legController->data[leg].q(4) > _data->_biped->Ankle_Constraint[1])) {
+                std::cout << "leg: " << leg << " Ankle Angle Exceeded " << _data->_legController->data[leg].q(4) << std::endl;
+                abort();
+            }
+
         }
 
-        // AbAd Constraint
-        if ((_data->_legController->data[leg].q(1) < _data->_biped->Hip_Leg_Constraint[0]) ||
-            (_data->_legController->data[leg].q(1) > _data->_biped->Hip_Leg_Constraint[1])) {
-            std::cout << "Hip R Angle Exceeded " << _data->_legController->data[0].q(1) << std::endl;
+
+        // Body Pitch Constraint
+        if ((_data->_stateEstimator->getResult().rpy(1)) < -0.3){
+            std::cout << "Body Pitch Angle Exceeded: " << 180/3.141 * _data->_stateEstimator->getResult().rpy(1) << std::endl;
             abort();
         }
-
-        //Thigh Constraint
-        if ((_data->_legController->data[leg].q(2) < _data->_biped->Thigh_Constraint[0]) || 
-        (_data->_legController->data[leg].q(2) > _data->_biped->Thigh_Constraint[1])) {
-            std::cout << "Thigh Angle Exceeded " << _data->_legController->data[0].q(2) << std::endl;
-            abort();
-        }
-
-        //Calf Constraint
-        if ((_data->_legController->data[leg].q(3) < _data->_biped->Calf_Constraint[0]) || 
-        (_data->_legController->data[leg].q(3) > _data->_biped->Calf_Constraint[1])) {
-            std::cout << "Calf Angle Exceeded " << _data->_legController->data[0].q(3) << std::endl;
-            abort();
-        }
-
-        //Ankle Constraint
-        if ((_data->_legController->data[leg].q(4) < _data->_biped->Ankle_Constraint[0]) || 
-        (_data->_legController->data[leg].q(4) > _data->_biped->Ankle_Constraint[1])) {
-            std::cout << "Ankle Angle Exceeded " << _data->_legController->data[0].q(4) << std::endl;
-            abort();
-        }
-
     }
-
-
-    //Pitch Constraint
-    if ((_data->_stateEstimator->getResult().rpy(1)) < -0.3){
-        std::cout << "Pitch Angle Exceeded" << std::endl;
-        abort();
-    }
-
 }

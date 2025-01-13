@@ -197,8 +197,8 @@ void ConvexMPCLocomotion::updateMPC(int *mpcTable, ControlFSMData &data, bool om
   dtMPC, horizonLength, data._biped->mu, data._biped->f_max, data._biped->mass, 
   data._biped->I_body, data._biped->rl_params.A_residual, data._biped->rl_params.B_residual);
   
-  Timer t2;
-  t2.start();
+  // Timer t2;
+  // t2.start();
   update_problem_data(p, v, q, w, r, yaw, weights, trajAll, Alpha_K, mpcTable, data);
   // std::cout << "\nMPC problem update took: " << t2.getMs() << " ms" << std::endl;
 

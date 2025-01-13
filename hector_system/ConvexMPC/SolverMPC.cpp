@@ -550,8 +550,8 @@ void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data
     Alpha_rep.block(i * 12, i * 12, 12, 12) << Alpha_diag;
   }
   // Equivalent to Matlab Formulaion
-  Timer timer;
-  timer.start();
+  // Timer timer;
+  // timer.start();
   qH = 2 * (B_qp.transpose() * S * B_qp + Alpha_rep);
   qg = 2 * B_qp.transpose() * S * (A_qp * x_0 - X_d);
   // std::cout << "\nTime to construct QP: " << timer.getMs() << " ms" << std::endl;
