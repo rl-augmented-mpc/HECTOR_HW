@@ -2,7 +2,6 @@
 #define _solver_mpc
 
 
-#include <eigen3/Eigen/Dense>
 #include "common_types.h"
 #include "convexMPC_interface.h"
 #include <iostream>
@@ -54,10 +53,10 @@ T sq(T a)
     return a*a;
 }
 
-
-void solve_mpc(update_data_t* update, problem_setup* setup, ControlFSMData& data);
-void quat_to_rpy(Quaternionf q, Matrix<fpt,3,1>& rpy);
-void ct_ss_mats(Matrix<fpt,3,3> I_world, fpt m, Matrix<fpt,3,2> r_feet, Matrix<fpt,3,3> R_yaw, Matrix<fpt,13,13>& A, Matrix<fpt,13,12>& B);
+void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data);
+void quat_to_rpy(Quaternionf q, Matrix<fpt, 3, 1> &rpy);
+// void ct_ss_mats(Matrix<fpt,3,3> I_world, fpt m, Matrix<fpt,3,2> r_feet, Matrix<fpt,3,3> R_yaw, Matrix<fpt,13,13>& A, Matrix<fpt,13,12>& B);
+void ct_ss_mats(Matrix<fpt,3,3> I_world, fpt m, Matrix<fpt,13,13> A_residual, Matrix<fpt,13,12> B_residual, Matrix<fpt,3,2> r_feet, Matrix<fpt,3,3> R_yaw, Matrix<fpt,13,13>& A, Matrix<fpt,13,12>& B);
 void resize_qp_mats(s16 horizon);
 void c2qp(Matrix<fpt,13,13> Ac, Matrix<fpt,13,12> Bc,fpt dt,s16 horizon);
 

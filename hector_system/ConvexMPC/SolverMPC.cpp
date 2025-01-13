@@ -3,13 +3,10 @@
 #include "common_types.h"
 #include "convexMPC_interface.h"
 #include "RobotState.h"
-#include <eigen3/Eigen/Dense>
 #include <cmath>
-#include <eigen3/unsupported/Eigen/MatrixFunctions>
 #include "../third_party/qpOASES/include/qpOASES.hpp"
 #include <stdio.h>
 #include <sys/time.h>
-// #include "../include/Utilities/Timer.h"
 #include "../include/common/Utilities/Timer.h"
 #include <fstream>
 
@@ -124,11 +121,6 @@ void matrix_to_real(qpOASES::real_t *dst, Matrix<fpt, Dynamic, Dynamic> src, s16
 
 void c2qp(Matrix<fpt, 13, 13> Ac, Matrix<fpt, 13, 12> Bc, fpt dt, s16 horizon)
 {
-// #ifdef K_PRINT_EVERYTHING
-//   cout << "Adt: \n"
-//        << Adt << "\nBdt:\n"
-//        << Bdt << endl;
-// #endif
   if (horizon > 19)
   {
     throw std::runtime_error("horizon is too long!");
@@ -176,12 +168,6 @@ void c2qp(Matrix<fpt, 13, 13> Ac, Matrix<fpt, 13, 12> Bc, fpt dt, s16 horizon)
       B_qp.block<13, 12>(i * 13, j * 12) << Matrix<fpt, 13, 12>::Zero();
     }
   }
-
-//  #ifdef K_PRINT_EVERYTHING
-//   // cout << "AQP:\n"
-//   //      << A_qp << "\nBQP:\n"
-//   //      << B_qp << endl;
-//  #endif
 }
 
 // Resizing & initaliztation:
@@ -300,46 +286,27 @@ inline Matrix<fpt, 3, 3> cross_mat(Matrix<fpt, 3, 3> I_inv, Matrix<fpt, 3, 1> r)
   return I_inv * cm;
 }
 
-// continuous time state space matrices.
-void ct_ss_mats(Matrix<fpt, 3, 3> I_world, fpt m, Matrix<fpt, 3, 2> r_feet, Matrix<fpt, 3, 3> R_yaw, Matrix<fpt, 13, 13> &A, Matrix<fpt, 13, 12> &B)
+// continuous time state space matrices with residual matrices
+// https://arxiv.org/abs/2104.00065 eq.8-9
+void ct_ss_mats(Matrix<fpt, 3, 3> I_world, fpt m, Matrix<fpt,13,13> A_residual, Matrix<fpt,13,12> B_residual, Matrix<fpt, 3, 2> r_feet, Matrix<fpt, 3, 3> R_yaw, Matrix<fpt, 13, 13> &A, Matrix<fpt, 13, 12> &B)
 {
-  Matrix<fpt, 3, 3> I_inv = I_world.inverse();
-  Matrix<fpt, 3, 3> Im;
-  Im << 0, 0, 0,  0, 1.f, 0,  0, 0, 1.f;
   A.setZero();
   A.block<3, 3>(0, 6) << R_yaw;
   A.block<3, 3>(3, 9) << Matrix<fpt, 3, 3>::Identity();
-  A.block<3, 1>(9, 12) << 0, 0, -1.f;
-  // // external force model:
-  // A.block<3, 1>(9, 12) << 0, 0, -1.f - 2.5f/12.f;
-  // Matrix<fpt, 3, 1> blockDistance;
-  // blockDistance << 0.14, 0, 0.2; 
-  // Matrix<fpt, 3, 1> blockForce;
-  // blockForce << 0,0,-2.5f*9.81;
-  // A.block<3, 1>(6, 12) << cross_mat(I_inv, blockDistance)*blockForce/9.81; 
-
-// // external force model:
-//   A.block<3, 1>(9, 12) << 0, 0, -1.f - 1.5f/12.f;
-//   Matrix<fpt, 3, 1> blockDistance;
-//   blockDistance << 0.14, 0, 0.05; 
-//   Matrix<fpt, 3, 1> blockForce;
-//   blockForce << 0,0,-1.5f*9.81;
-//   A.block<3, 1>(6, 12) << cross_mat(I_inv, blockDistance)*blockForce/9.81; 
-  
-   
-  // std::cout << "///////////// A:" << A << std::endl;
+  A.block<3, 1>(9, 12) << 0, 0, -9.81f;
+  A += A_residual;
 
   B.setZero();
+  Matrix<fpt, 3, 3> I_inv = I_world.inverse();
   for (s16 b = 0; b < 2; b++)
   {
     B.block<3, 3>(6, b * 3) << cross_mat(I_inv, r_feet.col(b));
-    // std::cout << "r_feet :" << r_feet.col(b) << std::endl;
   }
-  B.block<3, 3>(6, 6) << I_inv;
-  B.block<3, 3>(6, 9) << I_inv;  //switch
-  B.block<3, 3>(9, 0) << Matrix<fpt, 3, 3>::Identity() / (m/1); //switch 
-  B.block<3, 3>(9, 3) << Matrix<fpt, 3, 3>::Identity() / (m/1);
-  // std::cout << "B:" << B << std::endl;
+  B.block<3, 3>(6, 6) << I_inv ;
+  B.block<3, 3>(6, 9) << I_inv ;  
+  B.block<3, 3>(9, 0) << Matrix<fpt, 3, 3>::Identity() / m ; 
+  B.block<3, 3>(9, 3) << Matrix<fpt, 3, 3>::Identity() / m ;
+  B += B_residual;
 }
 
 void quat_to_rpy(Quaternionf q, Matrix<fpt, 3, 1> &rpy)
@@ -383,51 +350,30 @@ Matrix<fpt, 13, 12> B_ct_r;
 void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data)
 {
 
-////////////// Joint states ////////////////////////// 
-
-// Matrix<fpt, 10, 1> q; 
-// double gear_ratio = 1.417;
-// int motor_sequence[10] = {1, 2, 9, 10, 11, 4, 5, 6, 7, 8};
-
-//     for (int leg = 0; leg < 2; leg++){
-//         for (int j = 0; j < 5; j++){
-//             q(leg*5+j) = (double)state->motorState[motor_sequence[j + leg*5]].q;
-//             q(leg*5+j) += offset[leg*5+j];
-//         }
-//     }
-//     q(5) = -q(5);
-//     q(6) = -q(6);
-//     q(7) = -q(7);
-//     q(8) = -q(8)/gear_ratio;
-//     q(3) = -q(3)/gear_ratio;
-//     q(9) = q(9) - q(8);
-//     q(4) = q(4) - q(3);
-      // cout << "solver q:\n"
-      //  << q << endl;
-    // for (int leg = 0; leg < 2; leg++){
-    //   for (int i = 0; i < 5; i++){
-    //     q(leg*5+i) = data._legController->data[leg].q(i);
-    //   }
-    // }    
-
-   //////////////////////////////     
-
-  
+  Eigen::Matrix<double, 10, 1> q;
+  // for (int i = 0; i < 2; i++)
+  // {
+  //   for (int k = 0; k < 5; k++)
+  //   {
+  //     q(i * 5 + k) = data._legController->data[i].q(k);
+  //   }
+  // }
 
   rs.set(update->p, update->v, update->q, update->w, update->r, update->yaw);
-#ifdef K_PRINT_EVERYTHING
 
-  printf("-----------------\n");
-  printf("   PROBLEM DATA  \n");
-  printf("-----------------\n");
-  print_problem_setup(setup);
+  #ifdef K_PRINT_EVERYTHING
 
-  printf("-----------------\n");
-  printf("    ROBOT DATA   \n");
-  printf("-----------------\n");
-  rs.print();
-  print_update_data(update, setup->horizon);
-#endif
+    printf("-----------------\n");
+    printf("   PROBLEM DATA  \n");
+    printf("-----------------\n");
+    print_problem_setup(setup);
+
+    printf("-----------------\n");
+    printf("    ROBOT DATA   \n");
+    printf("-----------------\n");
+    rs.print();
+    print_update_data(update, setup->horizon);
+  #endif
 
   // roll pitch yaw
   Matrix<fpt, 3, 1> rpy;
@@ -435,49 +381,27 @@ void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data
   // Eigen::Matrix3d rot_mat;
   Matrix<fpt, 3, 3> Rb;
   Rb = euler_to_rotation(rpy(0), rpy(1), rpy(2));
-  // std::cout << "rpy: \n" << rpy << std::endl;
-  // std::cout << "ROTM: \n" << rot_mat << std::endl;
-  // initial state (13 state representation)
-  x_0 << rpy(0), rpy(1), rpy(2), rs.p, rs.w, rs.v, 9.8f;
-  I_world = rs.R * rs.I_body * rs.R.transpose(); // original
-  //std::cout << "I_world: " << I_world << std::endl;
-  // std::cout << "I_body: "  << rs.I_body << std::endl;
-  // I_world = rs.R_yaw.transpose() * rs.I_body * rs.R_yaw;
-  // cout<<rs.R_yaw<<endl;
-  // ct_ss_mats(I_world, rs.m, rs.r_feet, rs.R_yaw, A_ct, B_ct_r);
-  float mass = 15.5; 
-  ct_ss_mats(I_world, mass, rs.r_feet, Rb, A_ct, B_ct_r);
-  // std::cout << "rsrfeet is " << rs.r_feet << std::endl;
+  
+  x_0 << rpy(0), rpy(1), rpy(2), rs.p, rs.w, rs.v, 1.f;
+  I_world = rs.R * setup->I_body * rs.R.transpose();
+  ct_ss_mats(I_world, setup->mass, setup->A_residual, setup->B_residual, rs.r_feet, Rb, A_ct, B_ct_r);
  
   // Rotation of Foot:
   Matrix<fpt, 3, 3> R_foot_L;
   Matrix<fpt, 3, 3> R_foot_R;
-  // R_foot_L << - 1.0*sin(q(4))*(cos(q(3))*(cos(q(0))*sin(q(2)) + cos(q(2))*sin(q(0))*sin(q(1))) + sin(q(3))*(cos(q(0))*cos(q(2)) - 1.0*sin(q(0))*sin(q(1))*sin(q(2)))) - cos(q(4))*(1.0*sin(q(3))*(cos(q(0))*sin(q(2)) + cos(q(2))*sin(q(0))*sin(q(1))) - cos(q(3))*(cos(q(0))*cos(q(2)) - 1.0*sin(q(0))*sin(q(1))*sin(q(2)))), -1.0*cos(q(1))*sin(q(0)), cos(q(4))*(cos(q(3))*(cos(q(0))*sin(q(2)) + cos(q(2))*sin(q(0))*sin(q(1))) + sin(q(3))*(cos(q(0))*cos(q(2)) - 1.0*sin(q(0))*sin(q(1))*sin(q(2)))) - sin(q(4))*(1.0*sin(q(3))*(cos(q(0))*sin(q(2)) + cos(q(2))*sin(q(0))*sin(q(1))) - cos(q(3))*(cos(q(0))*cos(q(2)) - 1.0*sin(q(0))*sin(q(1))*sin(q(2)))),
-  //             cos(q(4))*(cos(q(3))*(cos(q(2))*sin(q(0)) + cos(q(0))*sin(q(1))*sin(q(2))) - 1.0*sin(q(3))*(sin(q(0))*sin(q(2)) - 1.0*cos(q(0))*cos(q(2))*sin(q(1)))) - 1.0*sin(q(4))*(sin(q(3))*(cos(q(2))*sin(q(0)) + cos(q(0))*sin(q(1))*sin(q(2))) + cos(q(3))*(sin(q(0))*sin(q(2)) - 1.0*cos(q(0))*cos(q(2))*sin(q(1)))),      cos(q(0))*cos(q(1)), cos(q(4))*(sin(q(3))*(cos(q(2))*sin(q(0)) + cos(q(0))*sin(q(1))*sin(q(2))) + cos(q(3))*(sin(q(0))*sin(q(2)) - 1.0*cos(q(0))*cos(q(2))*sin(q(1)))) + sin(q(4))*(cos(q(3))*(cos(q(2))*sin(q(0)) + cos(q(0))*sin(q(1))*sin(q(2))) - 1.0*sin(q(3))*(sin(q(0))*sin(q(2)) - 1.0*cos(q(0))*cos(q(2))*sin(q(1)))),
-  //                                                                                                                                                                                                                           -1.0*sin(q(2) + q(3) + q(4))*cos(q(1)),              sin(q(1)),                                                                                                                                                                                                                             cos(q(2) + q(3) + q(4))*cos(q(1));
-  // R_foot_R << - 1.0*sin(q(9))*(cos(q(8))*(cos(q(5))*sin(q(7)) + cos(q(7))*sin(q(5))*sin(q(6))) + sin(q(8))*(cos(q(5))*cos(q(7)) - 1.0*sin(q(5))*sin(q(6))*sin(q(7)))) - cos(q(9))*(1.0*sin(q(8))*(cos(q(5))*sin(q(7)) + cos(q(7))*sin(q(5))*sin(q(6))) - cos(q(8))*(cos(q(5))*cos(q(7)) - 1.0*sin(q(5))*sin(q(6))*sin(q(7)))), -1.0*cos(q(6))*sin(q(5)), cos(q(9))*(cos(q(8))*(cos(q(5))*sin(q(7)) + cos(q(7))*sin(q(5))*sin(q(6))) + sin(q(8))*(cos(q(5))*cos(q(7)) - 1.0*sin(q(5))*sin(q(6))*sin(q(7)))) - sin(q(9))*(1.0*sin(q(8))*(cos(q(5))*sin(q(7)) + cos(q(7))*sin(q(5))*sin(q(6))) - cos(q(8))*(cos(q(5))*cos(q(7)) - 1.0*sin(q(5))*sin(q(6))*sin(q(7)))),
-  //             cos(q(9))*(cos(q(8))*(cos(q(7))*sin(q(5)) + cos(q(5))*sin(q(6))*sin(q(7))) - 1.0*sin(q(8))*(sin(q(5))*sin(q(7)) - 1.0*cos(q(5))*cos(q(7))*sin(q(6)))) - 1.0*sin(q(9))*(sin(q(8))*(cos(q(7))*sin(q(5)) + cos(q(5))*sin(q(6))*sin(q(7))) + cos(q(8))*(sin(q(5))*sin(q(7)) - 1.0*cos(q(5))*cos(q(7))*sin(q(6)))),      cos(q(5))*cos(q(6)), cos(q(9))*(sin(q(8))*(cos(q(7))*sin(q(5)) + cos(q(5))*sin(q(6))*sin(q(7))) + cos(q(8))*(sin(q(5))*sin(q(7)) - 1.0*cos(q(5))*cos(q(7))*sin(q(6)))) + sin(q(9))*(cos(q(8))*(cos(q(7))*sin(q(5)) + cos(q(5))*sin(q(6))*sin(q(7))) - 1.0*sin(q(8))*(sin(q(5))*sin(q(7)) - 1.0*cos(q(5))*cos(q(7))*sin(q(6)))),
-  //                                                                                                                                                                                                                           -1.0*sin(q(7) + q(8) + q(9))*cos(q(6)),              sin(q(6)),                                                                                                                                                                                                                             cos(q(7) + q(8) + q(9))*cos(q(6));
-  // std::cout << "R_foot_L: " << R_foot_L << std::endl;
-  // std::cout << "R_foot_R: " << R_foot_R << std::endl;
   R_foot_L << 1,0,0,
               0,1,0,
               0,0,1;
   R_foot_R << 1,0,0,
               0,1,0,
               0,0,1;
+  // R_foot_L << - 1.0*sin(q(4))*(cos(q(3))*(cos(q(0))*sin(q(2)) + cos(q(2))*sin(q(0))*sin(q(1))) + sin(q(3))*(cos(q(0))*cos(q(2)) - 1.0*sin(q(0))*sin(q(1))*sin(q(2)))) - cos(q(4))*(1.0*sin(q(3))*(cos(q(0))*sin(q(2)) + cos(q(2))*sin(q(0))*sin(q(1))) - cos(q(3))*(cos(q(0))*cos(q(2)) - 1.0*sin(q(0))*sin(q(1))*sin(q(2)))), -1.0*cos(q(1))*sin(q(0)), cos(q(4))*(cos(q(3))*(cos(q(0))*sin(q(2)) + cos(q(2))*sin(q(0))*sin(q(1))) + sin(q(3))*(cos(q(0))*cos(q(2)) - 1.0*sin(q(0))*sin(q(1))*sin(q(2)))) - sin(q(4))*(1.0*sin(q(3))*(cos(q(0))*sin(q(2)) + cos(q(2))*sin(q(0))*sin(q(1))) - cos(q(3))*(cos(q(0))*cos(q(2)) - 1.0*sin(q(0))*sin(q(1))*sin(q(2)))),
+  //             cos(q(4))*(cos(q(3))*(cos(q(2))*sin(q(0)) + cos(q(0))*sin(q(1))*sin(q(2))) - 1.0*sin(q(3))*(sin(q(0))*sin(q(2)) - 1.0*cos(q(0))*cos(q(2))*sin(q(1)))) - 1.0*sin(q(4))*(sin(q(3))*(cos(q(2))*sin(q(0)) + cos(q(0))*sin(q(1))*sin(q(2))) + cos(q(3))*(sin(q(0))*sin(q(2)) - 1.0*cos(q(0))*cos(q(2))*sin(q(1)))),      cos(q(0))*cos(q(1)), cos(q(4))*(sin(q(3))*(cos(q(2))*sin(q(0)) + cos(q(0))*sin(q(1))*sin(q(2))) + cos(q(3))*(sin(q(0))*sin(q(2)) - 1.0*cos(q(0))*cos(q(2))*sin(q(1)))) + sin(q(4))*(cos(q(3))*(cos(q(2))*sin(q(0)) + cos(q(0))*sin(q(1))*sin(q(2))) - 1.0*sin(q(3))*(sin(q(0))*sin(q(2)) - 1.0*cos(q(0))*cos(q(2))*sin(q(1)))),
+  //                                                                                                                                                                                                                           -1.0*sin(q(2) + q(3) + q(4))*cos(q(1)),              sin(q(1)),                                                                                                                                                                                                                             cos(q(2) + q(3) + q(4))*cos(q(1));
+  // R_foot_R << - 1.0*sin(q(9))*(cos(q(8))*(cos(q(5))*sin(q(7)) + cos(q(7))*sin(q(5))*sin(q(6))) + sin(q(8))*(cos(q(5))*cos(q(7)) - 1.0*sin(q(5))*sin(q(6))*sin(q(7)))) - cos(q(9))*(1.0*sin(q(8))*(cos(q(5))*sin(q(7)) + cos(q(7))*sin(q(5))*sin(q(6))) - cos(q(8))*(cos(q(5))*cos(q(7)) - 1.0*sin(q(5))*sin(q(6))*sin(q(7)))), -1.0*cos(q(6))*sin(q(5)), cos(q(9))*(cos(q(8))*(cos(q(5))*sin(q(7)) + cos(q(7))*sin(q(5))*sin(q(6))) + sin(q(8))*(cos(q(5))*cos(q(7)) - 1.0*sin(q(5))*sin(q(6))*sin(q(7)))) - sin(q(9))*(1.0*sin(q(8))*(cos(q(5))*sin(q(7)) + cos(q(7))*sin(q(5))*sin(q(6))) - cos(q(8))*(cos(q(5))*cos(q(7)) - 1.0*sin(q(5))*sin(q(6))*sin(q(7)))),
+  //             cos(q(9))*(cos(q(8))*(cos(q(7))*sin(q(5)) + cos(q(5))*sin(q(6))*sin(q(7))) - 1.0*sin(q(8))*(sin(q(5))*sin(q(7)) - 1.0*cos(q(5))*cos(q(7))*sin(q(6)))) - 1.0*sin(q(9))*(sin(q(8))*(cos(q(7))*sin(q(5)) + cos(q(5))*sin(q(6))*sin(q(7))) + cos(q(8))*(sin(q(5))*sin(q(7)) - 1.0*cos(q(5))*cos(q(7))*sin(q(6)))),      cos(q(5))*cos(q(6)), cos(q(9))*(sin(q(8))*(cos(q(7))*sin(q(5)) + cos(q(5))*sin(q(6))*sin(q(7))) + cos(q(8))*(sin(q(5))*sin(q(7)) - 1.0*cos(q(5))*cos(q(7))*sin(q(6)))) + sin(q(9))*(cos(q(8))*(cos(q(7))*sin(q(5)) + cos(q(5))*sin(q(6))*sin(q(7))) - 1.0*sin(q(8))*(sin(q(5))*sin(q(7)) - 1.0*cos(q(5))*cos(q(7))*sin(q(6)))),
+                                                                                                                                                                                                                            // -1.0*sin(q(7) + q(8) + q(9))*cos(q(6)),              sin(q(6)),                                                                                                                                                                                                                             cos(q(7) + q(8) + q(9))*cos(q(6));
 
-//#ifdef K_PRINT_EVERYTHING
-  // cout << "Initial state: \n"
-  //      << x_0 << endl;
-  // cout << "World Inertia: \n"
-  //      << I_world << endl;
-  // cout << "A CT: \n"
-  //      << A_ct << endl;
-  // cout << "B CT (simplified): \n"
-  //      << B_ct_r << endl;
-//#endif
-  // QP matrices
   c2qp(A_ct, B_ct_r, setup->dt, setup->horizon);
 
   // weights
@@ -487,16 +411,16 @@ void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data
   full_weight(12) = 0.f;
   S.diagonal() = full_weight.replicate(setup->horizon, 1);
 
-  // trajectory
+  // reference trajectory
   for (s16 i = 0; i < setup->horizon; i++)
   {
     for (s16 j = 0; j < 12; j++)
       X_d(13 * i + j, 0) = update->traj[12 * i + j];
+    X_d(13 * i + 12, 0) = 1.f;
   }
-  // cout<<"XD:\n"<<X_d<<endl;
 
   // QP Upper Bound
-  // QP Upper Bound
+  // QP Lower Bound is set to 0 by default
   for(s16 i = 0; i < setup->horizon; i++){
       U_b(0 + 16*i) = BIG_NUMBER;
       U_b(1 + 16*i) = BIG_NUMBER;
@@ -507,7 +431,6 @@ void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data
       U_b(5 + 16*i) = BIG_NUMBER;      
       U_b(6 + 16*i) = BIG_NUMBER;
       U_b(7 + 16*i) = setup->f_max * update->gait[2*i + 0] ;
-      
 
       U_b(8 + 16*i) = BIG_NUMBER;
       U_b(9 + 16*i) = BIG_NUMBER;
@@ -518,19 +441,13 @@ void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data
       U_b(13 + 16*i) = BIG_NUMBER;      
       U_b(14 + 16*i) = BIG_NUMBER;
       U_b(15 + 16*i) = setup->f_max * update->gait[2*i + 1];
-      
       }
-
-  // std::cout << "U_b =" << U_b << "\n";
-
-  // QP Lower Bound
 
 
   // Initalization of Line Contact Constraint Parameters
-  // fpt mu = 1.f/setup->mu;
-  fpt mu = 3.0;
-  fpt lt = 0.07;
-  fpt lh = 0.04;
+  fpt mu = 1.f/setup->mu;
+  fpt lt = 0.07; // length of toe from ankle link
+  fpt lh = 0.04; // length of heel from ankle link
 
   // Matrix<fpt,5,3> f_block;
   Matrix<fpt,10,12> f_blockz;
@@ -551,18 +468,29 @@ void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data
   Matrix<fpt,1,3> Moment_selection(1.f, 0, 0);
   Matrix<fpt,1,3> Moment_selection_3D;
 
+  // **** Input constraints ****
+  // https://arxiv.org/abs/2312.11868 eq13b-e
+  // control input is [F1, F2, M1, M2]
+  
+  // Friction pyramid (-mu*Fz < Fx < mu*Fz, -mu*Fz < Fy < mu*Fz)
+  // 0 < -1/mu * Fx + Fz
+  // 0 < 1/mu * Fx + Fz
+  // 0 < -1/mu * Fy + Fz
+  // 0 < 1/mu * Fy + Fz
 
-  // lt_3D = lt_vec  * rs.R.transpose();
-  // lh_3D = lh_vec  * rs.R.transpose();
-  // M_3D = M_vec  * rs.R.transpose();
-  // Moment_selection_3D = Moment_selection * rs.R.transpose();
-  // std::cout << "lt_3D: \n" << lt_3D << std::endl;
-  // std::cout << "lh_3D: \n" << lh_3D << std::endl;
-  // std::cout << "M_vec: \n" << M_vec << std::endl;
+  // X moment zero (Mx = 0)
+  // moment_selection * R_foot (wrt world frame) * M = 0
 
+  // Line contact (lt*Fz < Mx < -lt*Fz, -lh*Fz < My < lh*Fz)
+  // 0 < [0, 0, lt] * R_foot * F + [0, 1, 0] * R_foot.T * M
+  // 0 < [0, 0, lh] * R_foot * F - [0, 1, 0] * R_foot.T * M
+
+  // Fz constraints
+  // 0 < Fz < maxGRF
 
   F_control.setZero();
-//leg 1
+
+  //leg 1
   F_control.block<1, 12>(0, 0) //Friction leg 1
       << -mu, 0, 1.f,   0, 0, 0, 0, 0, 0, 0, 0, 0;
   F_control.block<1, 12>(1, 0)
@@ -570,21 +498,20 @@ void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data
   F_control.block<1, 12>(2, 0)
       <<  0, -mu, 1.f,  0, 0, 0, 0, 0, 0, 0, 0, 0;
   F_control.block<1, 12>(3, 0)
-      <<  0,  mu, 1.f,  0, 0, 0, 0, 0, 0, 0, 0, 0;     
+      <<  0,  mu, 1.f,  0, 0, 0, 0, 0, 0, 0, 0, 0;
+
   F_control.block<1, 12>(4, 0) //Mx Leg 1
-      << 0, 0, 0, 0, 0, 0, Moment_selection * R_foot_L.transpose()* rs.R.transpose(), 0, 0, 0;   
+      << 0, 0, 0, 0, 0, 0, Moment_selection * R_foot_L.transpose()* rs.R.transpose(), 0, 0, 0;
 
   F_control.block<1, 12>(5, 0) //Line Leg 1
       << lt_vec * R_foot_L.transpose()* rs.R.transpose(),   0, 0, 0,    M_vec * R_foot_L.transpose()* rs.R.transpose(),   0, 0, 0;
   F_control.block<1, 12>(6, 0)
       << lh_vec * R_foot_L.transpose()* rs.R.transpose(),   0, 0, 0,   -M_vec * R_foot_L.transpose()* rs.R.transpose(),   0, 0, 0;
-  
+      
   F_control.block<1, 12>(7, 0) //Fz Leg 1
       << 0, 0, 2.f, 0, 0, 0, 0, 0, 0, 0, 0, 0;
 
-  
-
-//leg 2
+  //leg 2
   F_control.block<1, 12>(8, 0) //Friction leg 2
       <<  0, 0, 0,   -mu, 0, 1.f,   0, 0, 0, 0, 0, 0;
   F_control.block<1, 12>(9, 0)
@@ -592,9 +519,11 @@ void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data
   F_control.block<1, 12>(10, 0)
       <<   0, 0, 0,   0, -mu, 1.f,  0, 0, 0, 0, 0, 0;
   F_control.block<1, 12>(11, 0)
-      <<   0, 0, 0,   0, mu, 1.f,   0, 0, 0, 0, 0, 0;        
+      <<   0, 0, 0,   0, mu, 1.f,   0, 0, 0, 0, 0, 0;     
+
   F_control.block<1, 12>(12, 0) //Mx Leg 1
       << 0, 0, 0, 0, 0, 0, 0, 0, 0, Moment_selection * R_foot_R.transpose()* rs.R.transpose();
+
   F_control.block<1, 12>(13, 0) //Line Leg 2
       << 0, 0, 0,   lt_vec * R_foot_R.transpose()* rs.R.transpose(),   0, 0, 0,    M_vec * R_foot_R.transpose()* rs.R.transpose();
   F_control.block<1, 12>(14, 0)
@@ -602,15 +531,6 @@ void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data
   
   F_control.block<1, 12>(15, 0)  //Fz Leg 2
       << 0, 0, 0, 0, 0, 2.f, 0, 0, 0, 0, 0, 0;
-
-
-  //  std:: cout << "F_control =" << F_control << "\n";  
-
-
-  // Print for debug
-
-  // std::cout << "F_control =\n"
-  //           << F_control << "\n";
 
   // Set to fmat QP
   for(s16 i = 0; i < setup->horizon; i++)
@@ -630,9 +550,12 @@ void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data
     Alpha_rep.block(i * 12, i * 12, 12, 12) << Alpha_diag;
   }
   // Equivalent to Matlab Formulaion
+  Timer timer;
+  timer.start();
   qH = 2 * (B_qp.transpose() * S * B_qp + Alpha_rep);
   qg = 2 * B_qp.transpose() * S * (A_qp * x_0 - X_d);
-  // std::cout << "error:" << qg << std::endl;
+  // std::cout << "\nTime to construct QP: " << timer.getMs() << " ms" << std::endl;
+  
 
   // Calls function that sets parameters matrices in qpOASES types
   matrix_to_real(H_qpoases,qH,setup->horizon*12, setup->horizon*12);
@@ -640,13 +563,12 @@ void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data
   matrix_to_real(A_qpoases,fmat,setup->horizon*16, setup->horizon*12);
   matrix_to_real(ub_qpoases,U_b,setup->horizon*16, 1);
   // matrix_to_real(lb_qpoases,L_b,setup->horizon*16, 1);
-  // std::cout << "fmat =\n"
-            // << fmat << "\n";
-    for(s16 i = 0; i < 16*setup->horizon; i++)
-      lb_qpoases[i] = 0.0f;
+  for(s16 i = 0; i < 16*setup->horizon; i++){
+    lb_qpoases[i] = 0.0f;
+  }
 
-    s16 num_constraints = 16*setup->horizon;
-    s16 num_variables = 12*setup->horizon;
+  s16 num_constraints = 16*setup->horizon;
+  s16 num_variables = 12*setup->horizon;
 
   // Max # of working set recalculations
   qpOASES::int_t nWSR = 200;
@@ -710,12 +632,6 @@ void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data
     }
   }
   
-  // std::cout << "newvars" << new_vars << std::endl;
-  // std::cout << "newcons" << new_cons << std::endl;
-  // // std::cout << "var_elim" << var_elim << std::endl;
-  // std::cout << "con_elim" << con_elim << std::endl;
-
-  // if(new_vars != num_variables)
   if (1 == 1)
   {
     int var_ind[new_vars];
@@ -773,21 +689,19 @@ void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data
       lb_red[i] = lb_qpoases[old];
     }
 
-    Timer solve_timer;
+    // Timer solve_timer;
+    // solve_timer.start();
 
     // qpOASES problem
     qpOASES::QProblem problem_red(new_vars, new_cons);
     qpOASES::Options op;
     op.setToMPC();
-    // op.setToMPC();
     op.printLevel = qpOASES::PL_NONE;
     problem_red.setOptions(op);
-    // int_t nWSR = 50000;
 
     // QP initialized
 
     int rval = problem_red.init(H_red, g_red, A_red, NULL, NULL, lb_red, ub_red, nWSR);
-    // int rval = problem_red.init(H_red, g_red, A_red, NULL, NULL, lb_red, ub_red, nWSR);
     (void)rval;
     // printf("A_red: %.3f", A_red);
     // cout << "A_qpoases:" << &A_qpoases << std::endl;
@@ -815,6 +729,8 @@ void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data
         vc++;
       }
     }
+
+    // std::cout << "Time to solve QP: " << solve_timer.getMs() << " ms" << std::endl;
   }
 
 #ifdef K_PRINT_EVERYTHING

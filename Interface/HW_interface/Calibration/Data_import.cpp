@@ -71,7 +71,8 @@ void angle_offset(){
     theta_m_0(6) = -theta_m_0(6);
     theta_m_0(7) = -theta_m_0(7);
 
-    theta_m_raw_0 << angle2, angle3, angle10, angle11, angle12, angle5, angle6, angle7, angle8, angle9; //already in radian
+    // theta_m_raw_0 << angle2, angle3, angle10, angle11, angle12, angle5, angle6, angle7, angle8, angle9; //already in radian (right-left order)
+    theta_m_raw_0 << angle5, angle6, angle7, angle8, angle9, angle2, angle3, angle10, angle11, angle12; // already in radian (left-right order)
 
     offset = theta_m_0 - theta_m_raw_0;
 

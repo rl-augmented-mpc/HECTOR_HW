@@ -34,10 +34,15 @@ class FSMState
         std::string _stateNameStr;
 
         void CheckJointSafety();
-
-
         void Logging();
 
+        // Desired States (only used in walking, but make it shared variable)
+        Vec3<double> v_des_body{0, 0, 0};
+        double turn_rate = 0;
+        double roll = 0;
+        double pitch = 0;
+        double reference_height=0.53;
+        int gaitNum = 1; // 1: stand, 2: walk
 
 
         //For Logging=======================================================

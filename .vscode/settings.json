@@ -56,6 +56,10 @@
         "thread": "cpp",
         "typeinfo": "cpp",
         "complex": "cpp",
-        "cwctype": "cpp"
+        "cwctype": "cpp",
+        "map": "cpp",
+        "iomanip": "cpp",
+        "typeindex": "cpp",
+        "variant": "cpp"
     }
 }

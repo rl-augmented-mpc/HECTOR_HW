@@ -31,46 +31,38 @@ void FSMState_Walking::run()
     CheckJointSafety();
     _data->_stateEstimator->run();
 
+    // set reference command
+    setCommand();
+    _data->_desiredStateCommand->setStateCommands(roll, pitch, v_des_body, turn_rate, 0.53);
+    Cmpc.run(*_data);
+    Logging();
+    //Push the Command to Leg Controller
+    _data->_legController->updateCommand(_data->_lowCmd);
+}
 
-
-
-
-
-    //////////////////// MPC ///////////////////
-    // pull velocity from keyboard (see src/interface/KeyBoard.cpp for key mappings)
-    // message from Ziwon: Let's keep this structure of using UserValue and UserCmd
-    UserValue _userValue;
-    _userValue = _data->_lowState->userValue;
+// ** set command velocity and gait number
+void FSMState_Walking::setCommand()
+{
+  // set desired velocity and gait number from interface for hardware
+  if (_data->_biped->_real_flag == 1){
+    UserValue _userValue = _data->_lowState->userValue;
     v_des_body[0] = (double)_userValue.lx;
     v_des_body[1] = (double)_userValue.ly;
     turn_rate = (double)_userValue.rx;
+    roll = 0;
+    pitch = 0;
 
-    int gaitNum = 1;
+    gaitNum = 1; 
     if (_data->_lowState->userCmd == UserCommand::WALK){ 
         gaitNum = 2; // walking
     }
     if(_data->_lowState->userCmd == UserCommand::STAND){
         gaitNum = 1; // stand
     }
-
-    Cmpc.setGaitNum(gaitNum);
-    _data->_desiredStateCommand->setStateCommands(roll, pitch, v_des_body, turn_rate);
-    Cmpc.run(*_data);
-
-
-
-
-
-
-
-    Logging();
-    //Push the Command to Leg Controller
-    _data->_legController->updateCommand(_data->_lowCmd);
-
-
-
-
-
+  }
+  // for simulation, these values are set from FSM::setStateCommands and FSM::setGaitNum
+  Cmpc.setGaitNum(gaitNum);
+  _data->_desiredStateCommand->setStateCommands(roll, pitch, v_des_body, turn_rate, reference_height);
 }
 
 void FSMState_Walking::exit()

@@ -126,7 +126,10 @@ void LegController::updateCommand(LowlevelCmd* cmd){
 
         // //// Joint PD gains //
         commands[leg].kpJoint << 10.0, 30.0, 30.0, 30.0, 10.0;
-        commands[leg].kdJoint << 1.5, 1.5, 1.5, 1.5, 1;
+        // commands[leg].kdJoint << 1.5, 1.5, 1.5, 1.5, 1;
+        commands[leg].kdJoint << 2.0, 2.0, 2.0, 2.0, 1.5;
+        // commands[leg].kpJoint << 20.0, 20.0, 20.0, 20.0, 15.0;
+        // commands[leg].kdJoint << 0.45, 0.45, 0.45, 0.45, 0.6;
 
 
         // ramping up for first few seconds==============================================================
@@ -142,22 +145,24 @@ void LegController::updateCommand(LowlevelCmd* cmd){
             progress = 1.0;
         }
         else{
-            int barWidth = 50; 
-            double percentage = progress * 100.0;
-            int pos = static_cast<int>(barWidth * percentage / 100);
-            std::cout << "\r" << std::string(barWidth + 10, ' ') << "\r";
-            std::cout << "Gradual command increase: [";
-            for (int i = 0; i < barWidth; ++i) {
-                if (i < pos)
-                    std::cout << "=";
-                else if (i == pos)
-                    std::cout << ">";
-                else
-                    std::cout << " ";
+            if (_biped._real_flag == 1){
+                int barWidth = 50; 
+                double percentage = progress * 100.0;
+                int pos = static_cast<int>(barWidth * percentage / 100);
+                std::cout << "\r" << std::string(barWidth + 10, ' ') << "\r";
+                std::cout << "Gradual command increase: [";
+                for (int i = 0; i < barWidth; ++i) {
+                    if (i < pos)
+                        std::cout << "=";
+                    else if (i == pos)
+                        std::cout << ">";
+                    else
+                        std::cout << " ";
+                }
+                // std::cout << "] " << percentage << "%\r"; // \r brings the cursor back to the beginning
+                std::cout << "] " << std::fixed << std::setprecision(2) << percentage << "%";
+                std::cout.flush(); // Ensure the output is shown immediately
             }
-            // std::cout << "] " << percentage << "%\r"; // \r brings the cursor back to the beginning
-            std::cout << "] " << std::fixed << std::setprecision(2) << percentage << "%";
-            std::cout.flush(); // Ensure the output is shown immediately
         }
 
 
@@ -207,6 +212,7 @@ void LegController::updateCommand(LowlevelCmd* cmd){
 
             //qDes
             commands[leg].qDes.block(1,0, 3,1) = _biped.InverseKinematics_swingctrl(foot_des, leg);
+            // commands[leg].qDes.block(1,0, 3,1) = _biped.ComputeIK(foot_des, leg);
             // To remove 2 redundancies in DoFs (3D foot pos constraint versus 5 DoFs in each leg) -> hip yaw = 0, ankle pitch designed to be parallel to the ground
             commands[leg].qDes(0) = 0;
             commands[leg].qDes(4) = 0 -data[leg].q(3) - data[leg].q(2); // Assuming that the ground is flat
@@ -250,19 +256,18 @@ void LegController::updateCommand(LowlevelCmd* cmd){
         }
 
         //For unused actuators - just for safety
-        cmd->motorCmd[0].tau = 0;
-        cmd->motorCmd[3].tau = 0;
-        cmd->motorCmd[0].Kp = 0;
-        cmd->motorCmd[0].Kd = 5;
-        cmd->motorCmd[3].Kp = 0;
-        cmd->motorCmd[3].Kd = 5;
+        _biped.SafeGuardUnusedMotor(cmd);
 
     }
 
     // Necessary for stabilization. Should not go earlier than assigning inputs.
     for (int i = 0; i< 2; i++){
-
         commands[i].zero();
+        // commands[i].tau.setZero();
+        // commands[i].qDes.setZero();
+        // commands[i].qdDes.setZero();
+        // commands[i].kpJoint.setZero();
+        // commands[i].kdJoint.setZero();
     }
         
 

@@ -1,10 +1,10 @@
 #include "convexMPC_interface.h"
 #include "common_types.h"
 #include "SolverMPC.h"
-#include <eigen3/Eigen/Dense>
 #include <pthread.h>
 #include <stdio.h>
 #include <string.h>
+#include "../include/common/Utilities/Timer.h"
 
 #define K_NUM_LEGS 2
 
@@ -39,9 +39,34 @@ void initialize_mpc()
 #endif
 }
 
-void setup_problem(double dt, int horizon, double mu, double f_max)
+// void setup_problem(double dt, int horizon, double mu, double f_max)
+// {
+//   //mu = 0.6;
+//   if(first_run)
+//   {
+//     first_run = false;
+//     initialize_mpc();
+//   }
+
+// #ifdef K_DEBUG
+//   printf("[MPC] Got new problem configuration!\n");
+//     printf("[MPC] Prediction horizon length: %d\n      Force limit: %.3f, friction %.3f\n      dt: %.3f\n",
+//             horizon,f_max,mu,dt);
+// #endif
+
+//   //pthread_mutex_lock(&problem_cfg_mt);
+
+//   problem_configuration.horizon = horizon;
+//   problem_configuration.f_max = f_max;
+//   problem_configuration.mu = mu;
+//   problem_configuration.dt = dt;
+
+//   //pthread_mutex_unlock(&problem_cfg_mt);
+//   resize_qp_mats(horizon);
+// }
+
+void setup_problem(float dt, int horizon, float mu, float f_max, float mass, Mat3<float> I_body, Eigen::Matrix<float,13,13> A_residual, Eigen::Matrix<float,13,12> B_residual)
 {
-  //mu = 0.6;
   if(first_run)
   {
     first_run = false;
@@ -54,12 +79,14 @@ void setup_problem(double dt, int horizon, double mu, double f_max)
             horizon,f_max,mu,dt);
 #endif
 
-  //pthread_mutex_lock(&problem_cfg_mt);
-
   problem_configuration.horizon = horizon;
   problem_configuration.f_max = f_max;
   problem_configuration.mu = mu;
   problem_configuration.dt = dt;
+  problem_configuration.mass = mass;
+  problem_configuration.I_body = I_body;
+  problem_configuration.A_residual = A_residual;
+  problem_configuration.B_residual = B_residual;
 
   //pthread_mutex_unlock(&problem_cfg_mt);
   resize_qp_mats(horizon);

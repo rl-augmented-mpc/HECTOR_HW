@@ -2,6 +2,7 @@
 #define CONVEXMPCLOCOMOTION_H
 
 #include "../include/common/FootSwingTrajectory.h"
+#include "../include/common/SwingLegController.h"
 #include "../include/common/ControlFSMData.h"
 #include "../include/common/cppTypes.h"
 #include "GaitGenerator.h"
@@ -47,7 +48,9 @@ public:
   // ofstream foot_position;
 
 private:
-  void updateMPCIfNeeded(int* mpcTable, ControlFSMData& data, bool omniMode);
+  void updateMPC(int* mpcTable, ControlFSMData& data, bool omniMode);
+  void updateReferenceTrajectory(StateEstimate &seResult, DesiredStateCommand &stateCommand);
+  swingLegController swing;
   int iterationsBetweenMPC;
   int horizonLength;
   double dt;
@@ -65,6 +68,9 @@ private:
   int current_gait;
   int gaitNumber;
 
+  Vec3<double> v_des_robot = {0, 0, 0};
+  Vec3<double> v_des_world = {0, 0, 0};
+  double turn_rate_des = 0; 
   Vec3<double> world_position_desired;
   double yaw_desired;
   Vec3<double> rpy_int;
