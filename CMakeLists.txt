@@ -39,10 +39,6 @@ include_directories(Interface/python_interface/pybind11/include/pybind11)
 pybind11_add_module(${PROJECT_NAME} Interface/python_interface/hector_controller_pybind.cpp)
 target_link_libraries(${PROJECT_NAME} PRIVATE controller_lib)
 
-## Test code
-# add_executable(test_code run/test_pybind.cpp)
-# target_link_libraries(test_code controller_lib)
-
 ######################
 # Hardware interface #
 ######################
@@ -71,7 +67,7 @@ if(HARDWARE)
     target_link_libraries(hw_interface_lib ${EXTRA_LIBS} ${DEPENDENCIES})
 
     # Hardware executables
-    add_executable(biped_ctrl run/run_hardware.cpp)
+    add_executable(biped_ctrl scripts/run_hardware.cpp)
     target_link_libraries(biped_ctrl controller_lib hw_interface_lib)
 else()
     message(STATUS "Building without hardware interface")
