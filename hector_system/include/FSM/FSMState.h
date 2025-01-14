@@ -28,6 +28,7 @@ class FSMState
         virtual void enter() = 0;
         virtual void run() = 0;
         virtual void exit() = 0;
+        virtual void reset() = 0;
         virtual FSMStateName checkTransition() {return FSMStateName::INVALID;}
 
         FSMStateName _stateName;

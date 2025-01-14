@@ -12,6 +12,7 @@ class FSMState_PDStand: public FSMState
         void enter();
         void run();
         void exit();
+        void reset(){;}; // do nothing
         FSMStateName checkTransition();
     
     private:

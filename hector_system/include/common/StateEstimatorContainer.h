@@ -15,6 +15,7 @@
 
 #include "LegController.h"
 #include "../messages/LowlevelState.h"
+#include "Math/orientation_tools.h"
 
 /*!
  * "Cheater" state sent to robot from simulation
@@ -94,6 +95,24 @@ class StateEstimatorContainer {
             delete estimator;
         }
     }
+
+    // set state estimate from the argument (used for simulation)
+    // in this case, you are not suppose to use state estimate set inside the estimator container
+    void setStateEstimate(Vec3<double>&position, Quat<double>&orientation, Vec3<double>&vBody, Vec3<double>&omegaBody)
+    {
+        StateEstimate stateEstimate;
+        stateEstimate.position = position;
+        stateEstimate.orientation = orientation;
+        stateEstimate.vBody = vBody;
+        stateEstimate.omegaBody = omegaBody;
+        stateEstimate.rpy = ori::quatToRPY(orientation);
+        stateEstimate.rBody = ori::quaternionToRotationMatrix(orientation);
+        stateEstimate.vWorld = stateEstimate.rBody.transpose() * vBody;
+        stateEstimate.omegaWorld = stateEstimate.rBody.transpose() * omegaBody;
+        // push state estimate
+        *_data.result = stateEstimate;
+        }
+
     // run estimator
     void run(){
         // std::cout << "Running estimator container" << std::endl;

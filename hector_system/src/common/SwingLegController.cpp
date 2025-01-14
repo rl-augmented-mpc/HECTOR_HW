@@ -162,10 +162,10 @@ void swingLegController::computeFootDesiredPosition(){
             Vec3<double> pDesFootWorld = footSwingTrajectory[foot].getPosition().cast<double>();
             Vec3<double> vDesFootWorld = footSwingTrajectory[foot].getVelocity().cast<double>();
 
-            double side = (foot == 1) ? 1.0 : -1.0; //Left foot (0) side = -1.0, Right foot (1) side = 1.0
-            Eigen::Vector3d hipWidthOffSet = {-0.025, side*0.06, 0.0}; // TODO: sync with Biped.h
+            // double side = (foot == 1) ? 1.0 : -1.0; //Left foot (0) side = -1.0, Right foot (1) side = 1.0
+            // Eigen::Vector3d hipWidthOffSet = {-0.025, side*0.06, 0.0}; // TODO: sync with Biped.h
             
-            pFoot_b[foot] = seResult.rBody * (pDesFootWorld - seResult.position) + hipWidthOffSet ;
+            pFoot_b[foot] = seResult.rBody * (pDesFootWorld - seResult.position);
             vFoot_b[foot] = seResult.rBody * (vDesFootWorld - seResult.vWorld);  
         }
 

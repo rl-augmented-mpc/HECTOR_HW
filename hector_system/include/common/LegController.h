@@ -33,6 +33,17 @@
         Mat3<double> kdCartesian;
         double kptoe;
         double kdtoe;
+    
+        // for residual learning
+        Vec5<double> qDesDelta; 
+        Vec6<double> feedforwardForceDelta;
+        Vec2<double> footplacementDelta; 
+        Vec3<double> Pf; 
+        Vec3<double> Pf_augmented;
+        double contact_phase; 
+        double contact_state; 
+        double swing_phase; 
+        double swing_state;
 
         int control_mode = 0; // To indicate which control mode is being used -> necessary.
         // 0 for none, 1 for PDStand, 2 for stance, 3 for swing
@@ -85,13 +96,30 @@
 
 
         int motiontime = 0;
+
+        // helper methods for residual learning
+        // get access to GRF-M and foot positions
+        Vec12<double> get_grw(); 
+        Vec2<double> get_contact_phase();
+        Vec2<double> get_swing_phase();
+        Vec2<double> get_contact_state();
+        Vec2<double> get_swing_state();
+        Vec4<double> get_reibert_foot_placement(); 
+        Vec4<double> get_foot_placement(); 
+        Vec6<double> get_ref_swing_position();
+        Vec6<double> get_swing_position();
+
+        // update parameters
+        void update_grw(Vec12<double> grfm);
+        void add_residual_grw(Vec12<double> delta_grfm);
+        void add_residual_foot_placement(Vec4<double> delta_foot_placement);
+        void add_residual_joint_position(Vec10<double> delta_joint_position);
+        void updateCommandResidual(LowlevelCmd* cmd); 
         
     };
 
     void computeLegJacobianAndPosition(Biped& _biped, Vec5<double>& q, Mat65<double>* J, Mat35<double>* J2,
                                        Vec3<double>* p, int leg);
-
-    // void computeInverseKinematics(Quadruped& _quad, Vec3<double>& pDes, int leg, Vec3<double>* qDes);
 
     Vec3<double> InverseKinematics_swingctrl(Vec3<double> &p_Hip2Foot, int leg);
 

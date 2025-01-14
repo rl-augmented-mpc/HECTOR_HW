@@ -11,11 +11,31 @@ using namespace ori;
 // using namespace laikago_model;
 
 /* =========================== Controller ============================= */
-ConvexMPCLocomotion::ConvexMPCLocomotion(double _dt, int _iterations_between_mpc) : iterationsBetweenMPC(_iterations_between_mpc),
-                                                                                    horizonLength(10),
-                                                                                    dt(_dt),
-                                                                                    standing(horizonLength, Vec2<int>(int(0.2/_dt), int(0.2/_dt)), Vec2<int>(0, 0)), 
-                                                                                    walking(horizonLength, Vec2<int>(int(0.0/_dt), int(0.0/_dt)), Vec2<int>(int(0.3/dt), int(0.3/_dt)))
+// ConvexMPCLocomotion::ConvexMPCLocomotion(double _dt, int _iterations_between_mpc) : iterationsBetweenMPC(_iterations_between_mpc),
+//                                                                                     horizonLength(10),
+//                                                                                     dt(_dt),
+//                                                                                     standing(horizonLength, Vec2<int>(int(0.2/_dt), int(0.2/_dt)), Vec2<int>(0, 0)), 
+//                                                                                     walking(horizonLength, Vec2<int>(int(0.0/_dt), int(0.0/_dt)), Vec2<int>(int(0.3/dt), int(0.3/_dt)))
+// {
+//   dtMPC = dt * iterationsBetweenMPC;
+//   rpy_int[2] = 0;
+//   for (int i = 0; i < 2; i++)
+//     firstSwing[i] = true;
+// }
+
+ConvexMPCLocomotion::ConvexMPCLocomotion(
+  double _dt, 
+  int _iterations_between_mpc, 
+  int _horizon_length, 
+  int _mpc_decimation, 
+  Vec2<int> dsp_durations, 
+  Vec2<int> ssp_durations) : 
+ iterationsBetweenMPC(_iterations_between_mpc),
+ horizonLength(_horizon_length),
+ dt(_dt),
+ mpc_decimation(_mpc_decimation),
+ standing(horizonLength, Vec2<int>(int(0.2/_dt), int(0.2/_dt)), Vec2<int>(0, 0)), // set random dsp duration b/c stance gait is non-periodic, infinite
+ walking(horizonLength, dsp_durations, ssp_durations)
 {
   dtMPC = dt * iterationsBetweenMPC;
   rpy_int[2] = 0;
@@ -132,29 +152,29 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
     data._stateEstimator->setContactPhase(se_contactState);
 
     // push back data to leg controller
-    // double contactState = contactStates(foot);
-    // double swingState = swingStates(foot);
-    // Vec3<double> reibert_footplacement = swing.getReibertFootPlacement(foot);
-    // Vec3<double> augmented_footplacement = swing.getAugmentedFootPlacement(foot);
+    double contactState = contactStates(foot);
+    double swingState = swingStates(foot);
+    Vec3<double> reibert_footplacement = swing.getReibertFootPlacement(foot);
+    Vec3<double> augmented_footplacement = swing.getAugmentedFootPlacement(foot);
 
-    // data._legController->commands[foot].Pf = reibert_footplacement;
-    // data._legController->commands[foot].Pf_augmented = augmented_footplacement;
+    data._legController->commands[foot].Pf = reibert_footplacement;
+    data._legController->commands[foot].Pf_augmented = augmented_footplacement;
 
-    // data._legController->commands[foot].contact_phase = contactState;
-    // data._legController->commands[foot].swing_phase = swingState;
+    data._legController->commands[foot].contact_phase = contactState;
+    data._legController->commands[foot].swing_phase = swingState;
 
-    // if (contactState > 0){
-    //   data._legController->commands[foot].contact_state = 1;
-    // }
-    // else{
-    //   data._legController->commands[foot].contact_state = 0;
-    // }
-    // if (swingState > 0){
-    //   data._legController->commands[foot].swing_state = 1;
-    // }
-    // else{
-    //   data._legController->commands[foot].swing_state = 0;
-    // }
+    if (contactState > 0){
+      data._legController->commands[foot].contact_state = 1;
+    }
+    else{
+      data._legController->commands[foot].contact_state = 0;
+    }
+    if (swingState > 0){
+      data._legController->commands[foot].swing_state = 1;
+    }
+    else{
+      data._legController->commands[foot].swing_state = 0;
+    }
 
   }
 }
@@ -189,18 +209,12 @@ void ConvexMPCLocomotion::updateMPC(int *mpcTable, ControlFSMData &data, bool om
 
   updateReferenceTrajectory(seResult, *stateCommand);
 
-  // Timer t1;
-  // t1.start();
   dtMPC = dt * iterationsBetweenMPC;
-  // setup_problem(dtMPC, horizonLength, 0.25, 500);
   setup_problem(
   dtMPC, horizonLength, data._biped->mu, data._biped->f_max, data._biped->mass, 
   data._biped->I_body, data._biped->rl_params.A_residual, data._biped->rl_params.B_residual);
   
-  // Timer t2;
-  // t2.start();
   update_problem_data(p, v, q, w, r, yaw, weights, trajAll, Alpha_K, mpcTable, data);
-  // std::cout << "\nMPC problem update took: " << t2.getMs() << " ms" << std::endl;
 
   for (int leg = 0; leg < 2; leg++)
   {
@@ -216,7 +230,6 @@ void ConvexMPCLocomotion::updateMPC(int *mpcTable, ControlFSMData &data, bool om
       GRM[axis] = get_solution(leg * 3 + axis + 6);
     }
     GRF_R = -seResult.rBody * GRF;
-  
     GRM_R = -seResult.rBody * GRM;
 
     for (int i = 0; i < 3; i++){

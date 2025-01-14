@@ -7,13 +7,22 @@
 class FSMState_Walking: public FSMState
 {
     public:
-        FSMState_Walking(ControlFSMData *data, int cmd_mode);
+        // FSMState_Walking(ControlFSMData *data, int cmd_mode);
+        FSMState_Walking(
+            ControlFSMData *data, 
+            double _dt, 
+            int _iterations_between_mpc, 
+            int _horizon_length, 
+            int _mpc_decimation, 
+            Vec2<int> dsp_durations, 
+            Vec2<int> ssp_durations);
         ~FSMState_Walking(){}
         void enter();
         void run();
         void exit();
         FSMStateName checkTransition();
         void setCommand();
+        void reset();
 
     private:
         ConvexMPCLocomotion Cmpc;
@@ -22,9 +31,9 @@ class FSMState_Walking: public FSMState
 
         
         // Desired States
-        Vec3<double> v_des_body;
-        double turn_rate = 0;
-        double pitch, roll;
+        // Vec3<double> v_des_body;
+        // double turn_rate = 0;
+        // double pitch, roll;
         Eigen::VectorXd trajectory;
         Eigen::VectorXd contactState;
         Eigen::VectorXd getTrajectory();

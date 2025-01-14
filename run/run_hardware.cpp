@@ -85,16 +85,21 @@ int main()
     _controlData->_stateEstimator = stateEstimator;
     _controlData->_legController = legController;
     _controlData->_desiredStateCommand = desiredStateCommand;
-    // _controlData->_interface = ioInter;
     _controlData->_lowCmd = lowCmd;
     _controlData->_lowState = lowState;
 
-    FSM* _FSMController = new FSM(_controlData);
+    int iterations_between_mpc = 50;
+    int horizon_length = 10;
+    int mpc_decimation = 5;
+    Vec2<int> dsp_durations = {0, 0};
+    Vec2<int> ssp_durations = {int(0.3/dt), int(0.3/dt)};
+    std::string fsm_name = "passive";
+    FSM* _FSMController = new FSM(_controlData, dt, iterations_between_mpc, horizon_length, mpc_decimation, dsp_durations, ssp_durations, fsm_name);
+    // FSM* _FSMController = new FSM(_controlData);
     ioInter->_data = _controlData;
 
 
     LoopFunc loop_control("control_loop", dt, boost::bind(&FSM::run, _FSMController));
-    // LoopFunc loop_udpSend("udp_send",     dt, 3, boost::bind(&ControlFSMData::sendRecv, _controlData));
     LoopFunc loop_udpSend("udp_send",     dt, 3, boost::bind(&IOSDK::sendRecv, ioInter));
 
 

@@ -6,9 +6,6 @@
 #include "FSMState_Passive.h"
 #include "FSMState_PDStand.h"
 #include "../common/enumClass.h"
-// #include <SDL2/SDL.h>
-
-// #include "../common/PoseData.h"
 
 struct FSMStateList{
     FSMState *invalid;
@@ -26,11 +23,18 @@ struct FSMStateList{
 
 class FSM{
     public:
-        FSM(ControlFSMData *data);
+        // FSM(ControlFSMData *data);
+        FSM(ControlFSMData *data, double _dt, int _iterations_between_mpc, 
+            int _horizon_length, int _mpc_decimation, Vec2<int> dsp_durations, Vec2<int> ssp_durations, std::string fsm_name);
         ~FSM();
-        void initialize();
+        // void initialize();
+        void initialize(std::string _fsm_name);
         void run();
+        void reset();
 
+        // Helper functions for simulation to set command.
+        void setStateCommands(Vec2<double> roll_pitch, Vec3<double> twist, double ref_height); 
+        void setGaitNum(int gaitNum);
 
 
     private:

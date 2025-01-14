@@ -1,15 +1,20 @@
 #include "../../include/FSM/FSMState_Walking.h"
 #include <chrono>
 
-FSMState_Walking::FSMState_Walking(ControlFSMData *data, int cmd_mode)
-                 :FSMState(data, FSMStateName::WALKING, "walking"),
-                 _cmd_mode(cmd_mode),
-                 Cmpc(0.001, 50){}
-
 template<typename T0, typename T1, typename T2>
 T1 invNormalize(const T0 value, const T1 min, const T2 max, const double minLim = -1, const double maxLim = 1){
 	return (value-minLim)*(max-min)/(maxLim-minLim) + min;
 }
+
+// FSMState_Walking::FSMState_Walking(ControlFSMData *data, int cmd_mode)
+//                  :FSMState(data, FSMStateName::WALKING, "walking"),
+//                  _cmd_mode(cmd_mode),
+//                  Cmpc(0.001, 50){}
+
+FSMState_Walking::FSMState_Walking(
+  ControlFSMData *data, double _dt, int _iterations_between_mpc, int _horizon_length, int _mpc_decimation, Vec2<int> dsp_durations, Vec2<int> ssp_durations)
+                 :FSMState(data, FSMStateName::WALKING, "walking"),
+                  Cmpc(_dt, _iterations_between_mpc, _horizon_length, _mpc_decimation, dsp_durations, ssp_durations){}
 
 void FSMState_Walking::enter()
 {   
@@ -87,6 +92,10 @@ FSMStateName FSMState_Walking::checkTransition()
         _data->_legController->motiontime++;
         return FSMStateName::WALKING;
     }
+}
+
+void FSMState_Walking::reset(){
+  Cmpc.reset();
 }
 
 

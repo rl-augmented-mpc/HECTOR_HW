@@ -1,27 +1,62 @@
 #include "../../include/FSM/FSM.h"
 #include <iostream>
 
-FSM::FSM(ControlFSMData *data)
+// FSM::FSM(ControlFSMData *data)
+//     :_data(data)
+// {
+//     _stateList.invalid = nullptr;
+//     _stateList.passive = new FSMState_Passive(_data);
+//     _stateList.walking = new FSMState_Walking(_data, 0); // 0: keyboard, 1: joystick for cmd_mode
+//     _stateList.pdStand = new FSMState_PDStand(_data); //PDStanding!
+//     // add other FSM states later
+
+
+//     initialize();
+// }
+
+FSM::FSM(
+    ControlFSMData *data, double _dt, int _iterations_between_mpc, 
+    int _horizon_length, int _mpc_decimation, 
+    Vec2<int> dsp_durations, Vec2<int> ssp_durations, std::string fsm_name)
     :_data(data)
 {
     _stateList.invalid = nullptr;
-    _stateList.passive = new FSMState_Passive(_data);
-    _stateList.walking = new FSMState_Walking(_data, 0); // 0: keyboard, 1: joystick for cmd_mode
-    _stateList.pdStand = new FSMState_PDStand(_data); //PDStanding!
+    _stateList.passive = new FSMState_Passive(_data); // Passive
+    _stateList.walking = new FSMState_Walking(_data, _dt, _iterations_between_mpc, _horizon_length, _mpc_decimation, dsp_durations, ssp_durations); // Walking
+    _stateList.pdStand = new FSMState_PDStand(_data); //PDStanding
     // add other FSM states later
-
-
-    initialize();
+    initialize(fsm_name);
 }
 
 FSM::~FSM(){
     _stateList.deletePtr();
 }
 
-void FSM::initialize()
+// void FSM::initialize()
+// {
+//     count = 0;
+//     _currentState = _stateList.passive;
+//     _currentState -> enter();
+//     _nextState = _currentState;
+//     _mode = FSMMode::NORMAL;
+
+// }
+
+void FSM::initialize(std::string _fsm_name)
 {
     count = 0;
-    _currentState = _stateList.passive;
+    if (_fsm_name == "walking")
+    {
+        _currentState = _stateList.walking;
+    }
+    else if (_fsm_name == "pdStand")
+    {
+        _currentState = _stateList.pdStand;
+    }
+    else
+    {
+        _currentState = _stateList.passive;
+    }
     _currentState -> enter();
     _nextState = _currentState;
     _mode = FSMMode::NORMAL;
@@ -75,4 +110,21 @@ FSMState* FSM::getNextState(FSMStateName stateName)
 }
 
 
+// ** simulation specific methods
+void FSM::setStateCommands(Vec2<double> roll_pitch, Vec3<double> twist, double ref_height){
+    _currentState->roll = roll_pitch[0];
+    _currentState->pitch = roll_pitch[1];
+    _currentState->v_des_body[0] = twist[0];
+    _currentState->v_des_body[1] = twist[1];
+    _currentState->v_des_body[2] = 0; 
+    _currentState->turn_rate = twist[2];
+    _currentState->reference_height = ref_height;
+}
 
+void FSM::setGaitNum(int gaitNum){
+    _currentState->gaitNum = gaitNum;
+}
+
+void FSM::reset(){
+    _currentState->reset();
+}

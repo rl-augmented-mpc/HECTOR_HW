@@ -23,7 +23,7 @@ class Biped{
             I_body << 0.5413, 0.0, 0.0, 0.0, 0.5200, 0.0, 0.0, 0.0, 0.0691;
 
             leg_offset_x = -0.005;
-            leg_offset_y = -0.047;
+            leg_offset_y = 0.047;
             leg_offset_z = -0.126;
 
             hipLinkLength = 0.038; // hip offset in const.xacro
@@ -37,7 +37,6 @@ class Biped{
 
         }else{
             int temp_sequence[] = {4, 5, 6, 7, 8, 1, 2, 9, 10, 11}; // left-right leg
-            // int temp_sequence[] = {1, 2, 9, 10, 11, 4, 5, 6, 7, 8}; // right-left leg
             for (int i = 0; i < 10; ++i) {
                 motor_sequence[i] = temp_sequence[i];
             }
@@ -567,9 +566,9 @@ class Biped{
             side = -1.0;
         }
 
-        Vec3<double> hip_roll;
-            hip_roll = {0.0465, 0.02*side, -0.197};
-        Vec3<double> foot_des_to_hip_roll = p_Hip2Foot - hip_roll;
+        Eigen::Vector3d hipWidthOffSet = {-0.025, side*-0.06, 0.0}; // TODO: sync with Biped.h
+        Vec3<double> hip_roll = {0.0465, 0.02*side, -0.197};
+        Vec3<double> foot_des_to_hip_roll = p_Hip2Foot - hip_roll + hipWidthOffSet;
         double distance_3D = pow( (  pow((foot_des_to_hip_roll(0)+0.06),2.0) + 
                     pow(foot_des_to_hip_roll(1), 2.0) + pow(foot_des_to_hip_roll(2), 2.0) ), 0.5);
         double distance_2D_yOz = pow( ( pow(foot_des_to_hip_roll(1), 2.0) + pow(foot_des_to_hip_roll(2),2.0) ), 0.5 );

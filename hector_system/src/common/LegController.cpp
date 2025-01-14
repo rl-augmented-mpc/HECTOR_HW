@@ -20,6 +20,15 @@ void LegControllerCommand::zero(){
     kptoe = 0;
     kdtoe = 0;
 
+    qDesDelta = Vec5<double>::Zero();
+    feedforwardForceDelta = Vec6<double>::Zero();
+    footplacementDelta = Vec2<double>::Zero();
+    Pf = Vec3<double>::Zero();
+    Pf_augmented = Vec3<double>::Zero();
+    double contact_phase = 0; 
+    double contact_state = 1; 
+    double swing_phase = 0;
+    double swing_state = 0;
     //control_mode should be not touched
 
 }
@@ -125,11 +134,15 @@ void LegController::updateCommand(LowlevelCmd* cmd){
 
 
         // //// Joint PD gains //
-        commands[leg].kpJoint << 10.0, 30.0, 30.0, 30.0, 10.0;
-        // commands[leg].kdJoint << 1.5, 1.5, 1.5, 1.5, 1;
-        commands[leg].kdJoint << 2.0, 2.0, 2.0, 2.0, 1.5;
-        // commands[leg].kpJoint << 20.0, 20.0, 20.0, 20.0, 15.0;
-        // commands[leg].kdJoint << 0.45, 0.45, 0.45, 0.45, 0.6;
+        if (_biped._real_flag == 1){
+            commands[leg].kpJoint << 10.0, 30.0, 30.0, 30.0, 10.0;
+            // commands[leg].kdJoint << 1.5, 1.5, 1.5, 1.5, 1;
+            commands[leg].kdJoint << 2.0, 2.0, 2.0, 2.0, 1.5;
+        }
+        else{
+            commands[leg].kpJoint << 20.0, 20.0, 20.0, 20.0, 15.0;
+            commands[leg].kdJoint << 0.45, 0.45, 0.45, 0.45, 0.6;
+        }
 
 
         // ramping up for first few seconds==============================================================
@@ -248,11 +261,21 @@ void LegController::updateCommand(LowlevelCmd* cmd){
 
         // Assigning to lowCmd
         for (int k = 0; k < 5; k ++) {
-            cmd->motorCmd[motor_sequence[k + leg*5]].tau = tau_temp(k) * progress;
-            cmd->motorCmd[motor_sequence[k + leg*5]].q = qDes_temp(k);
-            cmd->motorCmd[motor_sequence[k + leg*5]].dq = qdDes_temp(k);
-            cmd->motorCmd[motor_sequence[k + leg*5]].Kp = commands[leg].kpJoint[k] * progress;
-            cmd->motorCmd[motor_sequence[k + leg*5]].Kd = commands[leg].kdJoint[k];
+            if (_biped._real_flag==1){
+                cmd->motorCmd[motor_sequence[k + leg*5]].tau = tau_temp(k) * progress;
+                cmd->motorCmd[motor_sequence[k + leg*5]].q = qDes_temp(k);
+                cmd->motorCmd[motor_sequence[k + leg*5]].dq = qdDes_temp(k);
+                cmd->motorCmd[motor_sequence[k + leg*5]].Kp = commands[leg].kpJoint[k] * progress;
+                cmd->motorCmd[motor_sequence[k + leg*5]].Kd = commands[leg].kdJoint[k];
+            }
+            else{
+                // ignore torque,gain ramp up in simulation
+                cmd->motorCmd[motor_sequence[k + leg*5]].tau = tau_temp(k);
+                cmd->motorCmd[motor_sequence[k + leg*5]].q = qDes_temp(k);
+                cmd->motorCmd[motor_sequence[k + leg*5]].dq = qdDes_temp(k);
+                cmd->motorCmd[motor_sequence[k + leg*5]].Kp = commands[leg].kpJoint[k];
+                cmd->motorCmd[motor_sequence[k + leg*5]].Kd = commands[leg].kdJoint[k];
+            }
         }
 
         //For unused actuators - just for safety

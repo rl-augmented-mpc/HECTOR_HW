@@ -23,8 +23,18 @@ struct CMPC_Result {
 
 class ConvexMPCLocomotion {
 public:
-  ConvexMPCLocomotion(double _dt, int _iterations_between_mpc);
-  void initialize();
+  // ConvexMPCLocomotion(double _dt, int _iterations_between_mpc);
+  ConvexMPCLocomotion(
+      double _dt, 
+      int _iterations_between_mpc, 
+      int _horizon_length, 
+      int _mpc_decimation,
+      Vec2<int> dsp_durations, 
+      Vec2<int> ssp_durations);
+  void reset(){
+    firstRun = true;
+    iterationCounter = 0;
+  };
 
   void run(ControlFSMData& data);
   void setGaitNum(int gaitNum){gaitNumber = gaitNum % 2; if(gaitNum%2 ==0) gaitNumber = 2; return;}
@@ -53,6 +63,7 @@ private:
   swingLegController swing;
   int iterationsBetweenMPC;
   int horizonLength;
+  int mpc_decimation;
   double dt;
   double dtMPC;
   int iterationCounter = 0;
