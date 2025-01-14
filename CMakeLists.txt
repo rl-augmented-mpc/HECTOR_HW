@@ -40,8 +40,8 @@ pybind11_add_module(${PROJECT_NAME} Interface/python_interface/hector_controller
 target_link_libraries(${PROJECT_NAME} PRIVATE controller_lib)
 
 ## Test code
-add_executable(test_code run/test_pybind.cpp)
-target_link_libraries(test_code controller_lib)
+# add_executable(test_code run/test_pybind.cpp)
+# target_link_libraries(test_code controller_lib)
 
 ######################
 # Hardware interface #

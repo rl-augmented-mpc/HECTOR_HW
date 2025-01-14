@@ -502,58 +502,7 @@ class Biped{
     }
 
 
-
-
-    // Vec5<double> InverseKinematics(Vec3<double> &p_Hip2Foot, int leg)
-    // {
-    //     Vec5<double> q; //joint angles of hip roll, hip pitch, knee pitch. hip yaw and ankle pitch are assumed to be 0.
-
-    //     double l1 = hipLinkLength; // ab_ad
-    //     double l2 = thighLinkLength;
-    //     double l3 = calfLinkLength;
-
-    //     double x = p_Hip2Foot[0];
-    //     double y = p_Hip2Foot[1];
-    //     double z = p_Hip2Foot[2];
-
-    //     // std::cout << "Testing test" << std::endl;
-
-    //     double z_1 = sqrt(y * y + z * z - l1 * l1);
-    //     double theta_r = atan2(x, z_1);
-
-    //     // std::cout << "theta: " << theta_r << std::endl;
-    //     // std::cout << z_1 << std::endl;
-    //     double q0 = 0;
-    //     double q1 = 2 * atan((l1 - sqrt(-z * z + z_1 * z_1 + l1 * l1)) / (abs(z) + z_1));
-    //     double q2 = acos((l2 * l2 + x * x + z_1 * z_1 - l3 * l3) / (2 * l2 * sqrt(z_1 * z_1 + x * x))) + theta_r;
-    //     double q3 = acos((x * x + y * y + z * z - l1 * l1 - l2 * l2 - l3 * l3) / (2 * l2 * l3));
-    //     double q4 = -q1 - q2;
-
-    //     if (leg == 0)
-    //     {
-    //         q(0) = -q0;
-    //         q(1) = q1;
-    //         q(2) = q2;
-    //         q(3) = q3;
-    //         q(4) = q4;
-    //     }
-
-    //     if (leg == 1)
-    //     {
-    //         q(0) = q0;
-    //         q(1) = q1;
-    //         q(2) = q2;
-    //         q(3) = q3;
-    //         q(4) = q4;
-    //     }
-
-
-    //     return q;
-    // }
-
-
-    // //It is a customized inverse kinematics function provided from USC specifically designed for swing leg control
-    // // TODO: Verify which one between the above and this one is correct
+    //It is a customized inverse kinematics function provided from USC specifically designed for swing leg control
     Vec3<double> InverseKinematics_swingctrl(Vec3<double> &p_Hip2Foot, int leg)
     {
         Vec3<double> q; //joint angles of hip roll, hip pitch, knee pitch. hip yaw and ankle pitch are assumed to be 0.
@@ -566,8 +515,9 @@ class Biped{
             side = -1.0;
         }
 
-        Eigen::Vector3d hipWidthOffSet = {-0.025, side*-0.06, 0.0}; // TODO: sync with Biped.h
-        Vec3<double> hip_roll = {0.0465, 0.02*side, -0.197};
+        Eigen::Vector3d hipWidthOffSet = {-0.025, side*-0.06, 0.0};
+        // Vec3<double> hip_roll = {0.0465, 0.02*side, -0.197}; // original hardware
+        Vec3<double> hip_roll = {0.0465, 0.02*side, -0.267}; // probably right one
         Vec3<double> foot_des_to_hip_roll = p_Hip2Foot - hip_roll + hipWidthOffSet;
         double distance_3D = pow( (  pow((foot_des_to_hip_roll(0)+0.06),2.0) + 
                     pow(foot_des_to_hip_roll(1), 2.0) + pow(foot_des_to_hip_roll(2), 2.0) ), 0.5);
@@ -575,32 +525,40 @@ class Biped{
         double distance_horizontal = 0.0205;
         double distance_vertical = pow(( pow(distance_2D_yOz,2.0)-pow(distance_horizontal,2.0)), 0.5);
         double distance_2D_xOz = pow(( pow(distance_3D,2.0)-pow(distance_horizontal,2.0)), 0.5);
-        
+
+        // Ensure arguments are within valid range for acos and asin
+        double acosArg1 = clamp(distance_2D_xOz / (2.0 * 0.22), -1.0, 1.0);
+        double acosArg2 = clamp(distance_vertical / distance_2D_xOz, -1.0, 1.0);
+        double divisor = std::abs(foot_des_to_hip_roll[0]+0.06);
+        divisor = (divisor == 0.0) ? 1e-6 : divisor; // Prevent division by zero
+
         // qDes
-        q(0) = std::asin( foot_des_to_hip_roll(1) / distance_2D_yOz ) + std::asin( distance_horizontal*side / distance_2D_yOz );        
-        q(1) = std::acos(distance_2D_xOz / 2.0 / 0.22) - std::acos(distance_vertical / distance_2D_xOz) * (foot_des_to_hip_roll(0)+0.06) / abs((foot_des_to_hip_roll(0)+0.06));
-        q(2) = 2.0 * std::asin(distance_2D_xOz / 2.0 / 0.22) - 3.14159;
+        q(0) = std::asin(clamp(foot_des_to_hip_roll(1) / distance_2D_yOz, -1.0, 1.0)) + std::asin(clamp(distance_horizontal*side / distance_2D_yOz, -1.0, 1.0));
+        q(1) = std::acos(acosArg1) - std::acos(acosArg2) * (foot_des_to_hip_roll[0]+0.06) / divisor;
+        q(2) = 2.0 * std::asin(clamp(distance_2D_xOz / 2.0 / 0.22, -1.0, 1.0)) - 3.14159;
 
         return q;
 
     }
 
-    // adapted from simulation codebase
+    // adapted from simulation code
     Vec3<double> ComputeIK(Vec3<double> &p_Hip2Foot, int leg)
     {
         Vec3<double> q; //joint angles of hip roll, hip pitch, knee pitch. hip yaw and ankle pitch are assumed to be 0.
 
         double side; 
         if (leg == 0) {
-            side = -1.0;
-        }
-        else if (leg == 1) {
             side = 1.0;
         }
+        else if (leg == 1) {
+            side = -1.0;
+        }
+        Eigen::Vector3d hipWidthOffSet = {-0.015, side*-0.057, 0.0}; // TODO: sync with Biped.h
         Vec3<double> L_hipRollLocation = {0.0465, 0.015, -0.0705};
         Vec3<double> L_hipYawLocation = {-0.005, -0.047, -0.126};
-        Eigen::Vector3d hip_roll(L_hipRollLocation[0]-0.06, 0.0, L_hipYawLocation[2]+L_hipRollLocation[2]*2);
-        Eigen::Vector3d foot_des_to_hip_roll = p_Hip2Foot - hip_roll; //in hip roll frame
+        Eigen::Vector3d hip_roll(L_hipRollLocation[0]-0.06, 0.02*side, L_hipYawLocation[2]+L_hipRollLocation[2]*2);
+        Eigen::Vector3d foot_des_to_hip_roll = p_Hip2Foot + hipWidthOffSet - hip_roll; //in hip roll frame
+        
         double distance_3D = foot_des_to_hip_roll.norm();
         double distance_2D_yOz = std::sqrt(std::pow(foot_des_to_hip_roll[1], 2) + std::pow(foot_des_to_hip_roll[2], 2));
         double distance_horizontal = 0.0205;

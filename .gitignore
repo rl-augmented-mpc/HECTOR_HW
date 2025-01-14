@@ -1,7 +1,9 @@
-hector_system/build
+hector_system
 Interface/HW_interface/build
 build/*
 Interface/HW_interface/Calibration/offset.txt
 Interface/results
 results
 build
+hector_control.egg-info
+*.so

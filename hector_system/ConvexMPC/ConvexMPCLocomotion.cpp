@@ -111,7 +111,7 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
 
   // construct contact constraint booleans for MPC
   int *mpcTable = gait->mpc_gait(iterationsBetweenMPC);
-  if (iterationCounter % 5 == 0){
+  if (iterationCounter % mpc_decimation == 0){
     updateMPC(mpcTable, data, omniMode);
   }
   iterationCounter++;
@@ -199,7 +199,7 @@ void ConvexMPCLocomotion::updateMPC(int *mpcTable, ControlFSMData &data, bool om
   // roll pitch yaw x y z droll dpitch dyaw dx dy dz
   // double Q[12] = {300, 300, 150,   300, 300, 100,   1, 1, 1,   5, 3, 3}; // original hardware
   // double Q[12] = {100, 200, 300,  300, 300, 300,  1, 1, 3.0,  2.0, 2.0, 1};
-  double Q[12] = {100, 200, 500,  500, 500, 300,  1, 1, 5,  8, 8, 1};
+  double Q[12] = {100, 200, 500,  500, 500, 500,  1, 1, 5,  8, 8, 1};
 
   // double Alpha[12] = {1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,   2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2}; // original hardware
   double Alpha[12] = {1e-4, 1e-4, 5e-4, 1e-4, 1e-4, 5e-4,   1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 1e-2};
