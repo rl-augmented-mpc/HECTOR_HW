@@ -291,10 +291,126 @@ void LegController::updateCommand(LowlevelCmd* cmd){
         // commands[i].qdDes.setZero();
         // commands[i].kpJoint.setZero();
         // commands[i].kdJoint.setZero();
+    }  
+}
+
+
+// *** For RL-MPC *****************************************
+
+Vec12<double> LegController::get_grw(){
+    /// return GRF-M computed by MPC
+    Vec12<double> grfm;
+    grfm.block<6,1>(0,0) = commands[0].feedforwardForce; 
+    grfm.block<6,1>(6,0) = commands[1].feedforwardForce;
+    return grfm; 
+}
+
+Vec4<double> LegController::get_reibert_foot_placement(){
+    // return the next foot placement in world frame
+    Vec4<double> Pfs;
+    Pfs(0) = commands[0].Pf(0);
+    Pfs(1) = commands[0].Pf(1);
+    Pfs(2) = commands[1].Pf(0);
+    Pfs(3) = commands[1].Pf(1);
+    return Pfs; 
+}
+
+Vec4<double> LegController::get_foot_placement(){
+    // return the next foot placement in world frame
+    Vec4<double> Pfs;
+    Pfs(0) = commands[0].Pf_augmented(0);
+    Pfs(1) = commands[0].Pf_augmented(1);
+    Pfs(2) = commands[1].Pf_augmented(0);
+    Pfs(3) = commands[1].Pf_augmented(1);
+    return Pfs; 
+}
+
+Vec6<double> LegController::get_ref_swing_position(){
+    // return reference foot position in hip frame
+    Vec6<double> foot_ref_pos;
+    foot_ref_pos.block<3,1>(0,0) = commands[0].pDes; 
+    foot_ref_pos.block<3,1>(3,0) = commands[1].pDes; 
+    return foot_ref_pos; 
+}
+
+Vec6<double> LegController::get_swing_position(){
+    // return foot position in hip frame
+    Vec6<double> foot_pos; 
+    foot_pos.block<3,1>(0,0) = data[0].p;
+    foot_pos.block<3,1>(3,0) = data[1].p;
+    return foot_pos;
+}
+
+Vec2<double> LegController::get_contact_phase(){
+    // return contact phase of the legs
+    Vec2<double> contact_phase;
+    contact_phase(0) = commands[0].contact_phase;
+    contact_phase(1) = commands[1].contact_phase;
+    return contact_phase;
+}
+
+Vec2<double> LegController::get_swing_phase(){
+    // return swing phase of the legs
+    Vec2<double> swing_phase;
+    swing_phase(0) = commands[0].swing_phase;
+    swing_phase(1) = commands[1].swing_phase;
+    return swing_phase;
+}
+
+Vec2<double> LegController::get_contact_state(){
+    // return contact state of the legs
+    Vec2<double> contact_state;
+    contact_state(0) = commands[0].contact_state;
+    contact_state(1) = commands[1].contact_state;
+    return contact_state;
+}
+
+Vec2<double> LegController::get_swing_state(){
+    // return swing state of the legs
+    Vec2<double> swing_state;
+    swing_state(0) = commands[0].swing_state;
+    swing_state(1) = commands[1].swing_state;
+    return swing_state;
+}
+
+
+
+void LegController::update_grw(Vec12<double> grfm){
+    for (int i = 0; i < 2; i++){
+        commands[i].feedforwardForce = grfm.block<6,1>(i*6,0);
     }
+}
+
+void LegController::add_residual_grw(Vec12<double> delta_grfm){
+    for (int i = 0; i < 2; i++){
+        commands[i].feedforwardForceDelta = delta_grfm.block<6,1>(i*6,0);
+    }
+}
+
+void LegController::add_residual_foot_placement(Vec4<double> delta_foot_placement){
+    for (int i = 0; i < 2; i++){
+        commands[i].footplacementDelta = delta_foot_placement.block<2,1>(i*2,0);
+    }
+}
+
+void LegController::add_residual_joint_position(Vec10<double> delta_joint_position){
+    for (int i = 0; i < 2; i++){
+        commands[i].qDesDelta = delta_joint_position.block<5,1>(i*5,0);
+    }
+}
+
+void LegController::updateCommandResidual(LowlevelCmd* cmd){
+    // update legtau with augmented GRFM
+    for (int i = 0; i < 2; i++){
+        Vec6<double> footForce = commands[i].feedforwardForce + commands[i].feedforwardForceDelta;
+        Vec5<double> legtau = data[i].J.transpose() * footForce; // force moment from stance leg
+        Vec5<double> qDes = commands[i].qDes + commands[i].qDesDelta;
+
+        // Push the commands to the low level message
+        for (int j = 0; j < 5; j++){
+            cmd->motorCmd[i*5+j].tau = legtau(j);
+            cmd->motorCmd[i*5+j].q = qDes(j);
+        }
         
-
-
-    
-   
+    }
 }

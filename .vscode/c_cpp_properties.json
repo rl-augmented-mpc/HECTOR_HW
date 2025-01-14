@@ -4,7 +4,10 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**", 
-                "${workspaceFolder}/include/**"
+                "${workspaceFolder}/include/**", 
+                "/usr/include/python3.10",
+                "${workspaceFolder}/Interface/python_interface/pybind11/include",
+                "/usr/include/eigen3"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
