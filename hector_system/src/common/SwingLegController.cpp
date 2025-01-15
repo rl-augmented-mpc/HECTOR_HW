@@ -122,9 +122,9 @@ void swingLegController::computeFootPlacement(){
         Pf[foot] = seResult.position + seResult.rBody.transpose() * (data->_biped->getHip2Location(foot)) + seResult.vWorld * swingTimes[foot];
         
         double p_rel_max_x = 0.4;
-        double p_rel_max_y =  0.3;
+        double p_rel_max_y =  0.4;
         double k_x = 0.1; 
-        double k_y = 0.05; // IMOPRTANT parameter for stable lateral motion
+        double k_y = 0.1; // IMOPRTANT parameter for stable lateral motion
         
         double pfx_rel   =  seResult.vWorld[0] * 0.5 * gait->_swing(foot) * _dtSwing + k_x  * (seResult.vWorld[0] - v_des_world[0]);
         double pfy_rel   =  seResult.vWorld[1] * 0.5 * gait->_swing(foot) * _dtSwing + k_y  * (seResult.vWorld[1] - v_des_world[1]);
