@@ -391,11 +391,11 @@ void LegController::add_residual_grw(Vec12<double> delta_grfm){
     }
 }
 
-void LegController::add_residual_foot_placement(Vec4<double> delta_foot_placement){
-    for (int i = 0; i < 2; i++){
-        commands[i].footplacementDelta = delta_foot_placement.block<2,1>(i*2,0);
-    }
-}
+// void LegController::add_residual_foot_placement(Vec4<double> delta_foot_placement){
+//     for (int i = 0; i < 2; i++){
+//         commands[i].footplacementDelta = delta_foot_placement.block<2,1>(i*2,0);
+//     }
+// }
 
 void LegController::add_residual_joint_position(Vec10<double> delta_joint_position){
     for (int i = 0; i < 2; i++){

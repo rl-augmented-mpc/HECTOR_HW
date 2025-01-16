@@ -118,7 +118,7 @@ class HectorController{
         }
 
         void addResidualFootPlacement(Vec4<double> delta_foot_placement){
-            legController->add_residual_foot_placement(delta_foot_placement);
+            biped.rl_params.set_residual_foot_placement(delta_foot_placement);
         }
 
         void addResidualJointPosition(Vec10<double> delta_joint_position){
