@@ -38,7 +38,6 @@ void FSMState_Walking::run()
 
     // set reference command
     setCommand();
-    _data->_desiredStateCommand->setStateCommands(roll, pitch, v_des_body, turn_rate, 0.53);
     Cmpc.run(*_data);
     Logging();
     //Push the Command to Leg Controller

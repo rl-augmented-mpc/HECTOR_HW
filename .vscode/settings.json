@@ -60,6 +60,18 @@
         "map": "cpp",
         "iomanip": "cpp",
         "typeindex": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "csignal": "cpp",
+        "strstream": "cpp",
+        "bitset": "cpp",
+        "codecvt": "cpp",
+        "forward_list": "cpp",
+        "list": "cpp",
+        "set": "cpp",
+        "unordered_set": "cpp",
+        "ranges": "cpp",
+        "semaphore": "cpp",
+        "cfenv": "cpp",
+        "valarray": "cpp"
     }
 }

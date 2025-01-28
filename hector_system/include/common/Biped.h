@@ -11,7 +11,7 @@
 
 class Biped{
   public:
-    void setBiped(int real_flag = 1){ // 1 for Real, 0 for Sim
+    void setBiped(int real_flag = 1){ // 1 for Hardware, 0 for Sim
 
         _real_flag = real_flag;
         mu = 0.3; // friction coefficient
@@ -22,13 +22,10 @@ class Biped{
             mass = 13.856;
             I_body << 0.5413, 0.0, 0.0, 0.0, 0.5200, 0.0, 0.0, 0.0, 0.0691;
 
+            // left leg hip yaw offset from com 
             leg_offset_x = -0.005;
-            leg_offset_y = -0.047;
+            leg_offset_y = 0.047;
             leg_offset_z = -0.126;
-
-            hipLinkLength = 0.038; // hip offset in const.xacro
-            thighLinkLength = 0.22;
-            calfLinkLength = 0.22;
              
             int temp_sequence[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
             for (int i = 0; i < 10; ++i) {
@@ -46,23 +43,10 @@ class Biped{
             mass = 13.856;
             I_body << 0.5413, 0.0, 0.0, 0.0, 0.5200, 0.0, 0.0, 0.0, 0.0691;
 
-            leg_offset_x = 0.0;
+            // left leg hip yaw offset from com 
+            leg_offset_x = -0.005;
             leg_offset_y = 0.047;
             leg_offset_z = -0.1265;
-
-
-            hipLinkLength = 0.038; // hip offset in const.xacro
-            thighLinkLength = 0.22;
-            calfLinkLength = 0.22;
-
-            // length of a vector from ankle to toe and lh is to heel
-            lt = 0.07;
-            lh = 0.04; 
-            lw = 0.05;
-            
-            lt_vec << 0, 0, lt;
-            lh_vec << 0, 0, lh;
-            lw_vec << 0, 0, lw;
         }
 
 
@@ -104,21 +88,8 @@ class Biped{
     float f_max;
     float torque_limit[10]{33.5, 33.5, 33.5, 67.0, 33.5, 33.5, 33.5, 33.5, 67.0, 33.5};
 
-    double m_feet[2];
-    Eigen::Matrix<double,3,3> I_feet[2];
-
-    double lt;
-    double lh;
-    double lw;
-
-    Eigen::Matrix<double, 1, 3> lt_vec;
-    Eigen::Matrix<double, 1, 3> lt_3D;
-    Eigen::Matrix<double, 1, 3> lh_vec;
-    Eigen::Matrix<double, 1, 3> lh_3D;
-    Eigen::Matrix<double, 1, 3> lw_vec;
-
     // parameters for reference and swing leg controller
-    double foot_height=0.1; // swing foot height
+    double foot_height=0.12; // swing foot height
     float gait_stepping_frequency = 1.0; // gait stepping frequency
 
     // miscallenous
@@ -209,10 +180,11 @@ class Biped{
         
         }else{
             // Now we let the simulation add offset
+            // These offset are synced with URDF
             // double PI = 3.14159265359;
-            // q[2] += 0.3*PI; 
-            // q[3] -= 0.6*PI; 
-            // q[4] += 0.3*PI;
+            // q[2] += 0.25*PI; 
+            // q[3] -= 0.5*PI; 
+            // q[4] += 0.25*PI;
 
         }
 
@@ -256,10 +228,11 @@ class Biped{
         
         }else{
             // Now we let the simulation add offset
+            // These offset are synced with URDF
             // double PI = 3.14159265359;
-            // q[2] -= 0.3*PI; 
-            // q[3] += 0.6*PI; 
-            // q[4] -= 0.3*PI;
+            // q[2] -= 0.25*PI; 
+            // q[3] += 0.5*PI; 
+            // q[4] -= 0.25*PI;
 
         }
 
@@ -335,14 +308,15 @@ class Biped{
         double joint1_angle = joint_angles(1);
         double joint2_angle = joint_angles(2);
         double joint3_angle = joint_angles(3);
-        double joint4_angle;
+        double joint4_angle = joint_angles(4);
 
-        if (_real_flag == 0){
-            double joint4_angle = joint_angles(4);
-        }
-        else{
-            double joint4_angle = joint_angles(4) + joint3_angle;
-        }
+        // TODO: check if joint4 angle calculation is valid for hardware
+        // if (_real_flag == 0){
+        //     double joint4_angle = joint_angles(4);
+        // }
+        // else{
+        //     double joint4_angle = joint_angles(4) + joint3_angle;
+        // }
 
         if (leg == 0){
             side = 1.0;
@@ -431,15 +405,15 @@ class Biped{
             double joint1_angle = joint_angles(1);
             double joint2_angle = joint_angles(2);
             double joint3_angle = joint_angles(3);
-            double joint4_angle = joint_angles(4) + joint3_angle;
+            double joint4_angle = joint_angles(4) + joint3_angle; // probably due to USC's definition of q4 in matlab symbolic jacobian(q4 = q4-q3)
 
             if (leg == 0)
             {
-                side = 1.0;
+                side = -1.0;
             }
             else
             {
-                side = -1.0;
+                side = 1.0;
             }
 
             J(0, 0) = 0.0005 * sin(joint0_angle) * (440.0 * sin(joint2_angle + joint3_angle) + 80.0 * sin(joint2_angle + joint4_angle) + 440.0 * sin(joint2_angle) + 27.0) - 1.0 * cos(joint0_angle) * (0.015 * side + 0.22 * cos(joint2_angle) * sin(joint1_angle) + 0.0205 * side * cos(joint1_angle) - 0.22 * sin(joint1_angle) * sin(joint2_angle) * sin(joint3_angle) - 0.04 * sin(joint1_angle) * sin(joint2_angle) * sin(joint4_angle) + 0.22 * cos(joint2_angle) * cos(joint3_angle) * sin(joint1_angle) + 0.04 * cos(joint2_angle) * cos(joint4_angle) * sin(joint1_angle));
@@ -502,7 +476,7 @@ class Biped{
     }
 
 
-    //It is a customized inverse kinematics function provided from USC specifically designed for swing leg control
+    // legacy IK code
     Vec3<double> InverseKinematics_swingctrl(Vec3<double> &p_Hip2Foot, int leg)
     {
         Vec3<double> q; //joint angles of hip roll, hip pitch, knee pitch. hip yaw and ankle pitch are assumed to be 0.
@@ -541,24 +515,28 @@ class Biped{
 
     }
 
-    // adapted from simulation code
-    Vec3<double> ComputeIK(Vec3<double> &p_Hip2Foot, int leg)
+    
+    Vec3<double> ComputeIK(Vec3<double> &p_foot_des_b, int leg)
     {
-        Vec3<double> q; //joint angles of hip roll, hip pitch, knee pitch. hip yaw and ankle pitch are assumed to be 0.
+        // Analytic IK code (track only foot positin, not orientation)
+        // Arguments: 
+        // p_foot_des_b: desired foot position in body frame
+        // leg: 0 for left, 1 for right
+        // Returns: joint angles for hip roll, hip pitch, knee pitch
+
+        Vec3<double> q;
 
         double side; 
         if (leg == 0) {
-            side = -1.0;
-        }
-        else if (leg == 1) {
             side = 1.0;
         }
-        Eigen::Vector3d hipWidthOffSet = {-0.015, side*-0.057, 0.0}; // TODO: sync with Biped.h
-        Vec3<double> L_hipRollLocation = {0.0465, 0.015, -0.0705};
-        Vec3<double> L_hipYawLocation = {-0.005, -0.047, -0.126};
-        Eigen::Vector3d hip_roll(L_hipRollLocation[0]-0.06, 0.0, L_hipYawLocation[2]+L_hipRollLocation[2]*2);
-
-        Eigen::Vector3d foot_des_to_hip_roll = p_Hip2Foot + hipWidthOffSet - hip_roll; //in hip roll frame
+        else if (leg == 1) {
+            side = -1.0;
+        }
+        Eigen::Vector3d hip_roll;
+        hip_roll << -0.005+0.0465, 0.047*side+0.015*side, -0.1265-0.0705; // hip roll origin in body frame
+        Eigen::Vector3d foot_des_to_hip_roll = p_foot_des_b - hip_roll; // foot target position in hip roll frame (orientation aligned with body frame)
+        foot_des_to_hip_roll(0) += 0.06; // hardware-related offset??
         
         double distance_3D = foot_des_to_hip_roll.norm();
         double distance_2D_yOz = std::sqrt(std::pow(foot_des_to_hip_roll[1], 2) + std::pow(foot_des_to_hip_roll[2], 2));
@@ -566,7 +544,7 @@ class Biped{
         double distance_vertical = std::sqrt(std::max(0.00001, std::pow(distance_2D_yOz, 2) - std::pow(distance_horizontal, 2)));        // double distance_vertical = std::sqrt(std::pow(distance_2D_yOz, 2) - std::pow(distance_horizontal, 2));
         double distance_2D_xOz = pow(( pow(distance_3D,2.0)-pow(distance_horizontal,2.0)), 0.5);
                        
-        // Ensure arguments are within valid range for acos and asin
+        // Ensure arguments are within valid range for acos and asin to avoid NaN
         double acosArg1 = clamp(distance_2D_xOz / (2.0 * 0.22), -1.0, 1.0);
         double acosArg2 = clamp(distance_vertical / distance_2D_xOz, -1.0, 1.0);
         double divisor = std::abs(foot_des_to_hip_roll[0]);

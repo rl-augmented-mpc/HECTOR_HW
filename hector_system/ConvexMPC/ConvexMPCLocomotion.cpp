@@ -266,7 +266,6 @@ void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, Des
   if(seResult.position[1] - yStart > max_pos_error) yStart = seResult.position[1] - max_pos_error;
   if(yawStart - seResult.rpy[2] > max_yaw_error) yawStart = seResult.rpy[2] + max_yaw_error;
   if(seResult.rpy[2] - yawStart > max_yaw_error) yawStart = seResult.rpy[2] - max_yaw_error;
-
   double trajInitial[12] = {stateCommand.data.stateDes[3],  // roll
                             stateCommand.data.stateDes[4],   // pitch
                             seResult.rpy[2], // yaw

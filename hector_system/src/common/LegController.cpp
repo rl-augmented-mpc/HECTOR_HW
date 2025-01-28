@@ -225,7 +225,8 @@ void LegController::updateCommand(LowlevelCmd* cmd){
 
             //qDes
             if (_biped._real_flag==1){
-                commands[leg].qDes.block(1,0, 3,1) = _biped.InverseKinematics_swingctrl(foot_des, leg);
+                // commands[leg].qDes.block(1,0, 3,1) = _biped.InverseKinematics_swingctrl(foot_des, leg);
+                commands[leg].qDes.block(1,0, 3,1) = _biped.ComputeIK(foot_des, leg);
             }
             else{
                 commands[leg].qDes.block(1,0, 3,1) = _biped.ComputeIK(foot_des, leg);
