@@ -37,7 +37,6 @@ Gait::Gait(int mpc_horizon, Vec2<int> dsp_durations, Vec2<int> ssp_durations)
 Gait::~Gait() = default;
 
 void Gait::reset(){
-    _gait_time_step = 0;
     _gait_phase = 0;
 }
 
@@ -45,7 +44,6 @@ void Gait::updatePhase(float stepping_frequency)
 {
     // update gait phase based on stepping frequency (default=1)
     int delta_t = 1; 
-    _gait_time_step += delta_t;
     _gait_phase += stepping_frequency * delta_t / _gait_cycle_length;
     if (_gait_phase > 1.0)
     {
@@ -118,13 +116,12 @@ Vec2<double> Gait::getSwingSubPhase(){
 }
 
 
-int *Gait::mpc_gait(int iterations_between_mpc){
+int *Gait::mpc_gait(int iterations_between_mpc, float stepping_frequency){
   // compute contact sequence during mpc horizon
   for (int tMPC = 0; tMPC < _mpc_horizon; tMPC++)
   {
-    // int gait_time_step_mpc_forward = (_gait_time_step + tMPC*iterations_between_mpc) % _gait_cycle_length;
     int gait_time_step_from_phase = (int)(_gait_phase * (double)_gait_cycle_length);
-    int gait_time_step_mpc_forward = (gait_time_step_from_phase + tMPC*iterations_between_mpc) % _gait_cycle_length;
+    int gait_time_step_mpc_forward = (gait_time_step_from_phase + (int)(tMPC*iterations_between_mpc*stepping_frequency)) % _gait_cycle_length;
 
     if (gait_time_step_mpc_forward < _ssp_durations[0])
     {

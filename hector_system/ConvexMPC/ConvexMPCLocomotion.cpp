@@ -110,7 +110,7 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
   Vec2<double> swingStates = gait->getSwingSubPhase();
 
   // construct contact constraint booleans for MPC
-  int *mpcTable = gait->mpc_gait(iterationsBetweenMPC);
+  int *mpcTable = gait->mpc_gait(iterationsBetweenMPC, data._biped->gait_stepping_frequency);
   if (iterationCounter % mpc_decimation == 0){
     updateMPC(mpcTable, data, omniMode);
   }
