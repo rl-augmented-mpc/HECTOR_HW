@@ -13,8 +13,7 @@
 class HectorController{
     public:
         HectorController(
-            double _dt, int _iterations_between_mpc, int _horizon_length, int _mpc_decimation, 
-            Vec2<int> dsp_durations, Vec2<int> ssp_durations)
+            double _dt, int _iterations_between_mpc, int _horizon_length, int _mpc_decimation)
         {
             std::cout << "==== CPP INFO ====" << std::endl;
             biped.setBiped(0);
@@ -37,7 +36,7 @@ class HectorController{
 
             std::cout << "setup fsm " << std::endl;
             std::string fsm_name = "walking";
-            fsm = std::make_shared<FSM>(_controlData.get(), _dt, _iterations_between_mpc, _horizon_length, _mpc_decimation, dsp_durations, ssp_durations, fsm_name);
+            fsm = std::make_shared<FSM>(_controlData.get(), _dt, _iterations_between_mpc, _horizon_length, _mpc_decimation, fsm_name);
             std::cout << "=============" << std::endl;
         }
 
@@ -55,6 +54,10 @@ class HectorController{
             // 1: standing
             // 2: walking
             fsm->setGaitNum(gaitnum);
+        }
+
+        void updateGaitParameter(Vec2<int> dsp_durations, Vec2<int> ssp_durations){
+            biped.updateGaitParameter(dsp_durations, ssp_durations);
         }
 
         // Set target roll_pitch, 2D twist (vx, vy, wz), and height

@@ -93,9 +93,9 @@ int main()
     int mpc_decimation = 5;
     Vec2<int> dsp_durations = {0, 0};
     Vec2<int> ssp_durations = {int(0.3/dt), int(0.3/dt)};
+    biped.updateGaitParameter(dsp_durations, ssp_durations);
     std::string fsm_name = "passive";
-    FSM* _FSMController = new FSM(_controlData, dt, iterations_between_mpc, horizon_length, mpc_decimation, dsp_durations, ssp_durations, fsm_name);
-    // FSM* _FSMController = new FSM(_controlData);
+    FSM* _FSMController = new FSM(_controlData, dt, iterations_between_mpc, horizon_length, mpc_decimation, fsm_name);
     ioInter->_data = _controlData;
 
 

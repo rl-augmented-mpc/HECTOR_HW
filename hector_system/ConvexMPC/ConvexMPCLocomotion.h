@@ -28,9 +28,7 @@ public:
       double _dt, 
       int _iterations_between_mpc, 
       int _horizon_length, 
-      int _mpc_decimation,
-      Vec2<int> dsp_durations, 
-      Vec2<int> ssp_durations);
+      int _mpc_decimation);
   void reset(){
     firstRun = true;
     iterationCounter = 0;
@@ -60,6 +58,7 @@ public:
 private:
   void updateMPC(int* mpcTable, ControlFSMData& data, bool omniMode);
   void updateReferenceTrajectory(StateEstimate &seResult, DesiredStateCommand &stateCommand);
+  void updateGait(Vec2<int> dsp_durations, Vec2<int> ssp_durations);
   swingLegController swing;
   int iterationsBetweenMPC;
   int horizonLength;

@@ -13,9 +13,7 @@ class FSMState_Walking: public FSMState
             double _dt, 
             int _iterations_between_mpc, 
             int _horizon_length, 
-            int _mpc_decimation, 
-            Vec2<int> dsp_durations, 
-            Vec2<int> ssp_durations);
+            int _mpc_decimation);
         ~FSMState_Walking(){}
         void enter();
         void run();

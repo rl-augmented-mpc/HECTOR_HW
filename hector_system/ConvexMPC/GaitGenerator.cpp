@@ -36,8 +36,26 @@ Gait::Gait(int mpc_horizon, Vec2<int> dsp_durations, Vec2<int> ssp_durations)
 
 Gait::~Gait() = default;
 
-void Gait::reset(){
-    _gait_phase = 0;
+
+void Gait::update_parameter(Vec2<int> dsp_durations, Vec2<int> ssp_durations)
+{
+    _dsp_durations = dsp_durations.array();
+    _ssp_durations = ssp_durations.array();
+    _gait_cycle_length = _dsp_durations.sum() + _ssp_durations.sum();
+
+    _stance_durations << ssp_durations[0]+dsp_durations.sum(), ssp_durations[1]+dsp_durations.sum(); // left foot, right foot
+    _stance_durations_phase = _stance_durations.cast<double>() / (double)_gait_cycle_length; 
+
+    _swing_durations << ssp_durations[1], ssp_durations[0]; // left foot, right foot
+    _swing_durations_phase = _swing_durations.cast<double>() / (double)_gait_cycle_length;
+
+    _ssp_durations_phase = _ssp_durations.cast<double>() / (double)_gait_cycle_length;
+    _dsp_durations_phase = _dsp_durations.cast<double>() / (double)_gait_cycle_length;
+
+    _swing = _swing_durations;
+    _stance = _stance_durations;
+
+    reset();
 }
 
 void Gait::updatePhase(float stepping_frequency)

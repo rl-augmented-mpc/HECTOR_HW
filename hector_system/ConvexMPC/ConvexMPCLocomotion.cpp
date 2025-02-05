@@ -27,20 +27,24 @@ ConvexMPCLocomotion::ConvexMPCLocomotion(
   double _dt, 
   int _iterations_between_mpc, 
   int _horizon_length, 
-  int _mpc_decimation, 
-  Vec2<int> dsp_durations, 
-  Vec2<int> ssp_durations) : 
+  int _mpc_decimation) : 
  iterationsBetweenMPC(_iterations_between_mpc),
  horizonLength(_horizon_length),
  dt(_dt),
  mpc_decimation(_mpc_decimation),
  standing(horizonLength, Vec2<int>(int(0.2/_dt), int(0.2/_dt)), Vec2<int>(0, 0)), // set random dsp duration b/c stance gait is non-periodic, infinite
- walking(horizonLength, dsp_durations, ssp_durations)
+ walking(horizonLength, Vec2<int>(int(0.0/_dt), int(0.0/_dt)), Vec2<int>(int(0.2/dt), int(0.2/dt))) // set nominal value at the beginning. You can change parameter through updateGait
 {
   dtMPC = dt * iterationsBetweenMPC;
   rpy_int[2] = 0;
   for (int i = 0; i < 2; i++)
     firstSwing[i] = true;
+}
+
+void ConvexMPCLocomotion::updateGait(Vec2<int> dsp_durations, Vec2<int> ssp_durations)
+{
+  standing.update_parameter(Vec2<int>(int(0.2/dt), int(0.2/dt)), Vec2<int>(0, 0));
+  walking.update_parameter(dsp_durations, ssp_durations);
 }
 
 void ConvexMPCLocomotion::run(ControlFSMData &data)
@@ -50,6 +54,11 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
   auto &stateCommand = data._desiredStateCommand;
 
   // pick gait
+  if (data._biped->reset_gait)
+  {
+    updateGait(data._biped->dsp_durations, data._biped->ssp_durations);
+    data._biped->reset_gait = false;
+  }
   Gait *gait = &standing;
   if (gaitNumber == 2)
     gait = &walking;

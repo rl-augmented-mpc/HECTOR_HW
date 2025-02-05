@@ -65,6 +65,12 @@ class Biped{
         mu = _mu;
     }
 
+    void updateGaitParameter(Vec2<int> _dsp_durations, Vec2<int> _ssp_durations){
+        dsp_durations = _dsp_durations;
+        ssp_durations = _ssp_durations;
+        reset_gait = true;
+    }
+
     // RL
     RL rl_params; // RL parameters
 
@@ -92,9 +98,13 @@ class Biped{
     double foot_height=0.12; // swing foot height
     float gait_stepping_frequency = 1.0; // gait stepping frequency
 
-    // miscallenous
     int robot_index; // 1 for Aliengo, 2 for A1
     int _real_flag = 1;
+
+    // gait parameters
+    bool reset_gait = false;
+    Vec2<int> dsp_durations = {0, 0}; 
+    Vec2<int> ssp_durations = {int(0.2/0.001), int(0.2/0.001)};
 
 
     double* offset;

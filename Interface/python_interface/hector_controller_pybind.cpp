@@ -7,11 +7,12 @@ namespace py = pybind11;
 
 PYBIND11_MODULE(hector_control, m) {
   py::class_<HectorController>(m, "HectorController")
-      .def(py::init<double, int, int, int, Vec2<int>, Vec2<int>>())
+      .def(py::init<double, int, int, int>())
 
       // initial setups
       .def("reset", &HectorController::reset)
       .def("setGaitNum", &HectorController::setGaitNum)
+      .def("updateGaitParameter", &HectorController::updateGaitParameter)
       .def("setFrictionCoefficient", &HectorController::setFrictionCoefficient)
       .def("setTargetCommand", &HectorController::setTargetCommand, py::arg("roll_pitch"), py::arg("twist"), py::arg("ref_height"))
 

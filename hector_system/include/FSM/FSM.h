@@ -25,7 +25,7 @@ class FSM{
     public:
         // FSM(ControlFSMData *data);
         FSM(ControlFSMData *data, double _dt, int _iterations_between_mpc, 
-            int _horizon_length, int _mpc_decimation, Vec2<int> dsp_durations, Vec2<int> ssp_durations, std::string fsm_name);
+            int _horizon_length, int _mpc_decimation, std::string fsm_name);
         ~FSM();
         // void initialize();
         void initialize(std::string _fsm_name);

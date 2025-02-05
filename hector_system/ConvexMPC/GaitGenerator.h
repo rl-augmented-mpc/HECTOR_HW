@@ -29,16 +29,16 @@ class Gait
 public:
   Gait(int mpc_horizon, Vec2<int> dsp_durations, Vec2<int> ssp_durations);
   ~Gait();
+  void update_parameter(Vec2<int> dsp_durations, Vec2<int> ssp_durations);
   Vec2<double> getContactSubPhase();
   Vec2<double> getSwingSubPhase();
   int* mpc_gait(int iterations_between_mpc, float stepping_frequency);
   void resetGait()
   {
-    _gait_time_step = 0;
     _gait_phase = 0;
   }
   void updatePhase(float stepping_frequency);
-  void reset();
+  void reset(){_gait_phase = 0;};
   Vec2<int> _stance; 
   Vec2<int> _swing;
 

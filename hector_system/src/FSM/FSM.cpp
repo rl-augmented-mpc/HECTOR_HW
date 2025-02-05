@@ -16,13 +16,12 @@
 
 FSM::FSM(
     ControlFSMData *data, double _dt, int _iterations_between_mpc, 
-    int _horizon_length, int _mpc_decimation, 
-    Vec2<int> dsp_durations, Vec2<int> ssp_durations, std::string fsm_name)
+    int _horizon_length, int _mpc_decimation, std::string fsm_name)
     :_data(data)
 {
     _stateList.invalid = nullptr;
     _stateList.passive = new FSMState_Passive(_data); // Passive
-    _stateList.walking = new FSMState_Walking(_data, _dt, _iterations_between_mpc, _horizon_length, _mpc_decimation, dsp_durations, ssp_durations); // Walking
+    _stateList.walking = new FSMState_Walking(_data, _dt, _iterations_between_mpc, _horizon_length, _mpc_decimation); // Walking
     _stateList.pdStand = new FSMState_PDStand(_data); //PDStanding
     // add other FSM states later
     initialize(fsm_name);

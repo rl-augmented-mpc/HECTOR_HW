@@ -12,9 +12,9 @@ T1 invNormalize(const T0 value, const T1 min, const T2 max, const double minLim 
 //                  Cmpc(0.001, 50){}
 
 FSMState_Walking::FSMState_Walking(
-  ControlFSMData *data, double _dt, int _iterations_between_mpc, int _horizon_length, int _mpc_decimation, Vec2<int> dsp_durations, Vec2<int> ssp_durations)
+  ControlFSMData *data, double _dt, int _iterations_between_mpc, int _horizon_length, int _mpc_decimation)
                  :FSMState(data, FSMStateName::WALKING, "walking"),
-                  Cmpc(_dt, _iterations_between_mpc, _horizon_length, _mpc_decimation, dsp_durations, ssp_durations){}
+                  Cmpc(_dt, _iterations_between_mpc, _horizon_length, _mpc_decimation){}
 
 void FSMState_Walking::enter()
 {   
