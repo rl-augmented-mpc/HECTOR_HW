@@ -93,6 +93,14 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
     turn_rate_des = 0;
   }
 
+  // update knot point of reference trajectory
+  // mpc 200Hz -> update every 0.25s
+  if (iterationCounter % (50*mpc_decimation) == 0){
+    // world_position_desired[0] = seResult.position[0];
+    // world_position_desired[1] = seResult.position[1];
+    yaw_desired = seResult.rpy[2];
+  }
+
   // foot placement planner
   swing.setGait(gait);
   swing.setFootHeight(data._biped->foot_height);
@@ -277,8 +285,8 @@ void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, Des
   if(seResult.rpy[2] - yawStart > max_yaw_error) yawStart = seResult.rpy[2] - max_yaw_error;
   double trajInitial[12] = {stateCommand.data.stateDes[3],  // roll
                             stateCommand.data.stateDes[4],   // pitch
-                            seResult.rpy[2], // yaw
-                            // yawStart, // yaw
+                            // seResult.rpy[2], // knot point around current state
+                            yawStart, // knot point around initial state
                             xStart, // x
                             yStart, // y
                             world_position_desired[2], // z
@@ -313,7 +321,10 @@ void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, Des
     trajAll[12*i + 2] = trajInitial[2];
       }
     else{
-    trajAll[12*i + 2] = seResult.rpy[2] + i * dtMPC * turn_rate_des;
+    // type1: form your knot point around current state
+    // trajAll[12*i + 2] = seResult.rpy[2] + i * dtMPC * turn_rate_des;
+    // type2: form your knot point around initial state (periodically updated)
+    trajAll[12*i + 2] = trajInitial[2] + i * dtMPC * turn_rate_des;
     }
   }
 }
