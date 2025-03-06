@@ -32,6 +32,7 @@ public:
   void reset(){
     firstRun = true;
     iterationCounter = 0;
+    swing.reset();
   };
 
   void run(ControlFSMData& data);

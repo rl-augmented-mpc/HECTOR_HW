@@ -30,6 +30,10 @@ class swingLegController {
         */
         void initSwingLegController(ControlFSMData *_data, Gait *_gait, double dtSwing);
         void setGait(Gait *_gait);
+        void reset(){
+            firstSwing[0] = true;
+            firstSwing[1] = true;
+        }
         
         /**
          * @brief Update the swing leg controller

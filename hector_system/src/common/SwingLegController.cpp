@@ -78,6 +78,7 @@ void swingLegController::computeFootPlacement(){
     Vec3<double> v_des_robot(stateCommand->data.stateDes[6], stateCommand->data.stateDes[7],0);
     Vec3<double> v_des_world;
     v_des_world = seResult.rBody.transpose() * v_des_robot;
+    Vec3<double> omega_des_world{0, 0, stateCommand->data.stateDes[11]};
 
     // 3D LIP Model
     // for(int foot = 0; foot < nLegs; foot++){
@@ -126,6 +127,7 @@ void swingLegController::computeFootPlacement(){
         double k_x = 0.1; 
         double k_y = 0.1; // IMOPRTANT parameter for stable lateral motion
         
+        Vec3<double> cross_term = 0.5 * std::sqrt(0.55/9.81) * seResult.vWorld.cross(omega_des_world);
         double pfx_rel   =  seResult.vWorld[0] * 0.5 * gait->_swing(foot) * _dtSwing + k_x  * (seResult.vWorld[0] - v_des_world[0]);
         double pfy_rel   =  seResult.vWorld[1] * 0.5 * gait->_swing(foot) * _dtSwing + k_y  * (seResult.vWorld[1] - v_des_world[1]);
         pfx_rel = fminf(fmaxf(pfx_rel, -p_rel_max_x), p_rel_max_x);
@@ -149,7 +151,7 @@ void swingLegController::computeFootPlacement(){
 
 void swingLegController::computeFootDesiredPosition(){
     for(int foot = 0; foot < nLegs; foot++){
-        if(swingStates[foot] > 0){
+        if(swingStates[foot] >= 0){
             if (firstSwing[foot]){
               firstSwing[foot] = false;
               footSwingTrajectory[foot].setInitialPosition(pFoot_w[foot]);
@@ -174,7 +176,7 @@ void swingLegController::computeFootDesiredPosition(){
 
 void swingLegController::setDesiredJointState(){
     for(int leg = 0; leg < nLegs; leg++){
-        if(swingStates[leg] > 0){
+        if(swingStates[leg] >= 0){
             data->_legController->commands[leg].feedforwardForce << 0, 0, 0 , 0 , 0 , 0;
             data->_legController->commands[leg].tau << 0, 0, 0, 0, 0; 
             data->_legController->commands[leg].pDes = pFoot_b[leg];

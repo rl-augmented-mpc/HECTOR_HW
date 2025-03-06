@@ -83,7 +83,7 @@ Vec2<double> Gait::getContactSubPhase()
   }
   else if (_gait_phase < _ssp_durations_phase[0] + _dsp_durations_phase[0] + _ssp_durations_phase[1])
   {
-    contact_sub_phase[0] = 0; // swing
+    contact_sub_phase[0] = -1; // swing
   }
   else
   {
@@ -93,7 +93,7 @@ Vec2<double> Gait::getContactSubPhase()
   //For Right Foot: assumes that stance of the right foot starts from (SSP,L) timestep in the gait cycle
   if (_gait_phase < _ssp_durations_phase[0])
   {
-    contact_sub_phase[1] = 0; //swing
+    contact_sub_phase[1] = -1; //swing
   }
   else
   {
@@ -115,7 +115,7 @@ Vec2<double> Gait::getSwingSubPhase(){
   }
   else
   {
-    swing_sub_phase[0] = 0; // stance
+    swing_sub_phase[0] = -1; // stance
   }
 
 
@@ -126,7 +126,7 @@ Vec2<double> Gait::getSwingSubPhase(){
   }
   else
   {
-    swing_sub_phase[1] = 0; // stance
+    swing_sub_phase[1] = -1; // stance
   }
   
   return swing_sub_phase.matrix();

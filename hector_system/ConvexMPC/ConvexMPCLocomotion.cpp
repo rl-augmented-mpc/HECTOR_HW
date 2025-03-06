@@ -95,11 +95,11 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
 
   // update knot point of reference trajectory
   // mpc 200Hz -> update every 0.25s
-  if (iterationCounter % (50*mpc_decimation) == 0){
-    // world_position_desired[0] = seResult.position[0];
-    // world_position_desired[1] = seResult.position[1];
-    yaw_desired = seResult.rpy[2];
-  }
+  // if (iterationCounter % (200*mpc_decimation) == 0){
+  //   // world_position_desired[0] = seResult.position[0];
+  //   // world_position_desired[1] = seResult.position[1];
+  //   yaw_desired = seResult.rpy[2];
+  // }
 
   // foot placement planner
   swing.setGait(gait);
@@ -145,12 +145,12 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
   for (int foot = 0; foot < 2; foot++)
   {
 
-    if (swingStates(foot) > 0) // foot is in swing
+    if (swingStates(foot) >= 0) // foot is in swing
     {
       se_contactState[foot] = contactStates[foot];
     }
 
-    else if (contactStates(foot) > 0) // foot is in stance
+    else if (contactStates(foot) >= 0) // foot is in stance
     { 
       Vec3<double> pDesLeg = {0, 0, 0};
       Vec3<double> vDesLeg = {0, 0, 0};
@@ -180,13 +180,13 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
     data._legController->commands[foot].contact_phase = contactState;
     data._legController->commands[foot].swing_phase = swingState;
 
-    if (contactState > 0){
+    if (contactState >= 0){
       data._legController->commands[foot].contact_state = 1;
     }
     else{
       data._legController->commands[foot].contact_state = 0;
     }
-    if (swingState > 0){
+    if (swingState >= 0){
       data._legController->commands[foot].swing_state = 1;
     }
     else{
@@ -216,7 +216,7 @@ void ConvexMPCLocomotion::updateMPC(int *mpcTable, ControlFSMData &data, bool om
   // roll pitch yaw x y z droll dpitch dyaw dx dy dz
   // double Q[12] = {300, 300, 150,   300, 300, 100,   1, 1, 1,   5, 3, 3}; // original hardware
   // double Q[12] = {100, 200, 300,  300, 300, 300,  1, 1, 3.0,  2.0, 2.0, 1};
-  double Q[12] = {100, 200, 500,  500, 500, 500,  1, 1, 5,  8, 8, 1};
+  double Q[12] = {100, 200, 800,  500, 500, 500,  1, 1, 5,  8, 8, 1};
 
   // double Alpha[12] = {1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,   2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2}; // original hardware
   double Alpha[12] = {1e-4, 1e-4, 5e-4, 1e-4, 1e-4, 5e-4,   1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 1e-2};
@@ -262,10 +262,17 @@ void ConvexMPCLocomotion::updateMPC(int *mpcTable, ControlFSMData &data, bool om
 
 void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, DesiredStateCommand &stateCommand){
   // planar condition
-  world_position_desired[0] += dt * v_des_world[0];
-  world_position_desired[1] += dt * v_des_world[1];
+
+  // reset yaw knot point (to deal with euler angle singularity)
+  double angle_eps = M_PI/36;
+  if (yaw_desired > M_PI-angle_eps || yaw_desired < -M_PI+angle_eps){
+    yaw_desired = seResult.rpy[2];
+  }
+
+  world_position_desired[0] += mpc_decimation*dt * v_des_world[0];
+  world_position_desired[1] += mpc_decimation*dt * v_des_world[1];
   world_position_desired[2] = stateCommand.data.stateDes[2];
-  yaw_desired += dt * turn_rate_des;
+  yaw_desired += mpc_decimation*dt * turn_rate_des;
 
   stateCommand.data.stateDes[0] = world_position_desired[0];
   stateCommand.data.stateDes[1] = world_position_desired[1];
