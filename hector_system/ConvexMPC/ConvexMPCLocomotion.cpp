@@ -192,6 +192,7 @@ void ConvexMPCLocomotion::updateMPC(int *mpcTable, ControlFSMData &data, bool om
   // double Q[12] = {300, 300, 150,   300, 300, 100,   1, 1, 1,   5, 3, 3}; // original hardware
   // double Q[12] = {100, 200, 300,  300, 300, 300,  1, 1, 3.0,  2.0, 2.0, 1};
   double Q[12] = {100, 200, 500,  500, 500, 500,  1, 1, 5,  8, 8, 1};
+  // double Q[12] = {100, 200, 500,  800, 800, 500,  1, 1, 5,  8, 8, 1};
 
   // double Alpha[12] = {1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,   2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2}; // original hardware
   double Alpha[12] = {1e-4, 1e-4, 5e-4, 1e-4, 1e-4, 5e-4,   1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 1e-2};
@@ -279,8 +280,8 @@ void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, Des
   }
   double trajInitial[12] = {stateCommand.data.stateDes[3],  // roll
                             stateCommand.data.stateDes[4],   // pitch
-                            // yawStart, // yaw
-                            seResult.rpy[2], // yaw
+                            yawStart, // yaw
+                            // seResult.rpy[2], // yaw
                             xStart, // x
                             yStart, // y
                             world_position_desired[2], // z
@@ -315,10 +316,8 @@ void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, Des
     // trajAll[12*i + 2] = trajInitial[2];
     //   }
     // else{
-    // trajAll[12*i + 2] = trajInitial[2] + i * dtMPC * turn_rate_des;
+    // trajAll[12*i + 2] = seResult.rpy[2] + i * dtMPC * turn_rate_des;
     // }
-
-    // trajAll[12*i + 2] = trajInitial[2] + i * dtMPC * turn_rate_des;
 
     // trajectory blending
     double alpha = 0.75; // tune between 1 (conservative) and 0 (aggressive)
@@ -331,8 +330,9 @@ void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, Des
                         + (1 - alpha) * (trajInitial[4] + i * dtMPC * v_des_world[1]);
     
     // alpha = 0.9;
-    // trajAll[12*i + 2] = alpha * (seResult.rpy[2] + i * dtMPC * turn_rate_des)
-    //                     + (1 - alpha) * (trajInitial[2] + i * dtMPC * turn_rate_des);
-    trajAll[12*i + 2] = seResult.rpy[2] + i * dtMPC * turn_rate_des;
+    trajAll[12*i + 2] = alpha * (seResult.rpy[2] + i * dtMPC * turn_rate_des)
+                        + (1 - alpha) * (trajInitial[2] + i * dtMPC * turn_rate_des);
+    // trajAll[12*i + 2] = seResult.rpy[2] + i * dtMPC * turn_rate_des;
+    // trajAll[12*i + 2] = trajInitial[2] + i * dtMPC * turn_rate_des;
   }
 }
