@@ -279,7 +279,8 @@ void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, Des
   }
   double trajInitial[12] = {stateCommand.data.stateDes[3],  // roll
                             stateCommand.data.stateDes[4],   // pitch
-                            yawStart, // yaw
+                            // yawStart, // yaw
+                            seResult.rpy[2], // yaw
                             xStart, // x
                             yStart, // y
                             world_position_desired[2], // z
@@ -317,8 +318,10 @@ void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, Des
     // trajAll[12*i + 2] = trajInitial[2] + i * dtMPC * turn_rate_des;
     // }
 
+    // trajAll[12*i + 2] = trajInitial[2] + i * dtMPC * turn_rate_des;
+
     // trajectory blending
-    double alpha = 0.75; // blending factor, tune between 1 (conservative) and 0 (aggressive)
+    double alpha = 0.75; // tune between 1 (conservative) and 0 (aggressive)
     // make alpha time varying, decrease alpha gradually through the horizon
     // double alpha = (double)(horizonLength-i)/horizonLength;
     trajAll[12*i + 3] = alpha * (seResult.position[0] + i * dtMPC * v_des_world[0])
@@ -327,6 +330,9 @@ void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, Des
     trajAll[12*i + 4] = alpha * (seResult.position[1] + i * dtMPC * v_des_world[1])
                         + (1 - alpha) * (trajInitial[4] + i * dtMPC * v_des_world[1]);
     
-    trajAll[12*i + 2] = trajInitial[2] + i * dtMPC * turn_rate_des;
+    // alpha = 0.9;
+    // trajAll[12*i + 2] = alpha * (seResult.rpy[2] + i * dtMPC * turn_rate_des)
+    //                     + (1 - alpha) * (trajInitial[2] + i * dtMPC * turn_rate_des);
+    trajAll[12*i + 2] = seResult.rpy[2] + i * dtMPC * turn_rate_des;
   }
 }
