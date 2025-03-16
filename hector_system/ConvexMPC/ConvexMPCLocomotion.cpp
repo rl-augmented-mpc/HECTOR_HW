@@ -247,8 +247,8 @@ void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, Des
 
   world_position_desired[0] += mpc_decimation*dt * v_des_world[0];
   world_position_desired[1] += mpc_decimation*dt * v_des_world[1];
-  yaw_desired += mpc_decimation*dt * turn_rate_des;
   world_position_desired[2] = stateCommand.data.stateDes[2];
+  yaw_desired += mpc_decimation*dt * turn_rate_des;
 
   stateCommand.data.stateDes[0] = world_position_desired[0];
   stateCommand.data.stateDes[1] = world_position_desired[1];
@@ -281,9 +281,11 @@ void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, Des
   double trajInitial[12] = {stateCommand.data.stateDes[3],  // roll
                             stateCommand.data.stateDes[4],   // pitch
                             yawStart, // yaw
-                            // seResult.rpy[2], // yaw
                             xStart, // x
                             yStart, // y
+                            // seResult.rpy[2], // yaw
+                            // seResult.position[0], // x
+                            // seResult.position[1], // y
                             world_position_desired[2], // z
                             0, // wx
                             0, // wy
@@ -298,41 +300,18 @@ void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, Des
     for (int j = 0; j < 12; j++)
       trajAll[12 * i + j] = trajInitial[j];
 
-    // if (v_des_world[0] < 0.01 && v_des_world[0] > -0.01) {
-    //   trajAll[12*i + 3] = trajInitial[3] + i * dtMPC * v_des_world[0];
-    //   }
-    // else{
-    //   trajAll[12*i + 3] = seResult.position[0] + i * dtMPC * v_des_world[0];
-    // }
 
-    // if (v_des_world[1] < 0.01 && v_des_world[1] > -0.01) {
-    // trajAll[12*i + 4] = trajInitial[4] + i * dtMPC * v_des_world[1];
-    // }
-    // else{
-    //   trajAll[12*i + 4] = seResult.position[1] + i * dtMPC * v_des_world[1]; 
-    // }
-
-    // if (turn_rate_des == 0){
-    // trajAll[12*i + 2] = trajInitial[2];
-    //   }
-    // else{
-    // trajAll[12*i + 2] = seResult.rpy[2] + i * dtMPC * turn_rate_des;
-    // }
-
-    // trajectory blending
-    double alpha = 0.75; // tune between 1 (conservative) and 0 (aggressive)
-    // make alpha time varying, decrease alpha gradually through the horizon
-    // double alpha = (double)(horizonLength-i)/horizonLength;
+    // blend closed-loop and open-loop trajectory
+    // decrease alpha gradually through the horizon
+    // alpha=1: knot point is current state, alpha=0: knot point is open-loop trajectory
+    double alpha = 1.0 - 0.2 * (double)i/(horizonLength-1);
     trajAll[12*i + 3] = alpha * (seResult.position[0] + i * dtMPC * v_des_world[0])
                         + (1 - alpha) * (trajInitial[3] + i * dtMPC * v_des_world[0]);
 
     trajAll[12*i + 4] = alpha * (seResult.position[1] + i * dtMPC * v_des_world[1])
                         + (1 - alpha) * (trajInitial[4] + i * dtMPC * v_des_world[1]);
     
-    // alpha = 0.9;
     trajAll[12*i + 2] = alpha * (seResult.rpy[2] + i * dtMPC * turn_rate_des)
                         + (1 - alpha) * (trajInitial[2] + i * dtMPC * turn_rate_des);
-    // trajAll[12*i + 2] = seResult.rpy[2] + i * dtMPC * turn_rate_des;
-    // trajAll[12*i + 2] = trajInitial[2] + i * dtMPC * turn_rate_des;
   }
 }
