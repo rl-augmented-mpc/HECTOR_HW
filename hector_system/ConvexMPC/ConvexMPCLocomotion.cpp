@@ -283,9 +283,6 @@ void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, Des
                             yawStart, // yaw
                             xStart, // x
                             yStart, // y
-                            // seResult.rpy[2], // yaw
-                            // seResult.position[0], // x
-                            // seResult.position[1], // y
                             world_position_desired[2], // z
                             0, // wx
                             0, // wy
@@ -304,7 +301,8 @@ void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, Des
     // blend closed-loop and open-loop trajectory
     // decrease alpha gradually through the horizon
     // alpha=1: knot point is current state, alpha=0: knot point is open-loop trajectory
-    double alpha = 1.0 - 0.2 * (double)i/(horizonLength-1);
+    // double alpha = 1.0 - 0.2 * (double)i/(horizonLength-1);
+    double alpha = 1.0;
     trajAll[12*i + 3] = alpha * (seResult.position[0] + i * dtMPC * v_des_world[0])
                         + (1 - alpha) * (trajInitial[3] + i * dtMPC * v_des_world[0]);
 
