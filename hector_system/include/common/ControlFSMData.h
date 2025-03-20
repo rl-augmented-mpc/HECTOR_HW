@@ -6,7 +6,6 @@
 #include "Biped.h"
 #include "../messages/LowLevelCmd.h"
 #include "../messages/LowlevelState.h"
-// #include "../interface/IOInterface.h"
 #include "StateEstimatorContainer.h"
 
 struct ControlFSMData {

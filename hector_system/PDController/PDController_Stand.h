@@ -1,7 +1,7 @@
 #ifndef PDCONTROLLER_STAND_H
 #define PDCONTROLLER_STAND_H
 
-#include <eigen3/Eigen/Dense>
+#include <Eigen/Dense>
 #include "../include/common/ControlFSMData.h"
 #include "../include/common/cppTypes.h"
 #include <fstream>
