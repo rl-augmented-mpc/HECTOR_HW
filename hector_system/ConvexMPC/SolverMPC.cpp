@@ -549,7 +549,7 @@ void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data
   {
     Alpha_rep.block(i * 12, i * 12, 12, 12) << Alpha_diag;
   }
-  // Equivalent to Matlab Formulaion
+  // Condensed QP form
   // Timer timer;
   // timer.start();
   qH = 2 * (B_qp.transpose() * S * B_qp + Alpha_rep);
