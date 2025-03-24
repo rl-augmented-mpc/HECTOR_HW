@@ -311,5 +311,18 @@ void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, Des
     
     trajAll[12*i + 2] = alpha * (seResult.rpy[2] + i * dtMPC * turn_rate_des)
                         + (1 - alpha) * (trajInitial[2] + i * dtMPC * turn_rate_des);
+
+    // if velocity is too small, use open-loop trajectory
+    if (std::abs(v_des_world[0]) < 0.01){
+      trajAll[12*i + 3] = trajInitial[3] + i * dtMPC * v_des_world[0];
+    }
+
+    if (std::abs(v_des_world[1]) < 0.01){
+      trajAll[12*i + 4] = trajInitial[4] + i * dtMPC * v_des_world[1];
+    }
+
+    if (std::abs(turn_rate_des) < 0.01){
+      trajAll[12*i + 2] = trajInitial[2] + i * dtMPC * turn_rate_des;
+    }
   }
 }
