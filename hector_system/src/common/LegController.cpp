@@ -326,7 +326,7 @@ Vec4<double> LegController::get_foot_placement(){
 }
 
 Vec6<double> LegController::get_ref_swing_position(){
-    // return reference foot position in hip frame
+    // return reference foot position in body frame
     Vec6<double> foot_ref_pos;
     foot_ref_pos.block<3,1>(0,0) = commands[0].pDes; 
     foot_ref_pos.block<3,1>(3,0) = commands[1].pDes; 
@@ -334,10 +334,10 @@ Vec6<double> LegController::get_ref_swing_position(){
 }
 
 Vec6<double> LegController::get_swing_position(){
-    // return foot position in hip frame
+    // return foot position in body frame
     Vec6<double> foot_pos; 
-    foot_pos.block<3,1>(0,0) = data[0].p;
-    foot_pos.block<3,1>(3,0) = data[1].p;
+    foot_pos.block<3,1>(0,0) = data[0].p + _biped.getHip2Location(0);
+    foot_pos.block<3,1>(3,0) = data[1].p + _biped.getHip2Location(1);
     return foot_pos;
 }
 
