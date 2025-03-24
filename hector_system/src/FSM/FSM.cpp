@@ -113,9 +113,9 @@ FSMState* FSM::getNextState(FSMStateName stateName)
 void FSM::setStateCommands(Vec2<double> roll_pitch, Vec3<double> twist, double ref_height){
     _currentState->roll = roll_pitch[0];
     _currentState->pitch = roll_pitch[1];
-    _currentState->v_des_body[0] = twist[0];
+    _currentState->v_des_body[0] = twist[0]*std::cos(_data->_biped->slope_pitch);
     _currentState->v_des_body[1] = twist[1];
-    _currentState->v_des_body[2] = 0; 
+    _currentState->v_des_body[2] = twist[0]*std::sin(_data->_biped->slope_pitch); 
     _currentState->turn_rate = twist[2];
     _currentState->reference_height = ref_height;
 }

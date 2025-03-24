@@ -71,6 +71,10 @@ class Biped{
         reset_gait = true;
     }
 
+    void updateSlope(double _slope_pitch){
+        slope_pitch = _slope_pitch;
+    }
+
     // RL
     RL rl_params; // RL parameters
 
@@ -97,6 +101,9 @@ class Biped{
     // parameters for reference and swing leg controller
     double foot_height=0.12; // swing foot height
     float gait_stepping_frequency = 1.0; // gait stepping frequency
+
+    // Parameters for slope terrain 
+    double slope_pitch; // slope pitch in radian
 
     int robot_index; // 1 for Aliengo, 2 for A1
     int _real_flag = 1;

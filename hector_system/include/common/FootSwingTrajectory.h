@@ -53,6 +53,14 @@ public:
     _height = h;
   }
 
+  /*!
+   * Set the pitch of the foot
+   * @param pitch : the pitch of the foot
+   */
+  void setPitch(T pitch){
+    _pitch = pitch;
+  }
+
   void computeSwingTrajectoryBezier(T phase, T swingTime);
 
   /*!
@@ -77,6 +85,7 @@ public:
 private:
   Vec3<T> _p0, _pf, _p, _v;
   T _height;
+  T _pitch; 
 };
 
 

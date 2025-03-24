@@ -118,6 +118,7 @@ void swingLegController::computeFootPlacement(){
     // Reibert heuristic
     for(int foot = 0; foot < nLegs; foot++){
         footSwingTrajectory[foot].setHeight(data->_biped->foot_height);
+        footSwingTrajectory[foot].setPitch(data->_biped->slope_pitch); 
 
         // Reibert heuristic
         Pf[foot] = seResult.position + seResult.rBody.transpose() * (data->_biped->getHip2Location(foot)) + seResult.vWorld * swingTimes[foot];

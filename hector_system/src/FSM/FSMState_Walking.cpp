@@ -50,8 +50,9 @@ void FSMState_Walking::setCommand()
   // set desired velocity and gait number from interface for hardware
   if (_data->_biped->_real_flag == 1){
     UserValue _userValue = _data->_lowState->userValue;
-    v_des_body[0] = (double)_userValue.lx;
+    v_des_body[0] = (double)_userValue.lx * std::cos(_data->_biped->slope_pitch);
     v_des_body[1] = (double)_userValue.ly;
+    v_des_body[2] = (double)_userValue.lx * std::sin(_data->_biped->slope_pitch);
     turn_rate = (double)_userValue.rx;
     roll = 0;
     pitch = 0;

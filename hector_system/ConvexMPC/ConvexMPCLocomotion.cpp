@@ -66,7 +66,7 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
   }
 
   // set command velocity
-  v_des_robot << stateCommand->data.stateDes[6], stateCommand->data.stateDes[7], 0.0;
+  v_des_robot << stateCommand->data.stateDes[6], stateCommand->data.stateDes[7], stateCommand->data.stateDes[8];
   v_des_world = seResult.rBody.transpose() * v_des_robot;
   turn_rate_des = stateCommand->data.stateDes[11];
 
@@ -289,7 +289,7 @@ void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, Des
                             turn_rate_des,  // wz
                             v_des_world[0], // vx
                             v_des_world[1], // vy
-                            0};   // vz
+                            v_des_world[2]};   // vz
 
   // get trajectory though mpc horizon
   for (int i = 0; i < horizonLength; i++)
@@ -302,7 +302,7 @@ void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, Des
     // decrease alpha gradually through the horizon
     // alpha=1: knot point is current state, alpha=0: knot point is open-loop trajectory
     // double alpha = 1.0 - 0.2 * (double)i/(horizonLength-1);
-    double alpha = 1.0;
+    double alpha = 0.75;
     trajAll[12*i + 3] = alpha * (seResult.position[0] + i * dtMPC * v_des_world[0])
                         + (1 - alpha) * (trajInitial[3] + i * dtMPC * v_des_world[0]);
 

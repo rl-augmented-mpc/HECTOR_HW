@@ -15,7 +15,7 @@ void DesiredStateCommand::setStateCommands(double r, double p, Vec3<double> v_de
     // vx, vy, vz
     data.stateDes(6) = v_des[0];
     data.stateDes(7) = v_des[1];
-    data.stateDes(8) = 0;
+    data.stateDes(8) = v_des[2];
 
     // wx, wy, wz
     data.stateDes(9) = 0;
