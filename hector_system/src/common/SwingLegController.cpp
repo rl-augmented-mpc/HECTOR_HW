@@ -19,8 +19,8 @@ void swingLegController::setGait(Gait *_gait){
 
 void swingLegController::updateFootPlacementPlanner(){
     seResult = data->_stateEstimator->getResult();
-    updateFootPosition();
     updateSwingStates();
+    updateFootPosition();
     updateSwingTimes();
     computeFootPlacement();     
 }
@@ -38,10 +38,11 @@ void swingLegController::updateFootPosition(){
     for(int i = 0; i < nLegs; i++){
         pFoot_w[i] =  seResult.position + seResult.rBody.transpose() 
                     * ( data->_biped->getHip2Location(i) + data->_legController->data[i].p);
+        
+        if (contactStates[i]>=0){
+            pFoot_w[i][2] = 0;
+        }
     }
-
-    pFoot_w[0][2] = 0.0;
-    pFoot_w[1][2] = 0.0;
 }
 
 /******************************************************************************************************/

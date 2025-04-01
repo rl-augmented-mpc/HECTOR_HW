@@ -490,17 +490,26 @@ void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data
 
   F_control.setZero();
 
+  Matrix<fpt, 1, 3> mu_1; 
+  Matrix<fpt, 1, 3> mu_2;
+  Matrix<fpt, 1, 3> mu_3;
+  Matrix<fpt, 1, 3> mu_4;
+  mu_1 << -mu, 0, 1.f;
+  mu_2 << mu, 0, 1.f;
+  mu_3 << 0, -mu, 1.f;
+  mu_4 << 0, mu, 1.f;
+
   //leg 1
   F_control.block<1, 12>(0, 0) //Friction leg 1
-      << -mu, 0, 1.f,   0, 0, 0, 0, 0, 0, 0, 0, 0;
+      << mu_1*R_foot_L.transpose()* rs.R.transpose(),   0, 0, 0, 0, 0, 0, 0, 0, 0;
   F_control.block<1, 12>(1, 0)
-      <<  mu, 0, 1.f,   0, 0, 0, 0, 0, 0, 0, 0, 0;
+      <<  mu_2*R_foot_L.transpose()* rs.R.transpose(),   0, 0, 0, 0, 0, 0, 0, 0, 0;
   F_control.block<1, 12>(2, 0)
-      <<  0, -mu, 1.f,  0, 0, 0, 0, 0, 0, 0, 0, 0;
+      <<  mu_3*R_foot_L.transpose()* rs.R.transpose(),  0, 0, 0, 0, 0, 0, 0, 0, 0;
   F_control.block<1, 12>(3, 0)
-      <<  0,  mu, 1.f,  0, 0, 0, 0, 0, 0, 0, 0, 0;
+      <<  mu_4*R_foot_L.transpose()* rs.R.transpose(),  0, 0, 0, 0, 0, 0, 0, 0, 0;
 
-  F_control.block<1, 12>(4, 0) //Mx Leg 1
+  F_control.block<1, 12>(4, 0) //Mx=0 Leg 1
       << 0, 0, 0, 0, 0, 0, Moment_selection * R_foot_L.transpose()* rs.R.transpose(), 0, 0, 0;
 
   F_control.block<1, 12>(5, 0) //Line Leg 1
@@ -513,15 +522,15 @@ void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data
 
   //leg 2
   F_control.block<1, 12>(8, 0) //Friction leg 2
-      <<  0, 0, 0,   -mu, 0, 1.f,   0, 0, 0, 0, 0, 0;
+      <<  0, 0, 0,   mu_1*R_foot_R.transpose()* rs.R.transpose(),   0, 0, 0, 0, 0, 0;
   F_control.block<1, 12>(9, 0)
-      <<  0, 0, 0,    mu, 0, 1.f,   0, 0, 0, 0, 0, 0;
+      <<  0, 0, 0,    mu_2*R_foot_R.transpose()* rs.R.transpose(),   0, 0, 0, 0, 0, 0;
   F_control.block<1, 12>(10, 0)
-      <<   0, 0, 0,   0, -mu, 1.f,  0, 0, 0, 0, 0, 0;
+      <<   0, 0, 0,   mu_3*R_foot_R.transpose()* rs.R.transpose(),  0, 0, 0, 0, 0, 0;
   F_control.block<1, 12>(11, 0)
-      <<   0, 0, 0,   0, mu, 1.f,   0, 0, 0, 0, 0, 0;     
+      <<   0, 0, 0,   mu_4*R_foot_R.transpose()* rs.R.transpose(),   0, 0, 0, 0, 0, 0;     
 
-  F_control.block<1, 12>(12, 0) //Mx Leg 1
+  F_control.block<1, 12>(12, 0) //Mx=0 Leg 2
       << 0, 0, 0, 0, 0, 0, 0, 0, 0, Moment_selection * R_foot_R.transpose()* rs.R.transpose();
 
   F_control.block<1, 12>(13, 0) //Line Leg 2
@@ -531,6 +540,48 @@ void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data
   
   F_control.block<1, 12>(15, 0)  //Fz Leg 2
       << 0, 0, 0, 0, 0, 2.f, 0, 0, 0, 0, 0, 0;
+
+  // //leg 1
+  // F_control.block<1, 12>(0, 0) //Friction leg 1
+  //     << -mu, 0, 1.f,   0, 0, 0, 0, 0, 0, 0, 0, 0;
+  // F_control.block<1, 12>(1, 0)
+  //     <<  mu, 0, 1.f,   0, 0, 0, 0, 0, 0, 0, 0, 0;
+  // F_control.block<1, 12>(2, 0)
+  //     <<  0, -mu, 1.f,  0, 0, 0, 0, 0, 0, 0, 0, 0;
+  // F_control.block<1, 12>(3, 0)
+  //     <<  0,  mu, 1.f,  0, 0, 0, 0, 0, 0, 0, 0, 0;
+
+  // F_control.block<1, 12>(4, 0) //Mx Leg 1
+  //     << 0, 0, 0, 0, 0, 0, Moment_selection * R_foot_L.transpose()* rs.R.transpose(), 0, 0, 0;
+
+  // F_control.block<1, 12>(5, 0) //Line Leg 1
+  //     << lt_vec * R_foot_L.transpose()* rs.R.transpose(),   0, 0, 0,    M_vec * R_foot_L.transpose()* rs.R.transpose(),   0, 0, 0;
+  // F_control.block<1, 12>(6, 0)
+  //     << lh_vec * R_foot_L.transpose()* rs.R.transpose(),   0, 0, 0,   -M_vec * R_foot_L.transpose()* rs.R.transpose(),   0, 0, 0;
+      
+  // F_control.block<1, 12>(7, 0) //Fz Leg 1
+  //     << 0, 0, 2.f, 0, 0, 0, 0, 0, 0, 0, 0, 0;
+
+  // //leg 2
+  // F_control.block<1, 12>(8, 0) //Friction leg 2
+  //     <<  0, 0, 0,   -mu, 0, 1.f,   0, 0, 0, 0, 0, 0;
+  // F_control.block<1, 12>(9, 0)
+  //     <<  0, 0, 0,    mu, 0, 1.f,   0, 0, 0, 0, 0, 0;
+  // F_control.block<1, 12>(10, 0)
+  //     <<   0, 0, 0,   0, -mu, 1.f,  0, 0, 0, 0, 0, 0;
+  // F_control.block<1, 12>(11, 0)
+  //     <<   0, 0, 0,   0, mu, 1.f,   0, 0, 0, 0, 0, 0;     
+
+  // F_control.block<1, 12>(12, 0) //Mx Leg 1
+  //     << 0, 0, 0, 0, 0, 0, 0, 0, 0, Moment_selection * R_foot_R.transpose()* rs.R.transpose();
+
+  // F_control.block<1, 12>(13, 0) //Line Leg 2
+  //     << 0, 0, 0,   lt_vec * R_foot_R.transpose()* rs.R.transpose(),   0, 0, 0,    M_vec * R_foot_R.transpose()* rs.R.transpose();
+  // F_control.block<1, 12>(14, 0)
+  //     << 0, 0, 0,   lh_vec * R_foot_R.transpose()* rs.R.transpose(),   0, 0, 0,   -M_vec * R_foot_R.transpose()* rs.R.transpose();  
+  
+  // F_control.block<1, 12>(15, 0)  //Fz Leg 2
+  //     << 0, 0, 0, 0, 0, 2.f, 0, 0, 0, 0, 0, 0;
 
   // Set to fmat QP
   for(s16 i = 0; i < setup->horizon; i++)
