@@ -245,6 +245,21 @@ void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, Des
     yaw_desired = seResult.rpy[2];
   }
 
+  // Gait *gait = &standing;
+  // if (gaitNumber == 2)
+  //   gait = &walking;
+  // else if (gaitNumber == 1)
+  //   gait = &standing;
+  // Vec2<double> swingStates = gait->getSwingSubPhase();
+
+  // // SSP: do not move
+  // if (swingStates(0) >=0 | swingStates(1) >= 0){
+  //   v_des_world[0] = 0;
+  //   v_des_world[1] = 0;
+  //   v_des_world[2] = 0;
+  //   turn_rate_des = 0;
+  // }
+
   world_position_desired[0] += mpc_decimation*dt * v_des_world[0];
   world_position_desired[1] += mpc_decimation*dt * v_des_world[1];
   world_position_desired[2] = stateCommand.data.stateDes[2];

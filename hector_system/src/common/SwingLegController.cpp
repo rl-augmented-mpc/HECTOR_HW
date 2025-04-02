@@ -116,7 +116,32 @@ void swingLegController::computeFootPlacement(){
 
     // }
 
-    // Reibert heuristic
+    // Open loop gait + raibert for lateral direction 
+    // for(int foot = 0; foot < nLegs; foot++){
+    //     footSwingTrajectory[foot].setHeight(data->_biped->foot_height);
+    //     footSwingTrajectory[foot].setPitch(data->_biped->slope_pitch); 
+
+    //     // Reibert heuristic
+    //     Vec3<double> rbf = seResult.position + seResult.rBody.transpose() * (data->_biped->getHip2Location(foot)) + seResult.vWorld * swingTimes[foot];
+    //     Vec3<double> hip_pos = seResult.position + seResult.rBody.transpose() * (data->_biped->getHip2Location(foot));
+    //     if (firstSwing[foot]){
+    //         float px = v_des_robot[0]*swingTimes[foot];
+    //         Pf[foot][0] = hip_pos[0]+ px;
+    //         Pf[foot][1] = rbf[1];
+    //     }
+    //     else{
+    //         Pf[foot][1] = rbf[1];
+    //     }
+
+    //     Pf[foot][2] = 0.0;
+
+    //     // footplacement from reibert heuristic and residual learning
+    //     Pf_augmented[foot][0] = Pf[foot][0];
+    //     Pf_augmented[foot][1] = Pf[foot][1];
+    //     footSwingTrajectory[foot].setFinalPosition(Pf_augmented[foot]);   
+    // }
+
+    // // Raibert heuristic
     for(int foot = 0; foot < nLegs; foot++){
         footSwingTrajectory[foot].setHeight(data->_biped->foot_height);
         footSwingTrajectory[foot].setPitch(data->_biped->slope_pitch); 
