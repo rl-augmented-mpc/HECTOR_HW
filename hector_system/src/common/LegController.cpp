@@ -141,7 +141,7 @@ void LegController::updateCommand(LowlevelCmd* cmd){
         }
         else{
             commands[leg].kpJoint << 20.0, 20.0, 20.0, 20.0, 15.0;
-            commands[leg].kdJoint << 0.45, 0.45, 0.45, 0.45, 0.4;
+            commands[leg].kdJoint << 0.45, 0.45, 0.45, 0.45, 0.6;
         }
 
 
