@@ -50,6 +50,10 @@ class HectorController{
             biped.setFrictionCoefficient(mu);
         }
 
+        void setFootPlacementPlanner(std::string planner_name){
+            biped.setFootPlacementPlanner(planner_name);
+        }
+
         void setGaitNum(int gaitnum){
             // 1: standing
             // 2: walking
