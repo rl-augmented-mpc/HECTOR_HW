@@ -287,6 +287,7 @@ void LegController::updateCommand(LowlevelCmd* cmd){
     for (int i = 0; i< 2; i++){
         // commands[i].zero();
         commands[i].tau.setZero();
+        commands[i].feedforwardForce.setZero();
         commands[i].qDes.setZero();
         commands[i].qdDes.setZero();
         commands[i].kpJoint.setZero();

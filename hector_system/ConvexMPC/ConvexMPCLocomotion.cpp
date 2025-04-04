@@ -28,6 +28,8 @@ void ConvexMPCLocomotion::updateGait(Vec2<int> dsp_durations, Vec2<int> ssp_dura
 {
   standing.update_parameter(Vec2<int>(int(0.2/dt), int(0.2/dt)), Vec2<int>(0, 0));
   walking.update_parameter(dsp_durations, ssp_durations);
+  walking.reset();
+  standing.reset();
 }
 
 void ConvexMPCLocomotion::run(ControlFSMData &data)

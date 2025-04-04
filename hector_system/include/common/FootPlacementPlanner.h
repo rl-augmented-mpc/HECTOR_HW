@@ -19,68 +19,50 @@ class LIPController
     public:
         LIPController(float reference_height);
         ~LIPController() = default;
+        void update_stance_leg(int leg, Vec2<double> stance_foot_position){
+            stance_leg = leg; 
+            stance_foot_pos = stance_foot_position;
+        };
         void update_swing_times(double swing_time, double total_swing_time){
             _swing_time = swing_time;
             _total_swing_time = total_swing_time;
-        }
+        };
         void compute_icp_init(StateEstimate &seResult);
-        void compute_icp_final(Vec3<double> support_foot_position);
-        Vec2<double> compute_foot_placement(StateEstimate &seResult, DesiredStateData &desiredState, int leg);
+        void compute_icp_final();
+        Vec2<double> compute_foot_placement(StateEstimate &seResult, DesiredStateData &desiredState, Vec2<double> foot_placement_residual);
+
+        int stance_leg; // 0 for left, 1 for right
         Vec2<double> p; // foot placement
+
+        // com init state wrt stance foot
         Vec2<double> x_o;
         Vec2<double> v_o;
+        // com final state wrt stance foot
         Vec2<double> x_f;
         Vec2<double> v_f;
+
+        // com state wrt world frame
+        Vec2<double> x_f_w; 
+
+        // instantaneous capture point
         Vec2<double> icp_o; 
         Vec2<double> icp_f;
+
+        // step length
         Vec2<double> b; 
+        Vec2<double> offset; 
+
+        // bookkeeping variables
+        Vec2<double> left_foot_pos; 
+        Vec2<double> right_foot_pos;
+        Vec2<double> stance_foot_pos; 
     
     private:
         float _reference_height;
         float _omega;
-        double _swing_time;
-        double _total_swing_time;
+        double _swing_time; // swing time remaining
+        double _total_swing_time; // swing duration
         double _sd;
         double _wd;
+        double step_width = 0.14; // baseline step width
 };
-
-
-// Foot placement plannar based on Angular Momentum Linear Inverted Pendulum model
-// Based on https://arxiv.org/abs/2109.14862
-
-// 
-// A = [0, 0, 0, 1/mzH; 
-//      0, 0, -1/mzH, 0; 
-//      0, -mg, 0, 0; 
-//      mg, 0, 0, 0]
-// B = [-1, 0; 
-//       0, -1; 
-//       0, 0;
-//       0, 0]
-// x_n = A*x_n-1 + B*u_n-1
-
-// class ALIPController
-// {
-//     public:
-//         ALIPController(float &mass, Eigen::Matrix<float, 3, 3> &I_body, float &reference_height, float sagital_step, float lateral_step);
-//         ~ALIPController() = default;
-//         void compute_state(StateEstimate &seResult, Vec3<double> & contact_position, DesiredStateData &stateCommand);
-//         void solveARE();
-//         void LQRControl(Vec3<double> & contact_position);
-//         Vec4<double> x; 
-//         Vec4<double> x_des;
-//         Vec4<double> state;
-//         Vec2<double> u; 
-//         Vec2<double> u_des;
-    
-//     private:
-//         Eigen::Matrix<double, 4, 4> A;
-//         Eigen::Matrix<double, 4, 2> B;
-//         Eigen::Matrix<double, 4, 4> Q;
-//         Eigen::Matrix<double, 2, 2> R;
-//         Eigen::Matrix<double, 4, 4> P; 
-//         Eigen::Matrix<double, 4, 4> P_prev;
-//         float _mass; 
-//         Eigen::Matrix<float, 3, 3> _I_body; // inertial matrix about COM in body frame
-//         float _reference_height;
-// };

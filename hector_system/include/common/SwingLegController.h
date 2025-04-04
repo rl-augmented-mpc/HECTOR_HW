@@ -33,6 +33,10 @@ class swingLegController {
         void reset(){
             firstSwing[0] = true;
             firstSwing[1] = true;
+            Pf[0].setZero();
+            Pf[1].setZero();
+            Pf_augmented[0].setZero();
+            Pf_augmented[1].setZero();
         }
         
         /**
@@ -79,6 +83,10 @@ class swingLegController {
         Vec3<double> Pf_augmented[nLegs];
         Vec2<double> Pf_residual[nLegs];
         bool firstSwing[nLegs] = {true, true};
+
+        string plannar = "LIP";
+        // string plannar = "Raibert";
+        // string plannar = "OpenLoop";
         
         
         void updateFootPosition();

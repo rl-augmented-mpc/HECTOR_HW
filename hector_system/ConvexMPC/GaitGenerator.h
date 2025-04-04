@@ -33,10 +33,6 @@ public:
   Vec2<double> getContactSubPhase();
   Vec2<double> getSwingSubPhase();
   int* mpc_gait(int iterations_between_mpc, float stepping_frequency);
-  void resetGait()
-  {
-    _gait_phase = 0;
-  }
   void updatePhase(float stepping_frequency);
   void reset(){_gait_phase = 0;};
   Vec2<int> _stance; 
