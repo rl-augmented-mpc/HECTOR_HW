@@ -76,15 +76,19 @@ class Biped{
     }
 
     void setFootPlacementPlanner(std::string _foot_placement_planner){
-        if (_foot_placement_planner == "LIP")
+        if (_foot_placement_planner == "LIP"){
             foot_placement_planner = _foot_placement_planner;
-        else if (_foot_placement_planner == "Raibert")
+        }
+        else if (_foot_placement_planner == "Raibert"){
             foot_placement_planner = _foot_placement_planner;
-        else if (_foot_placement_planner == "OpenLoop")
+        }
+        else if (_foot_placement_planner == "OpenLoop"){
             foot_placement_planner = _foot_placement_planner;
-        else
+        }
+        else{
             std::cout << "invalid planner choice, use default LIP planner" << std::endl;
             foot_placement_planner = "LIP";
+        }
     }
 
     // RL
