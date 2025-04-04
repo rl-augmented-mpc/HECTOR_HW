@@ -28,12 +28,13 @@ LIPController::LIPController(float reference_height)
 }
 
 void LIPController::compute_icp_init(StateEstimate &seResult){
-    icp_o << seResult.position(0) + seResult.vWorld(0)/_omega, seResult.position(1) + seResult.vWorld(1)/_omega; //eq2
+    // calculate initial capture point (cp equation)
+    icp_o << seResult.position(0) + seResult.vWorld(0)/_omega, seResult.position(1) + seResult.vWorld(1)/_omega; //eq.2
 }
 
 void LIPController::compute_icp_final(){
-    // calculate final capture point
-    icp_f = std::exp(_omega*_swing_time)*icp_o + (1-std::exp(_omega*_swing_time))*stance_foot_pos; // eq7
+    // calculate final capture point (cp dynamics)
+    icp_f = std::exp(_omega*_swing_time)*icp_o + (1-std::exp(_omega*_swing_time))*stance_foot_pos; // eq.7
 }
 
 Vec2<double> LIPController::compute_foot_placement(StateEstimate &seResult, DesiredStateData &desiredState, Vec2<double> foot_placement_residual){
@@ -44,7 +45,7 @@ Vec2<double> LIPController::compute_foot_placement(StateEstimate &seResult, Desi
     _sd = (std::sqrt(v_des_w(0)*v_des_w(0) + v_des_w(1)*v_des_w(1))*_total_swing_time +foot_placement_residual[0])*(_swing_time/_total_swing_time); // sagittal step length
     _wd = (step_width+foot_placement_residual[1])*(_swing_time/_total_swing_time); // lateral step width
 
-    b << _sd/(std::exp(_omega*_swing_time)-1), _wd/(std::exp(_omega*_swing_time)+1); // eq9
+    b << _sd/(std::exp(_omega*_swing_time)-1), _wd/(std::exp(_omega*_swing_time)+1); // eq.9
 
     offset << -b(0)*std::cos(yaw) - (std::pow(-1,1-stance_leg)*b(1))*std::sin(yaw), -b(0)*std::sin(yaw) + (std::pow(-1,1-stance_leg)*b(1))*std::cos(yaw);
     p = icp_f + offset; // eq.11

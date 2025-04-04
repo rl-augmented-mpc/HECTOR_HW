@@ -29,6 +29,10 @@ class swingLegController {
          *       the time of construction
         */
         void initSwingLegController(ControlFSMData *_data, Gait *_gait, double dtSwing);
+        void setPlanner(string planner_name){
+            plannar = planner_name;
+            std::cout << "Foot placement planner is set to " << plannar << std::endl;
+        }
         void setGait(Gait *_gait);
         void reset(){
             firstSwing[0] = true;
@@ -83,11 +87,7 @@ class swingLegController {
         Vec3<double> Pf_augmented[nLegs];
         Vec2<double> Pf_residual[nLegs];
         bool firstSwing[nLegs] = {true, true};
-
-        string plannar = "LIP";
-        // string plannar = "Raibert";
-        // string plannar = "OpenLoop";
-        
+        string plannar;
         
         void updateFootPosition();
         void updateSwingStates();

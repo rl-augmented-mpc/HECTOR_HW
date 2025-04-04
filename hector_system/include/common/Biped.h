@@ -75,6 +75,18 @@ class Biped{
         slope_pitch = _slope_pitch;
     }
 
+    void setFootPlacementPlanner(std::string _foot_placement_planner){
+        if (_foot_placement_planner == "LIP")
+            foot_placement_planner = _foot_placement_planner;
+        else if (_foot_placement_planner == "Raibert")
+            foot_placement_planner = _foot_placement_planner;
+        else if (_foot_placement_planner == "OpenLoop")
+            foot_placement_planner = _foot_placement_planner;
+        else
+            std::cout << "invalid planner choice, use default LIP planner" << std::endl;
+            foot_placement_planner = "LIP";
+    }
+
     // RL
     RL rl_params; // RL parameters
 
@@ -104,6 +116,11 @@ class Biped{
 
     // Parameters for slope terrain 
     double slope_pitch; // slope pitch in radian
+
+    // foot placement planner (pick from here)
+    std::string foot_placement_planner = "LIP";
+    // std::string foot_placement_planner = "Raibert";
+    // std::string foot_placement_planner = "OpenLoop";
 
     int robot_index; // 1 for Aliengo, 2 for A1
     int _real_flag = 1;

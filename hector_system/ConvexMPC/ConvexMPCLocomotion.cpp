@@ -61,6 +61,7 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
   if (firstRun)
   {
     swing.initSwingLegController(&data, gait, dt);
+    swing.setPlanner(data._biped->foot_placement_planner);
     world_position_desired[0] = seResult.position[0];
     world_position_desired[1] = seResult.position[1];
     yaw_desired = seResult.rpy[2];

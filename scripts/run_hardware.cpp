@@ -45,18 +45,6 @@ int main()
     int robot_id = 4; // AlienGo=1, A1=2, Biped=4
     int cmd_panel_id = 2; // Wireless=1, keyboard=2 (ONLY keyboard is supported for now)
 
-    
-    // IOInterface *ioInter;
-    // if(robot_id == 1){
-    // ioInter = new IOSDK(LeggedType::Aliengo, cmd_panel_id);
-    // }
-    // else if(robot_id == 2){
-    // ioInter = new IOSDK(LeggedType::A1, cmd_panel_id);
-    // }
-    // else if(robot_id == 4){
-    // ioInter = new IOSDK(LeggedType::A1, cmd_panel_id);
-    // }
-
     IOSDK* ioInter = new IOSDK(LeggedType::A1, 2);
     Biped biped;
     biped.setBiped(1);
@@ -74,8 +62,7 @@ int main()
     stateEstimator->addEstimator<ContactEstimator>();
     stateEstimator->addEstimator<VectorNavOrientationEstimator>();
     // stateEstimator->addEstimator<LinearKFPositionVelocityEstimator>();  
-    stateEstimator->addEstimator<T265TrackingCameraEstimator>();        
-    // Add opti track estimator later
+    stateEstimator->addEstimator<T265TrackingCameraEstimator>();
 
 
     DesiredStateCommand* desiredStateCommand = new DesiredStateCommand(&stateEstimate, dt);
@@ -88,13 +75,18 @@ int main()
     _controlData->_lowCmd = lowCmd;
     _controlData->_lowState = lowState;
 
+    Vec2<int> dsp_durations = {int(0.0/dt), int(0.0/dt)};
+    Vec2<int> ssp_durations = {int(0.3/dt), int(0.3/dt)};
+    biped.updateGaitParameter(dsp_durations, ssp_durations);
+    double slope_angle = 0.0; 
+    biped.updateSlope(slope_angle);
+    std::string planner = "LIP"; // Raibert; OpenLoop;
+    biped.setFootPlacementPlanner(planner);
+    
+    std::string fsm_name = "passive";
     int iterations_between_mpc = 50;
     int horizon_length = 10;
     int mpc_decimation = 5;
-    Vec2<int> dsp_durations = {0, 0};
-    Vec2<int> ssp_durations = {int(0.3/dt), int(0.3/dt)};
-    biped.updateGaitParameter(dsp_durations, ssp_durations);
-    std::string fsm_name = "passive";
     FSM* _FSMController = new FSM(_controlData, dt, iterations_between_mpc, horizon_length, mpc_decimation, fsm_name);
     ioInter->_data = _controlData;
 
