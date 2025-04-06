@@ -77,12 +77,15 @@ class Biped{
 
     void setFootPlacementPlanner(std::string _foot_placement_planner){
         if (_foot_placement_planner == "LIP"){
+            std::cout << "Foot placement planner is set to " << _foot_placement_planner << std::endl;
             foot_placement_planner = _foot_placement_planner;
         }
         else if (_foot_placement_planner == "Raibert"){
+            std::cout << "Foot placement planner is set to " << _foot_placement_planner << std::endl;
             foot_placement_planner = _foot_placement_planner;
         }
         else if (_foot_placement_planner == "OpenLoop"){
+            std::cout << "Foot placement planner is set to " << _foot_placement_planner << std::endl;
             foot_placement_planner = _foot_placement_planner;
         }
         else{
@@ -565,10 +568,10 @@ class Biped{
         Vec3<double> q;
 
         double side; 
-        if (leg == 0) {
+        if (leg == 0) { // left
             side = 1.0;
         }
-        else if (leg == 1) {
+        else if (leg == 1) { // right
             side = -1.0;
         }
         Eigen::Vector3d hip_roll;
