@@ -64,5 +64,5 @@ class LIPController
         double _total_swing_time; // swing duration
         double _sd;
         double _wd;
-        double step_width = 0.15; // baseline step width
+        double step_width = 0.25; // baseline step width
 };

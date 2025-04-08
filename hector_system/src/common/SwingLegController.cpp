@@ -89,7 +89,7 @@ void swingLegController::computeFootPlacement(){
                 lip_controller.update_swing_times(swingTimes[foot], _dtSwing * gait->_swing(foot));
                 lip_controller.compute_icp_init(seResult);
                 lip_controller.compute_icp_final();
-                lip_foot_placement = lip_controller.compute_foot_placement(seResult, stateCommand->data, Pf_residual[foot]);
+                lip_foot_placement = lip_controller.compute_foot_placement(seResult, stateCommand->data, Vec2<double>{0.0, 0.0});
 
                 // additional close-loop correction
                 double p_rel_max_x = 0.0;
@@ -103,16 +103,18 @@ void swingLegController::computeFootPlacement(){
                 pfy_rel = fminf(fmaxf(pfy_rel, -p_rel_max_y), p_rel_max_y);
 
                 Pf[foot] << lip_foot_placement[0] + pfx_rel, lip_foot_placement[1] + pfy_rel, 0;
+
+                // augment
+                lip_foot_placement = lip_controller.compute_foot_placement(seResult, stateCommand->data, Pf_residual[foot]);
+                Pf_augmented[foot] << lip_foot_placement[0] + pfx_rel, lip_foot_placement[1] + pfy_rel, 0;
+
             }
             else{
                 Pf[foot] << pFoot_w[foot].block<2,1>(0,0);
+                Pf_augmented[foot] = Pf[foot];
             }
 
             footSwingTrajectory[foot].setHeight(data->_biped->foot_height);
-
-            // add residual foot placement
-            Pf_augmented[foot][0] = Pf[foot][0];
-            Pf_augmented[foot][1] = Pf[foot][1];
             footSwingTrajectory[foot].setFinalPosition(Pf_augmented[foot]);
 
         }
@@ -195,6 +197,8 @@ void swingLegController::computeFootDesiredPosition(){
             Vec3<double> vDesFootWorld = footSwingTrajectory[foot].getVelocity().cast<double>();
             
             pFoot_b[foot] = seResult.rBody * (pDesFootWorld - seResult.position);
+            // pFoot_b[foot][0] += Pf_residual[foot][0];
+            // pFoot_b[foot][1] += Pf_residual[foot][1];
             vFoot_b[foot] = seResult.rBody * (vDesFootWorld - seResult.vWorld);  
         }
 

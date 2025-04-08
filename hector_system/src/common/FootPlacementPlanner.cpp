@@ -42,13 +42,15 @@ Vec2<double> LIPController::compute_foot_placement(StateEstimate &seResult, Desi
     Vec3<double> v_des_w = seResult.rBody.transpose() * v_des_b;
     double yaw = std::atan2(v_des_w(1), v_des_w(0));
 
-    _sd = (std::sqrt(v_des_w(0)*v_des_w(0) + v_des_w(1)*v_des_w(1))*_total_swing_time +foot_placement_residual[0])*(_swing_time/_total_swing_time); // sagittal step length
-    _wd = (step_width+foot_placement_residual[1])*(_swing_time/_total_swing_time); // lateral step width
+    // _sd = (std::sqrt(v_des_w(0)*v_des_w(0) + v_des_w(1)*v_des_w(1))*_total_swing_time - foot_placement_residual[0])*(_swing_time/_total_swing_time); // sagittal step length
+    // _wd = (step_width + foot_placement_residual[1])*(_swing_time/_total_swing_time); // lateral step width
+    _sd = std::sqrt(v_des_w(0)*v_des_w(0) + v_des_w(1)*v_des_w(1))*_swing_time; // sagittal step length
+    _wd = step_width*(_swing_time/_total_swing_time); // lateral step width
 
     b << _sd/(std::exp(_omega*_swing_time)-1), _wd/(std::exp(_omega*_swing_time)+1); // eq.9
 
     offset << -b(0)*std::cos(yaw) - (std::pow(-1,1-stance_leg)*b(1))*std::sin(yaw), -b(0)*std::sin(yaw) + (std::pow(-1,1-stance_leg)*b(1))*std::cos(yaw);
-    p = icp_f + offset; // eq.11
+    p = icp_f + offset + foot_placement_residual; // eq.11
 
     return p;
 }
