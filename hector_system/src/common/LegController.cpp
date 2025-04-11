@@ -283,6 +283,12 @@ void LegController::updateCommand(LowlevelCmd* cmd){
 
     }
 
+    // Before initialization, save
+    grfm.block<6,1>(0,0) = commands[0].feedforwardForce;
+    grfm.block<6,1>(6,0) = commands[1].feedforwardForce;
+    qref.block<5,1>(0,0) = commands[0].qDes;
+    qref.block<5,1>(5,0) = commands[1].qDes;
+
     // Necessary for stabilization. Should not go earlier than assigning inputs.
     for (int i = 0; i< 2; i++){
         // commands[i].zero();
@@ -300,9 +306,6 @@ void LegController::updateCommand(LowlevelCmd* cmd){
 
 Vec12<double> LegController::get_grw(){
     /// return GRF-M computed by MPC
-    Vec12<double> grfm;
-    grfm.block<6,1>(0,0) = commands[0].feedforwardForce; 
-    grfm.block<6,1>(6,0) = commands[1].feedforwardForce;
     return grfm; 
 }
 
@@ -345,16 +348,16 @@ Vec6<double> LegController::get_swing_position(){
 Vec2<double> LegController::get_contact_phase(){
     // return contact phase of the legs
     Vec2<double> contact_phase;
-    contact_phase(0) = commands[0].contact_phase;
-    contact_phase(1) = commands[1].contact_phase;
+    contact_phase(0) = commands[0].contact_phase * commands[0].contact_state;
+    contact_phase(1) = commands[1].contact_phase * commands[1].contact_state;
     return contact_phase;
 }
 
 Vec2<double> LegController::get_swing_phase(){
     // return swing phase of the legs
     Vec2<double> swing_phase;
-    swing_phase(0) = commands[0].swing_phase;
-    swing_phase(1) = commands[1].swing_phase;
+    swing_phase(0) = commands[0].swing_phase * commands[0].swing_state;
+    swing_phase(1) = commands[1].swing_phase * commands[1].swing_state;
     return swing_phase;
 }
 
@@ -376,9 +379,9 @@ Vec2<double> LegController::get_swing_state(){
 
 
 
-void LegController::update_grw(Vec12<double> grfm){
+void LegController::update_grw(Vec12<double> _grfm){
     for (int i = 0; i < 2; i++){
-        commands[i].feedforwardForce = grfm.block<6,1>(i*6,0);
+        commands[i].feedforwardForce = _grfm.block<6,1>(i*6,0);
     }
 }
 
@@ -387,12 +390,6 @@ void LegController::add_residual_grw(Vec12<double> delta_grfm){
         commands[i].feedforwardForceDelta = delta_grfm.block<6,1>(i*6,0);
     }
 }
-
-// void LegController::add_residual_foot_placement(Vec4<double> delta_foot_placement){
-//     for (int i = 0; i < 2; i++){
-//         commands[i].footplacementDelta = delta_foot_placement.block<2,1>(i*2,0);
-//     }
-// }
 
 void LegController::add_residual_joint_position(Vec10<double> delta_joint_position){
     for (int i = 0; i < 2; i++){
@@ -403,9 +400,9 @@ void LegController::add_residual_joint_position(Vec10<double> delta_joint_positi
 void LegController::updateCommandResidual(LowlevelCmd* cmd){
     // update legtau with augmented GRFM
     for (int i = 0; i < 2; i++){
-        Vec6<double> footForce = commands[i].feedforwardForce + commands[i].feedforwardForceDelta;
+        Vec6<double> footForce = grfm.block<6,1>(i*6,0) + commands[i].feedforwardForceDelta; // augmented GRF-M
         Vec5<double> legtau = data[i].J.transpose() * footForce; // force moment from stance leg
-        Vec5<double> qDes = commands[i].qDes + commands[i].qDesDelta;
+        Vec5<double> qDes = qref.block<5,1>(i*5,0) + commands[i].qDesDelta; // qref is the reference joint position
 
         // Push the commands to the low level message
         for (int j = 0; j < 5; j++){

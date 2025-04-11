@@ -115,6 +115,10 @@
         void add_residual_foot_placement(Vec4<double> delta_foot_placement);
         void add_residual_joint_position(Vec10<double> delta_joint_position);
         void updateCommandResidual(LowlevelCmd* cmd); 
+
+        // bookkeeping
+        Vec12<double> grfm;
+        Vec10<double> qref;
         
     };
 

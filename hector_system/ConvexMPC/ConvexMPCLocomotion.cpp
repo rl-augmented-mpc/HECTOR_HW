@@ -87,9 +87,6 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
   swing.setFootplacementResidual(data._biped->rl_params.delta_foot_placement.segment(2,2), 1);
   swing.updateFootPlacementPlanner();
 
-  // update gait phase
-  gait->updatePhase(data._biped->gait_stepping_frequency);
-
   // load LCM leg swing gains
   Kp << 250, 0, 0,
       0, 250, 0,
@@ -109,7 +106,6 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
   if (iterationCounter % mpc_decimation == 0){
     updateMPC(mpcTable, data, omniMode);
   }
-  iterationCounter++;
 
   // =========================
   // update swing foot command
@@ -143,16 +139,25 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
       data._legController->commands[foot].control_mode = int(ControlMode::STANCE);
       se_contactState[foot] = contactStates(foot);
     }
-
     data._stateEstimator->setContactPhase(se_contactState);
+  }
 
+  // update time
+  gait->updatePhase(data._biped->gait_stepping_frequency);
+  iterationCounter++;
+
+  // update contact state with incremented gait phase
+  contactStates = gait->getContactSubPhase();
+  swingStates = gait->getSwingSubPhase();
+  for (int foot = 0; foot < 2; foot++)
+  {
     // push back data to leg controller
     double contactState = contactStates(foot);
     double swingState = swingStates(foot);
-    Vec3<double> reibert_footplacement = swing.getReibertFootPlacement(foot);
+    Vec3<double> raibert_footplacement = swing.getReibertFootPlacement(foot);
     Vec3<double> augmented_footplacement = swing.getAugmentedFootPlacement(foot);
 
-    data._legController->commands[foot].Pf = reibert_footplacement;
+    data._legController->commands[foot].Pf = raibert_footplacement;
     data._legController->commands[foot].Pf_augmented = augmented_footplacement;
 
     data._legController->commands[foot].contact_phase = contactState;
