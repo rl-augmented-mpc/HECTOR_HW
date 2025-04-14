@@ -65,6 +65,11 @@ class Biped{
         mu = _mu;
     }
 
+    void setSwingFootControlPoint(double _cp1_coef, double _cp2_coef){
+        cp1_coef = _cp1_coef;
+        cp2_coef = _cp2_coef;
+    }
+
     void updateGaitParameter(Vec2<int> _dsp_durations, Vec2<int> _ssp_durations){
         dsp_durations = _dsp_durations;
         ssp_durations = _ssp_durations;
@@ -120,6 +125,8 @@ class Biped{
     // parameters for reference and swing leg controller
     double foot_height=0.12; // swing foot height
     float gait_stepping_frequency = 1.0; // gait stepping frequency
+    double cp1_coef = 0.33;
+    double cp2_coef = 0.66;
 
     // Parameters for slope terrain 
     double slope_pitch; // slope pitch in radian

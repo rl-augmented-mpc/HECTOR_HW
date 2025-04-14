@@ -10,6 +10,7 @@
 
 #include "cppTypes.h"
 #include <fstream>
+#include <cmath>
 
 /*!
  * A foot swing trajectory for a single foot
@@ -27,6 +28,10 @@ public:
     _p.setZero();
     _v.setZero();
     _height = 0;
+
+    _cp1_coef = 0.33;
+    _cp2_coef = 0.66;
+    _pitch = 0;
   }
 
   /*!
@@ -61,6 +66,11 @@ public:
     _pitch = pitch;
   }
 
+  void setControlPointCoef(T cp1_coef, T cp2_coef){
+    _cp1_coef = cp1_coef;
+    _cp2_coef = cp2_coef;
+  }
+
   void computeSwingTrajectoryBezier(T phase, T swingTime);
 
   /*!
@@ -86,6 +96,7 @@ private:
   Vec3<T> _p0, _pf, _p, _v;
   T _height;
   T _pitch; 
+  T _cp1_coef, _cp2_coef;
 };
 
 

@@ -192,13 +192,16 @@ void swingLegController::computeFootDesiredPosition(){
               footSwingTrajectory[foot].setInitialPosition(pFoot_w[foot]);
                }
             //Compute and get the desired foot position and velocity
-            footSwingTrajectory[foot].computeSwingTrajectoryBezier(swingStates[foot], 0.2); //FIX: second argument not used in function
+            // std::cout << "cp1_coef: " << data->_biped->cp1_coef << " cp2_coef: " << data->_biped->cp2_coef << std::endl;
+            footSwingTrajectory[foot].setControlPointCoef(data->_biped->cp1_coef, data->_biped->cp2_coef);
+            footSwingTrajectory[foot].computeSwingTrajectoryBezier(
+                swingStates[foot], 
+                (double)(_dtSwing*gait->_swing(foot))
+            );
             Vec3<double> pDesFootWorld = footSwingTrajectory[foot].getPosition().cast<double>();
             Vec3<double> vDesFootWorld = footSwingTrajectory[foot].getVelocity().cast<double>();
             
             pFoot_b[foot] = seResult.rBody * (pDesFootWorld - seResult.position);
-            // pFoot_b[foot][0] += Pf_residual[foot][0];
-            // pFoot_b[foot][1] += Pf_residual[foot][1];
             vFoot_b[foot] = seResult.rBody * (vDesFootWorld - seResult.vWorld);  
         }
 

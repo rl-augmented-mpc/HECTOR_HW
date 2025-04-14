@@ -25,6 +25,7 @@ PYBIND11_MODULE(hector_control, m) {
       // update parameters
       .def("setGaitSteppingFrequency", &HectorController::setGaitSteppingFrequency, py::arg("stepping_frequency"))
       .def("setFootHeight", &HectorController::setFootHeight, py::arg("foot_height"))
+      .def("setSwingFootControlPoint", &HectorController::setSwingFootControlPoint, py::arg("cp1_coef"), py::arg("cp2_coef"))
       .def("setSRBDResidual", &HectorController::setSRBDResidual, py::arg("A_residual"), py::arg("B_residual"))
       .def("setSlopePitch", &HectorController::setSlopePitch, py::arg("slope_pitch"))
       .def("updateGRFM", &HectorController::updateGRFM, py::arg("grfm"))
