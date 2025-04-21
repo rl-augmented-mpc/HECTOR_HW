@@ -760,6 +760,23 @@ void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data
     // std::cout << "ub_red:" << *ub_red << std::endl;
     // // Stores Solution into q_red
     int rval2 = problem_red.getPrimalSolution(q_red);
+    
+    // // cost
+    // std::cout << "cost: " << problem_red.getObjVal() << std::endl;
+    // // Check general constraints
+    // qpOASES::real_t Ax[new_cons] = {0};
+    // for (int i = 0; i < new_cons; ++i) {
+    //     for (int j = 0; j < new_vars; ++j) {
+    //         Ax[i] += A_red[i * new_vars + j] * q_red[j]; // row-major access
+    //     }
+    //     std::cout << "Constraint " << i << ": A*x = " << Ax[i] << "\n";
+    //     std::cout << "lb_red[i]: " << lb_red[i] << "  ub_red[i]: " << ub_red[i] << "\n";
+    //     // if (Ax[i] < lb_red[i] - 1e-6 || Ax[i] > ub_red[i] + 1e-6) {
+    //     //     std::cout << "Constraint violated at index " << i << ": A*x = " << Ax[i] << "\n";
+    //     //     // constraints_ok = false;
+    //     // }
+    // }
+    
 
     if (rval2 != qpOASES::SUCCESSFUL_RETURN)
       printf("failed to solve!\n");

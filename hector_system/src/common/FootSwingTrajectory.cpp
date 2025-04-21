@@ -18,22 +18,18 @@
 template <typename T>
 void FootSwingTrajectory<T>::computeSwingTrajectoryBezier(T phase, T swingTime) {
 
-  
-  // _p = Interpolate::cubicBezier<Vec3<T>>(_p0, _pf, phase);
-  // _v = Interpolate::cubicBezierFirstDerivative<Vec3<T>>(_p0, _pf, phase)/swingTime;
-
-  // // original implementation
+  // Cycloid trajectory
+  // _pf[2] = _p0[2];
   // T phasePI = 2 * M_PI * phase;
-  // _p = (_pf - _p0) * (phasePI - sin(phasePI))/(2*M_PI) + _p0;
-  // _v = (_pf - _p0) * (1 - cos(phasePI)) / swingTime;
   // T zp, zv;
-  // zp = _height * (1 - cos(phasePI))/2.0 + _p0[2];
+  // _p = (_pf - _p0) * (phase - sin(phasePI)/(2*M_PI)) + _p0;
+  // _v = (_pf - _p0) * (1 - cos(phasePI)) / swingTime;
+  // zp = (_height/2) * (1 - cos(phasePI)) + _p0[2];
   // zv = _height * M_PI * sin(phasePI) / swingTime;
-
   // _p[2] = zp;
   // _v[2] = zv;
 
-  // parametric cubic bezier
+  // // parametric cubic bezier
   _pf[2] = _p0[2];
   Vec3<T> _p1 = _p0 + (_pf - _p0)*_cp1_coef;
   Vec3<T> _p2 = _p0 + (_pf - _p0)*_cp2_coef;
