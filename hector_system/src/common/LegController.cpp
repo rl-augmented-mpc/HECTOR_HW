@@ -26,7 +26,7 @@ void LegControllerCommand::zero(){
     Pf = Vec3<double>::Zero();
     Pf_augmented = Vec3<double>::Zero();
     double contact_phase = 0; 
-    double contact_state = 1; 
+    double contact_state = 0; 
     double swing_phase = 0;
     double swing_state = 0;
     //control_mode should be not touched
@@ -49,6 +49,13 @@ void LegControllerData::zero(){
 void LegController::zeroCommand(){
     for (int i = 0; i<2; i++){
         commands[i].zero();
+
+        if (i==0){
+            commands[i].contact_state = 1;
+        }
+        else if (i==1){
+            commands[i].swing_state = 1;
+        }
     }
 }
 
