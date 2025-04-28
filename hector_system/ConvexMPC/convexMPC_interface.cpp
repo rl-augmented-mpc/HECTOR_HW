@@ -156,6 +156,11 @@ double get_solution(int index)
   return qs[index];
 }
 
+double get_cost(){
+  double cost = get_qp_cost();
+  return cost;
+}
+
 void update_solver_settings(int max_iter, double rho, double sigma, double solver_alpha, double terminate, double use_jcqp) {
   update.max_iterations = max_iter;
   update.rho = rho;

@@ -47,6 +47,7 @@ PYBIND11_MODULE(hector_control, m) {
       .def("getReibertFootPlacement", &HectorController::getReibertFootPlacement)
       .def("getFootPlacement", &HectorController::getFootPlacement)
       .def("getRefFootPosition", &HectorController::getRefFootPosition)
-      .def("getFootPosition", &HectorController::getFootPosition);
+      .def("getFootPosition", &HectorController::getFootPosition)
+      .def("getCost", &HectorController::getCost);
       
 }

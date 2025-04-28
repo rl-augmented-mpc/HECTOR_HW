@@ -61,4 +61,5 @@ void resize_qp_mats(s16 horizon);
 void c2qp(Matrix<fpt,13,13> Ac, Matrix<fpt,13,12> Bc,fpt dt,s16 horizon);
 
 mfp* get_q_soln();
+double get_qp_cost();
 #endif

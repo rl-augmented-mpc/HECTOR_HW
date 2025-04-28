@@ -46,6 +46,7 @@ struct update_data_t
 // EXTERNC void setup_problem(double dt, int horizon, double mu, double f_max);
 EXTERNC void setup_problem(float dt, int horizon, float mu, float f_max, float mass, Mat3<float> I_body, Eigen::Matrix<float,13,13> A_residual, Eigen::Matrix<float,13,12> B_residual);
 EXTERNC double get_solution(int index);
+EXTERNC double get_cost();
 EXTERNC void update_solver_settings(int max_iter, double rho, double sigma, double solver_alpha, double terminate, double use_jcqp);
 // EXTERNC void update_problem_data_floats(float* p, float* v, float* q, float* w,
 //                                         float* r, float yaw, float* weights,

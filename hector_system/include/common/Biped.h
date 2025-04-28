@@ -99,6 +99,10 @@ class Biped{
         }
     }
 
+    void update_mpc_cost(double _mpc_cost){
+        mpc_cost = _mpc_cost;
+    }
+
     // RL
     RL rl_params; // RL parameters
 
@@ -112,6 +116,9 @@ class Biped{
     double leg_offset_z;
 
     double foot_area;
+
+    // qp cost
+    double mpc_cost = 0; 
 
     //robot dynamics
     float mass; 

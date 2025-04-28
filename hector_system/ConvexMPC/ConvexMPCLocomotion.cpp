@@ -105,6 +105,7 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
   int *mpcTable = gait->mpc_gait(iterationsBetweenMPC, data._biped->gait_stepping_frequency);
   if (iterationCounter % mpc_decimation == 0){
     updateMPC(mpcTable, data, omniMode);
+    data._biped->update_mpc_cost(qp_cost);
   }
 
   // =========================
@@ -241,6 +242,8 @@ void ConvexMPCLocomotion::updateMPC(int *mpcTable, ControlFSMData &data, bool om
   }
   contact_state(0) = mpcTable[0];
   contact_state(1) = mpcTable[1];
+  
+  qp_cost = get_cost();
 }
 
 

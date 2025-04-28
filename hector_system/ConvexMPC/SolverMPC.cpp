@@ -9,6 +9,7 @@
 #include <sys/time.h>
 #include "../include/common/Utilities/Timer.h"
 #include <fstream>
+#include <typeinfo>
 
 // #define K_PRINT_EVERYTHING
 #define BIG_NUMBER 5e10
@@ -57,6 +58,7 @@ qpOASES::real_t *lb_red;
 qpOASES::real_t *ub_red;
 qpOASES::real_t *q_red;
 u8 real_allocated = 0;
+double qp_cost = 0;
 
 char var_elim[2000];
 char con_elim[2000];
@@ -93,6 +95,11 @@ Matrix<fpt, 3, 3> euler_to_rotation(fpt roll, fpt pitch, fpt yaw) {
 mfp *get_q_soln()
 {
   return q_soln;
+}
+
+double get_qp_cost()
+{
+  return qp_cost;
 }
 
 s8 near_zero(fpt a)
@@ -762,7 +769,7 @@ void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data
     int rval2 = problem_red.getPrimalSolution(q_red);
     
     // // cost
-    // std::cout << "cost: " << problem_red.getObjVal() << std::endl;
+    qp_cost = problem_red.getObjVal();
     // // Check general constraints
     // qpOASES::real_t Ax[new_cons] = {0};
     // for (int i = 0; i < new_cons; ++i) {

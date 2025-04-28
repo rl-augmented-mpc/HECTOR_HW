@@ -68,6 +68,7 @@ private:
   double dtMPC;
   int iterationCounter = 0;
   Vec6<double> f_ff[2];
+  double qp_cost = 0;
   Vec12<double> Forces_Sol;
   Vec2<double> swingTimes;
   FootSwingTrajectory<double> footSwingTrajectories[2];

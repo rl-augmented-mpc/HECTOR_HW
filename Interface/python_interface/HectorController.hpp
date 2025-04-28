@@ -193,6 +193,10 @@ class HectorController{
         Vec2<double> getSwingState(){
             return legController->get_swing_state();
         }
+
+        double getCost(){
+            return biped.mpc_cost; 
+        }
     
     private:
         double system_dt; 
