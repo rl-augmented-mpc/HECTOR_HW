@@ -50,11 +50,15 @@ void LegController::zeroCommand(){
     for (int i = 0; i<2; i++){
         commands[i].zero();
 
+        // begin with right foot swing
         if (i==0){
-            commands[i].contact_state = 1;
+            commands[i].contact_state = 1.;
+            commands[i].swing_state = 0.;
         }
-        else if (i==1){
-            commands[i].swing_state = 1;
+        
+        if (i==1){
+            commands[i].swing_state = 1.;
+            commands[i].contact_state = 0.;
         }
     }
 }
@@ -318,17 +322,15 @@ Vec12<double> LegController::get_grw(){
 
 Vec4<double> LegController::get_reibert_foot_placement(){
     // return the next foot placement in world frame
-    Vec4<double> Pfs;
-    Pfs(0) = commands[0].Pf(0);
-    Pfs(1) = commands[0].Pf(1);
-    Pfs(2) = commands[1].Pf(0);
-    Pfs(3) = commands[1].Pf(1);
-    return Pfs; 
+    Pfs_rb(0) = commands[0].Pf(0);
+    Pfs_rb(1) = commands[0].Pf(1);
+    Pfs_rb(2) = commands[1].Pf(0);
+    Pfs_rb(3) = commands[1].Pf(1);
+    return Pfs_rb; 
 }
 
 Vec4<double> LegController::get_foot_placement(){
     // return the next foot placement in world frame
-    Vec4<double> Pfs;
     Pfs(0) = commands[0].Pf_augmented(0);
     Pfs(1) = commands[0].Pf_augmented(1);
     Pfs(2) = commands[1].Pf_augmented(0);
@@ -338,7 +340,6 @@ Vec4<double> LegController::get_foot_placement(){
 
 Vec6<double> LegController::get_ref_swing_position(){
     // return reference foot position in body frame
-    Vec6<double> foot_ref_pos;
     foot_ref_pos.block<3,1>(0,0) = commands[0].pDes; 
     foot_ref_pos.block<3,1>(3,0) = commands[1].pDes; 
     return foot_ref_pos; 
@@ -346,7 +347,6 @@ Vec6<double> LegController::get_ref_swing_position(){
 
 Vec6<double> LegController::get_swing_position(){
     // return foot position in body frame
-    Vec6<double> foot_pos; 
     foot_pos.block<3,1>(0,0) = data[0].p + _biped.getHip2Location(0);
     foot_pos.block<3,1>(3,0) = data[1].p + _biped.getHip2Location(1);
     return foot_pos;
@@ -354,7 +354,6 @@ Vec6<double> LegController::get_swing_position(){
 
 Vec2<double> LegController::get_contact_phase(){
     // return contact phase of the legs
-    Vec2<double> contact_phase;
     contact_phase(0) = commands[0].contact_phase * commands[0].contact_state;
     contact_phase(1) = commands[1].contact_phase * commands[1].contact_state;
     return contact_phase;
@@ -362,7 +361,6 @@ Vec2<double> LegController::get_contact_phase(){
 
 Vec2<double> LegController::get_swing_phase(){
     // return swing phase of the legs
-    Vec2<double> swing_phase;
     swing_phase(0) = commands[0].swing_phase * commands[0].swing_state;
     swing_phase(1) = commands[1].swing_phase * commands[1].swing_state;
     return swing_phase;
@@ -370,7 +368,6 @@ Vec2<double> LegController::get_swing_phase(){
 
 Vec2<double> LegController::get_contact_state(){
     // return contact state of the legs
-    Vec2<double> contact_state;
     contact_state(0) = commands[0].contact_state;
     contact_state(1) = commands[1].contact_state;
     return contact_state;
@@ -378,7 +375,6 @@ Vec2<double> LegController::get_contact_state(){
 
 Vec2<double> LegController::get_swing_state(){
     // return swing state of the legs
-    Vec2<double> swing_state;
     swing_state(0) = commands[0].swing_state;
     swing_state(1) = commands[1].swing_state;
     return swing_state;

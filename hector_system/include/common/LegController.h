@@ -117,8 +117,17 @@
         void updateCommandResidual(LowlevelCmd* cmd); 
 
         // bookkeeping
-        Vec12<double> grfm;
-        Vec10<double> qref;
+        Vec12<double> grfm = Vec12<double>::Zero();
+        Vec10<double> qref = Vec10<double>::Zero();
+        Vec4<double> Pfs_rb = Vec4<double>::Zero();
+        Vec4<double> Pfs = Vec4<double>::Zero();
+        Vec6<double> foot_ref_pos = Vec6<double>::Zero();
+        Vec6<double> foot_pos = Vec6<double>::Zero();
+        Vec2<double> contact_phase= Vec2<double>::Zero();
+        Vec2<double> swing_phase= Vec2<double>::Zero();
+        Vec2<double> contact_state = Vec2<double>::Zero();
+        Vec2<double> swing_state = Vec2<double>::Zero();
+
         
     };
 

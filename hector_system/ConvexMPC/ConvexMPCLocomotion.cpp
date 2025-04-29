@@ -165,16 +165,16 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
     data._legController->commands[foot].swing_phase = swingState;
 
     if (contactState >= 0){
-      data._legController->commands[foot].contact_state = 1;
+      data._legController->commands[foot].contact_state = 1.;
     }
     else{
-      data._legController->commands[foot].contact_state = 0;
+      data._legController->commands[foot].contact_state = 0.;
     }
     if (swingState >= 0){
-      data._legController->commands[foot].swing_state = 1;
+      data._legController->commands[foot].swing_state = 1.;
     }
     else{
-      data._legController->commands[foot].swing_state = 0;
+      data._legController->commands[foot].swing_state = 0.;
     }
 
   }
