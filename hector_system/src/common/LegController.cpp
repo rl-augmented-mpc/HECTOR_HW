@@ -25,10 +25,10 @@ void LegControllerCommand::zero(){
     footplacementDelta = Vec2<double>::Zero();
     Pf = Vec3<double>::Zero();
     Pf_augmented = Vec3<double>::Zero();
-    double contact_phase = 0; 
-    double contact_state = 0; 
-    double swing_phase = 0;
-    double swing_state = 0;
+    double contact_phase = 0.; 
+    double contact_state = 0.; 
+    double swing_phase = 0.;
+    double swing_state = 0.;
     //control_mode should be not touched
 
 }
