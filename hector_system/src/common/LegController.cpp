@@ -238,7 +238,6 @@ void LegController::updateCommand(LowlevelCmd* cmd){
             commands[leg].qDes.block(1,0, 3,1) = _biped.ComputeIK(foot_des, leg);
             // To remove 2 redundancies in DoFs (3D foot pos constraint versus 5 DoFs in each leg) -> hip yaw = 0, ankle pitch designed to be parallel to the ground
             commands[leg].qDes(0) = 0;
-            // commands[leg].qDes(4) = 0 -data[leg].q(3) - data[leg].q(2); // Ankle joint parallel to torso
             commands[leg].qDes(4) = -_biped.slope_pitch - data[leg].q(3) - data[leg].q(2); // Ankle joint parallel to (sloped) ground
 
             // qdDes
