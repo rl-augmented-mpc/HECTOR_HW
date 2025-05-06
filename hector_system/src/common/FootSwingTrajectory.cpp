@@ -35,8 +35,9 @@ void FootSwingTrajectory<T>::computeSwingTrajectoryBezier(T phase, T swingTime) 
   Vec3<T> _p2 = _p0 + (_pf - _p0)*_cp2_coef;
 
   // assuming foot is at apex at t=0.5, you can find p1 and p2 from apex height
-  _p1[2] = (T(8)*_height - _p0[2] - _pf[2]) / T(6) + _p0[2];
-  _p2[2] = (T(8)*_height - _p0[2] - _pf[2]) / T(6) + _p0[2];
+  T z_apex = _p0[2] + _height;
+  _p1[2] = (T(8)* z_apex - _p0[2] - _pf[2]) / T(6);
+  _p2[2] = (T(8)* z_apex - _p0[2] - _pf[2]) / T(6);
 
   _p = std::pow(1-phase, 3) * _p0 + 
       3 * std::pow(1-phase, 2) * phase * _p1 +

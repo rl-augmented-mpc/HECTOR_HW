@@ -80,6 +80,7 @@ void swingLegController::computeFootPlacement(){
     if (plannar == "LIP"){
         // 3D LIP Model
         for(int foot = 0; foot < nLegs; foot++){
+            Vec3<double> p_init = footSwingTrajectory[foot].getInitialPosition();
             if(swingStates[foot] >= 0){
                 if (firstSwing[foot]){ // computes only once at the beginning of the swing phase
                     lip_controller.update_stance_leg(1-foot, pFoot_w[1-foot].block<2,1>(0,0));
@@ -91,26 +92,17 @@ void swingLegController::computeFootPlacement(){
                 lip_controller.compute_icp_final();
                 lip_foot_placement = lip_controller.compute_foot_placement(seResult, stateCommand->data, Vec2<double>{0.0, 0.0});
 
-                // additional close-loop correction
-                double p_rel_max_x = 0.0;
-                double p_rel_max_y =  0.0;
-                double k_x = 0.05; 
-                double k_y = 0.1; 
-                
-                double pfx_rel = k_x  * (seResult.vWorld[0] - v_des_world[0]);
-                double pfy_rel = seResult.vWorld[1] * 0.5 * gait->_swing(foot) * _dtSwing + k_y  * (seResult.vWorld[1] - v_des_world[1]);
-                pfx_rel = fminf(fmaxf(pfx_rel, -p_rel_max_x), p_rel_max_x);
-                pfy_rel = fminf(fmaxf(pfy_rel, -p_rel_max_y), p_rel_max_y);
+                Pf[foot] << lip_foot_placement[0], lip_foot_placement[1], p_init[2];
 
-                Pf[foot] << lip_foot_placement[0] + pfx_rel, lip_foot_placement[1] + pfy_rel, 0;
-
-                // augment
+                // augment foot placement
                 lip_foot_placement = lip_controller.compute_foot_placement(seResult, stateCommand->data, Pf_residual[foot]);
-                Pf_augmented[foot] << lip_foot_placement[0] + pfx_rel, lip_foot_placement[1] + pfy_rel, 0;
+                Pf_augmented[foot] << lip_foot_placement[0], lip_foot_placement[1], p_init[2];
 
             }
             else{
-                Pf[foot] << pFoot_w[foot].block<2,1>(0,0);
+                Pf[foot][0] = pFoot_w[foot][0];
+                Pf[foot][1] = pFoot_w[foot][1];
+                Pf[foot][2] = p_init[2];
                 Pf_augmented[foot] = Pf[foot];
             }
 
@@ -123,6 +115,8 @@ void swingLegController::computeFootPlacement(){
     else if (plannar == "Raibert"){
         // // Raibert heuristic
         for(int foot = 0; foot < nLegs; foot++){
+            Vec3<double> p_init = footSwingTrajectory[foot].getInitialPosition();
+
             footSwingTrajectory[foot].setHeight(data->_biped->foot_height);
             footSwingTrajectory[foot].setPitch(data->_biped->slope_pitch); 
 
@@ -142,11 +136,12 @@ void swingLegController::computeFootPlacement(){
 
             Pf[foot][0] += pfx_rel;
             Pf[foot][1] += pfy_rel; 
-            Pf[foot][2] = 0.0;
+            Pf[foot][2] = p_init[2];
 
             // footplacement from reibert heuristic and residual learning
             Pf_augmented[foot][0] = Pf[foot][0] + Pf_residual[foot][0];
             Pf_augmented[foot][1] = Pf[foot][1] + Pf_residual[foot][1];
+            Pf_augmented[foot][2] = p_init[2];
 
             footSwingTrajectory[foot].setFinalPosition(Pf_augmented[foot]);   
         }
