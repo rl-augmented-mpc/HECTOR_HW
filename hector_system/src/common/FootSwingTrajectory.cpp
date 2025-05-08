@@ -30,7 +30,6 @@ void FootSwingTrajectory<T>::computeSwingTrajectoryBezier(T phase, T swingTime) 
   // _v[2] = zv;
 
   // // parametric cubic bezier
-  _pf[2] = _p0[2];
   Vec3<T> _p1 = _p0 + (_pf - _p0)*_cp1_coef;
   Vec3<T> _p2 = _p0 + (_pf - _p0)*_cp2_coef;
 
