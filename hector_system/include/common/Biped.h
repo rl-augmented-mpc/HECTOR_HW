@@ -70,6 +70,10 @@ class Biped{
         cp2_coef = _cp2_coef;
     }
 
+    void setFootPlacementZ(double _pf_z){
+        pf_z = _pf_z;
+    }
+
     void updateGaitParameter(Vec2<int> _dsp_durations, Vec2<int> _ssp_durations){
         dsp_durations = _dsp_durations;
         ssp_durations = _ssp_durations;
@@ -134,6 +138,7 @@ class Biped{
     float gait_stepping_frequency = 1.0; // gait stepping frequency
     double cp1_coef = 0.33;
     double cp2_coef = 0.66;
+    double pf_z = 0.0; // foot placement z value
 
     // Parameters for slope terrain 
     double slope_pitch; // slope pitch in radian

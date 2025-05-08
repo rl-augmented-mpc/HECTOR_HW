@@ -100,6 +100,10 @@ class HectorController{
             biped.setSwingFootControlPoint(cp1_coef, cp2_coef);
         }
 
+        void setFootPlacementZ(double pf_z){
+            biped.setFootPlacementZ(pf_z);
+        }
+
         void setSRBDResidual(Eigen::Matrix<float, 13, 13> A_residual, Eigen::Matrix<float, 13, 12> B_residual){
             biped.rl_params.set_residual_dynamics(A_residual, B_residual);
         }

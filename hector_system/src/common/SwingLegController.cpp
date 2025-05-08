@@ -80,7 +80,6 @@ void swingLegController::computeFootPlacement(){
     if (plannar == "LIP"){
         // 3D LIP Model
         for(int foot = 0; foot < nLegs; foot++){
-            Vec3<double> p_init = footSwingTrajectory[foot].getInitialPosition();
             if(swingStates[foot] >= 0){
                 if (firstSwing[foot]){ // computes only once at the beginning of the swing phase
                     lip_controller.update_stance_leg(1-foot, pFoot_w[1-foot].block<2,1>(0,0));
@@ -92,17 +91,17 @@ void swingLegController::computeFootPlacement(){
                 lip_controller.compute_icp_final();
                 lip_foot_placement = lip_controller.compute_foot_placement(seResult, stateCommand->data, Vec2<double>{0.0, 0.0});
 
-                Pf[foot] << lip_foot_placement[0], lip_foot_placement[1], p_init[2];
+                Pf[foot] << lip_foot_placement[0], lip_foot_placement[1], data->_biped->pf_z;
 
                 // augment foot placement
                 lip_foot_placement = lip_controller.compute_foot_placement(seResult, stateCommand->data, Pf_residual[foot]);
-                Pf_augmented[foot] << lip_foot_placement[0], lip_foot_placement[1], p_init[2];
+                Pf_augmented[foot] << lip_foot_placement[0], lip_foot_placement[1], data->_biped->pf_z;
 
             }
             else{
                 Pf[foot][0] = pFoot_w[foot][0];
                 Pf[foot][1] = pFoot_w[foot][1];
-                Pf[foot][2] = p_init[2];
+                Pf[foot][2] = pFoot_w[foot][2];
                 Pf_augmented[foot] = Pf[foot];
             }
 
