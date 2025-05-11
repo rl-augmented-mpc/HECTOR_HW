@@ -114,7 +114,6 @@ void swingLegController::computeFootPlacement(){
     else if (plannar == "Raibert"){
         // // Raibert heuristic
         for(int foot = 0; foot < nLegs; foot++){
-            Vec3<double> p_init = footSwingTrajectory[foot].getInitialPosition();
 
             footSwingTrajectory[foot].setHeight(data->_biped->foot_height);
             footSwingTrajectory[foot].setPitch(data->_biped->slope_pitch); 
@@ -122,25 +121,27 @@ void swingLegController::computeFootPlacement(){
             // Reibert heuristic
             Pf[foot] = seResult.position + seResult.rBody.transpose() * (data->_biped->getHip2Location(foot)) + seResult.vWorld * swingTimes[foot];
             
-            double p_rel_max_x = 0.4;
-            double p_rel_max_y =  0.03;
-            double k_x = 0.1; 
-            double k_y = 0.1; // IMOPRTANT parameter for stable lateral motion
+            double p_rel_max_x = 0.1;
+            double p_rel_max_y =  0.1;
+            double k_x = 0.05; 
+            double k_y = 0.05; // IMOPRTANT parameter for stable lateral motion
             
-            Vec3<double> cross_term = 0.5 * std::sqrt(0.55/9.81) * seResult.vWorld.cross(omega_des_world);
-            double pfx_rel   =  seResult.vWorld[0] * 0.5 * gait->_swing(foot) * _dtSwing + k_x  * (seResult.vWorld[0] - v_des_world[0]);
-            double pfy_rel   =  seResult.vWorld[1] * 0.5 * gait->_swing(foot) * _dtSwing + k_y  * (seResult.vWorld[1] - v_des_world[1]);
+            // Vec3<double> cross_term = 0.5 * std::sqrt(0.55/9.81) * seResult.vWorld.cross(omega_des_world);
+            // double pfx_rel   =  seResult.vWorld[0] * 0.5 * gait->_swing(foot) * _dtSwing + k_x  * (seResult.vWorld[0] - v_des_world[0]);
+            // double pfy_rel   =  seResult.vWorld[1] * 0.5 * gait->_swing(foot) * _dtSwing + k_y  * (seResult.vWorld[1] - v_des_world[1]);
+            double pfx_rel   =  k_x  * (seResult.vWorld[0] - v_des_world[0]);
+            double pfy_rel   =  k_y  * (seResult.vWorld[1] - v_des_world[1]);
             pfx_rel = fminf(fmaxf(pfx_rel, -p_rel_max_x), p_rel_max_x);
             pfy_rel = fminf(fmaxf(pfy_rel, -p_rel_max_y), p_rel_max_y);
 
             Pf[foot][0] += pfx_rel;
             Pf[foot][1] += pfy_rel; 
-            Pf[foot][2] = p_init[2];
+            Pf[foot][2] = data->_biped->pf_z;
 
             // footplacement from reibert heuristic and residual learning
             Pf_augmented[foot][0] = Pf[foot][0] + Pf_residual[foot][0];
             Pf_augmented[foot][1] = Pf[foot][1] + Pf_residual[foot][1];
-            Pf_augmented[foot][2] = p_init[2];
+            Pf_augmented[foot][2] = data->_biped->pf_z;
 
             footSwingTrajectory[foot].setFinalPosition(Pf_augmented[foot]);   
         }
