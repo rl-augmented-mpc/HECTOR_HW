@@ -41,9 +41,7 @@ Vec2<double> LIPController::compute_foot_placement(StateEstimate &seResult, Desi
     Vec3<double> v_des_b(desiredState.stateDes[6], desiredState.stateDes[7], 0);
     Vec3<double> v_des_w = seResult.rBody.transpose() * v_des_b;
     double yaw = std::atan2(v_des_w(1), v_des_w(0));
-
-    // _sd = (std::sqrt(v_des_w(0)*v_des_w(0) + v_des_w(1)*v_des_w(1))*_total_swing_time - foot_placement_residual[0])*(_swing_time/_total_swing_time); // sagittal step length
-    // _wd = (step_width + foot_placement_residual[1])*(_swing_time/_total_swing_time); // lateral step width
+    
     _sd = std::sqrt(v_des_w(0)*v_des_w(0) + v_des_w(1)*v_des_w(1))*_swing_time; // sagittal step length
     _wd = step_width*(_swing_time/_total_swing_time); // lateral step width
 
