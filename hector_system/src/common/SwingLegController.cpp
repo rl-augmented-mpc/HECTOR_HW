@@ -36,8 +36,9 @@ void swingLegController::updateSwingFootCommand(){
 void swingLegController::updateFootPosition(){
 
     for(int i = 0; i < nLegs; i++){
-        pFoot_w[i] =  seResult.position + seResult.rBody.transpose() 
-                    * ( data->_biped->getHip2Location(i) + data->_legController->data[i].p);
+        // pFoot_w[i] =  seResult.position + seResult.rBody.transpose() 
+        //             * ( data->_biped->getHip2Location(i) + data->_legController->data[i].p);
+        pFoot_w[i] =  seResult.position + seResult.rBody.transpose()*(data->_legController->data[i].p);
     }
 }
 
@@ -127,12 +128,13 @@ void swingLegController::computeFootPlacement(){
             footSwingTrajectory[foot].setPitch(data->_biped->slope_pitch); 
 
             // Reibert heuristic
-            Pf[foot] = seResult.position + seResult.rBody.transpose() * (data->_biped->getHip2Location(foot)) + seResult.vWorld * swingTimes[foot];
+            // Pf[foot] = seResult.position + seResult.rBody.transpose() * (data->_biped->getHip2Location(foot)) + seResult.vWorld * swingTimes[foot];
+            Pf[foot] = seResult.position + seResult.rBody.transpose() * (data->_biped->get_hip_roll_offset(foot)) + seResult.vWorld * swingTimes[foot];
             
-            double p_rel_max_x = 0.4;
-            double p_rel_max_y =  0.03;
-            double k_x = 0.1; 
-            double k_y = 0.03; // IMOPRTANT parameter for stable lateral motion
+            double p_rel_max_x = 0.3;
+            double p_rel_max_y =  0.3;
+            double k_x = 0.05; 
+            double k_y = 0.05; // IMOPRTANT parameter for stable lateral motion
             
             Vec3<double> cross_term = 0.5 * std::sqrt(0.55/9.81) * seResult.vWorld.cross(omega_des_world);
             double pfx_rel   =  seResult.vWorld[0] * 0.5 * gait->_swing(foot) * _dtSwing + k_x  * (seResult.vWorld[0] - v_des_world[0]);

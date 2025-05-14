@@ -53,8 +53,9 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
   // get then foot location in world frame
   for (int i = 0; i < 2; i++)
   {
-    pFoot[i] = seResult.position + seResult.rBody.transpose() 
-    * (data._biped->getHip2Location(i) + data._legController->data[i].p);
+    // pFoot[i] = seResult.position + seResult.rBody.transpose() 
+    // * (data._biped->getHip2Location(i) + data._legController->data[i].p);
+    pFoot[i] = seResult.position + seResult.rBody.transpose()*(data._legController->data[i].p);
   }
 
   // some first time initialization
@@ -200,11 +201,11 @@ void ConvexMPCLocomotion::updateMPC(int *mpcTable, ControlFSMData &data, bool om
   // roll pitch yaw x y z droll dpitch dyaw dx dy dz
   // double Q[12] = {300, 300, 150,   300, 300, 100,   1, 1, 1,   5, 3, 3}; // original hardware
   // double Q[12] = {100, 200, 300,  300, 300, 300,  1, 1, 3.0,  2.0, 2.0, 1};
-  double Q[12] = {100, 200, 500,  500, 500, 500,  1, 1, 5,  8, 8, 1};
+  double Q[12] = {200, 100, 500,  500, 500, 500,  1, 1, 5,  8, 8, 1};
   // double Q[12] = {100, 200, 500,  800, 800, 500,  1, 1, 5,  8, 8, 1};
 
   // double Alpha[12] = {1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,   2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2}; // original hardware
-  double Alpha[12] = {1e-4, 1e-4, 3e-4, 1e-4, 1e-4, 3e-4,   1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 1e-2};
+  double Alpha[12] = {2e-4, 2e-4, 2e-4, 2e-4, 2e-4, 2e-4,   1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 1e-2};
 
   double *weights = Q;
   double *Alpha_K = Alpha;

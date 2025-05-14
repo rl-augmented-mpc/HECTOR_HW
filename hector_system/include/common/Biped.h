@@ -49,6 +49,8 @@ class Biped{
             leg_offset_z = -0.1265;
         }
 
+        define_kinematics_coordinates();
+
 
 
     }
@@ -238,14 +240,6 @@ class Biped{
             q(4) = q(4) - q(3);
             qd(4) = qd(4) - qd(3);
         
-        }else{
-            // Now we let the simulation add offset
-            // These offset are synced with URDF
-            // double PI = 3.14159265359;
-            // q[2] += 0.25*PI; 
-            // q[3] -= 0.5*PI; 
-            // q[4] += 0.25*PI;
-
         }
 
     }
@@ -286,14 +280,6 @@ class Biped{
             }
 
         
-        }else{
-            // Now we let the simulation add offset
-            // These offset are synced with URDF
-            // double PI = 3.14159265359;
-            // q[2] -= 0.25*PI; 
-            // q[3] += 0.5*PI; 
-            // q[4] -= 0.25*PI;
-
         }
 
     }
@@ -534,45 +520,6 @@ class Biped{
         }
         return CoM2Foot;
     }
-    
-    // Vec3<double> ComputeIK(Vec3<double> &p_foot_des_b, int leg)
-    // {
-    //     // Analytic IK code (track only foot positin, not orientation)
-    //     // Arguments: 
-    //     // p_foot_des_b: desired foot position in body frame
-    //     // leg: 0 for left, 1 for right
-    //     // Returns: joint angles for hip roll, hip pitch, knee pitch
-    //     // reference: https://arxiv.org/abs/2502.02934 (appendix B)
-
-    //     Vec3<double> q;
-
-    //     double side; 
-    //     if (leg == 0) { // left
-    //         side = 1.0;
-    //     }
-    //     else if (leg == 1) { // right
-    //         side = -1.0;
-    //     }
-    //     // offset -0.06 in x direction is distance from hip roll origin to hip pitch origin 
-    //     // by adding this offset, hip roll and hip pitch frame have only y offset
-    //     Eigen::Vector3d hip_roll = {-0.005+0.0465-0.06, 0.047*side+0.02*side, -0.1265-0.0705}; // hip roll origin in body frame
-    //     double calf_length = 0.22;
-    //     Eigen::Vector3d foot_des_to_hip_roll = p_foot_des_b - hip_roll; // foot target position in hip roll frame (orientation aligned with body frame)
-
-    //     // analytical IK solutions
-    //     double distance_3D = foot_des_to_hip_roll.norm();
-    //     double distance_2D_yOz = std::sqrt(std::pow(foot_des_to_hip_roll[1], 2) + std::pow(foot_des_to_hip_roll[2], 2)); // r1_yz
-    //     double distance_horizontal = 0.018; // r21_y
-    //     double distance_vertical = std::sqrt(std::pow(distance_2D_yOz, 2) - std::pow(distance_horizontal, 2));
-    //     double distance_2D_xOz = pow(( pow(distance_3D, 2.0) - pow(distance_horizontal, 2.0)), 0.5); // r1_xz
-
-    //     q(0) = std::asin(clamp(foot_des_to_hip_roll[1] / distance_2D_yOz, -1.0, 1.0)) + std::asin(clamp(distance_horizontal * side / distance_2D_yOz, -1.0, 1.0));        
-    //     q(1) = std::acos(clamp(distance_2D_xOz / (2.0 * calf_length), -1.0, 1.0)) - side * std::acos(clamp(distance_vertical / distance_2D_xOz, -1.0, 1.0));
-    //     q(2) = 2.0 * std::asin(clamp(distance_2D_xOz / (2.0 * calf_length), -1.0, 1.0)) - 3.14159;
-
-    //     return q;
-
-    // }
 
     Vec3<double> ComputeIK(Vec3<double> &p_foot_des_b, int leg)
     {
@@ -619,6 +566,267 @@ class Biped{
     double clamp(double val, double minVal, double maxVal) {
                 return std::max(minVal, std::min(val, maxVal));
         }
+
+
+
+    /// new kinematics, contact jacobian code ///
+    
+    // offset between each links in 0 positions (from URDF)
+    Vec3<double> p1{0.0, 0.047, -0.1265}; // base to hip yaw in frame1
+    Vec3<double> p2{0.0465, 0.015, -0.0705}; // hip yaw to hip roll in frame2
+    Vec3<double> p3{-0.06, 0.018, 0.0}; // hip roll to hip pitch in frame3
+    Vec3<double> p4{0.0, 0.01805, -0.22}; // hip pitch to knee pitch in frame4
+    Vec3<double> p5{0.0, 0.0, -0.22}; // knee pitch to angle pitch in frame5
+    Vec4<double> p5e{0.0, 0.042, 0.0, 1.0}; // ankle pitch to foot sole
+    Vec3<double> z1, z2, z3, z4, z5;
+
+    Mat4<double> T01_left, T12p_left, T2p2_left, T23p_left, T3p3_left, T34_left, T45_left; 
+    Mat4<double> T01_right, T12p_right, T2p2_right, T23p_right, T3p3_right, T34_right, T45_right;
+    Mat4<double> T02_left, T03_left, T04_left, T05_left;
+    Mat4<double> T02_right, T03_right, T04_right, T05_right;
+    Vec3<double> p0e_left, p0e_right; // end-effector position in body frame
+    Mat65<double> J_left, J_right; // contact jacobian
+    Vec3<double> p01_left, p02_left, p03_left, p04_left, p05_left;
+    Vec3<double> p01_right, p02_right, p03_right, p04_right, p05_right;
+
+    Vec3<double> get_hip_yaw_offset(int leg)
+    {
+        if (leg == 0)
+            return p01_left;
+        else
+            return p01_right;
+    }
+
+    Vec3<double> get_hip_roll_offset(int leg)
+    {
+        if (leg == 0) {
+            Vec3<double> offset = {0.0, 0.047+0.015, 0.0};
+            return offset;
+        }
+        else{
+            Vec3<double> offset = {0.0, -0.047-0.015, 0.0};
+            return offset;
+        }
+    }
+
+    Mat3<double> rot_x(double angle)
+    {
+        Mat3<double> R;
+        R << 1, 0,          0,
+             0, cos(angle), -sin(angle),
+             0, sin(angle),  cos(angle);
+        return R;
+    }
+
+    Mat3<double> rot_z(double angle)
+    {
+        Mat3<double> R;
+        R << cos(angle), -sin(angle), 0,
+             sin(angle),  cos(angle), 0,
+             0,          0,          1;
+        return R;
+    }
+
+    void define_kinematics_coordinates()
+    {
+        T01_left.setIdentity();
+        T2p2_left.setIdentity();
+        T3p3_left.setIdentity();
+        T34_left.setIdentity();
+        T45_left.setIdentity();
+        T12p_left << 0, 0, 1, 0,
+                0, 1, 0, 0,
+                -1, 0, 0, 0,
+                0, 0, 0, 1;
+        T23p_left << 0, 1, 0, 0,
+                0, 0, 1, 0,
+                1, 0, 0, 0,
+                0, 0, 0, 1;
+
+        T01_right.setIdentity();
+        T2p2_right.setIdentity();
+        T3p3_right.setIdentity();
+        T34_right.setIdentity();
+        T45_right.setIdentity();
+        T12p_right << 0, 0, 1, 0,
+                0, 1, 0, 0,
+                -1, 0, 0, 0,
+                0, 0, 0, 1;
+
+        T23p_right << 0, 1, 0, 0,
+                0, 0, 1, 0,
+                1, 0, 0, 0,
+                0, 0, 0, 1;
+        
+        // offset vectors
+        p2 = T12p_left.block<3,3>(0,0).transpose() * p2;
+        p3 = T23p_left.block<3,3>(0,0).transpose() * T12p_left.block<3,3>(0,0).transpose() * p3;
+        p4 = T23p_left.block<3,3>(0,0).transpose() * T12p_left.block<3,3>(0,0).transpose() * p4;
+        p5 = T23p_left.block<3,3>(0,0).transpose() * T12p_left.block<3,3>(0,0).transpose() * p5; 
+    }
+
+    void forward_kinematics(Vec5<double> &joint_angles, int leg){
+        if (leg == 0){
+            T45_left.block<3,3>(0,0) = rot_z(joint_angles(4));
+            T45_left.block<3,1>(0,3) = p5;
+            T34_left.block<3,3>(0,0) = rot_z(joint_angles(3));
+            T34_left.block<3,1>(0,3) = p4;
+            T3p3_left.block<3,3>(0,0) = rot_z(joint_angles(2));
+            T3p3_left.block<3,1>(0,3) = p3;
+            T2p2_left.block<3,3>(0,0) = rot_z(joint_angles(1));
+            T2p2_left.block<3,1>(0,3) = p2;
+            T01_left.block<3,3>(0,0) = rot_z(joint_angles(0));
+            T01_left.block<3,1>(0,3) = p1;
+
+            T02_left = T01_left * T12p_left * T2p2_left; 
+            T03_left = T02_left * T23p_left * T3p3_left;
+            T04_left = T03_left * T34_left;
+            T05_left = T04_left * T45_left;
+
+            p0e_left = (T05_left * p5e).head<3>(); 
+
+        }
+        else if (leg == 1){
+            Vec3<double> side_vec_1 = {1.0, 1.0, -1.0};
+            Vec3<double> side_vec_2 = {1.0, -1.0, 1.0};
+            T45_right.block<3,3>(0,0) = rot_z(joint_angles(4));
+            T45_right.block<3,1>(0,3) = p5.cwiseProduct(side_vec_1);
+            T34_right.block<3,3>(0,0) = rot_z(joint_angles(3));
+            T34_right.block<3,1>(0,3) = p4.cwiseProduct(side_vec_1);
+            T3p3_right.block<3,3>(0,0) = rot_z(joint_angles(2));
+            T3p3_right.block<3,1>(0,3) = p3.cwiseProduct(side_vec_1);
+            T2p2_right.block<3,3>(0,0) = rot_z(joint_angles(1));
+            T2p2_right.block<3,1>(0,3) = p2.cwiseProduct(side_vec_2);
+            T01_right.block<3,3>(0,0) = rot_z(joint_angles(0));
+            T01_right.block<3,1>(0,3) = p1.cwiseProduct(side_vec_2);
+
+            T02_right = T01_right * T12p_right * T2p2_right; 
+            T03_right = T02_right * T23p_right * T3p3_right;
+            T04_right = T03_right * T34_right;
+            T05_right = T04_right * T45_right;
+
+            p0e_right = (T05_right * p5e).head<3>();
+        }
+    }
+
+    Vec3<double> get_p0e(int leg)
+    {
+        if (leg == 0){
+            return p0e_left;
+        }
+        else{
+            return p0e_right;
+        }
+    }
+
+
+    void contact_jacobian(int leg)
+    {
+        if (leg == 0){
+            Vec3<double> z_axis = {0.0, 0.0, 1.0};
+            p01_left = T01_left.block<3,1>(0,3);
+            p02_left = T02_left.block<3,1>(0,3);
+            p03_left = T03_left.block<3,1>(0,3);
+            p04_left = T04_left.block<3,1>(0,3);
+            p05_left = T05_left.block<3,1>(0,3);
+
+            z1 = T01_left.block<3,3>(0,0) * z_axis;
+            z2 = T02_left.block<3,3>(0,0) * z_axis;
+            z3 = T03_left.block<3,3>(0,0) * z_axis;
+            z4 = T04_left.block<3,3>(0,0) * z_axis;
+            z5 = T05_left.block<3,3>(0,0) * z_axis;
+
+            J_left.block<3,1>(0, 0) = z1.cross(p0e_left - p01_left);
+            J_left.block<3,1>(3, 0) = z1;
+            J_left.block<3,1>(0, 1) = z2.cross(p0e_left - p02_left);
+            J_left.block<3,1>(3, 1) = z2;
+            J_left.block<3,1>(0, 2) = z3.cross(p0e_left - p03_left);
+            J_left.block<3,1>(3, 2) = z3;
+            J_left.block<3,1>(0, 3) = z4.cross(p0e_left - p04_left);
+            J_left.block<3,1>(3, 3) = z4;
+            J_left.block<3,1>(0, 4) = z5.cross(p0e_left - p05_left);
+            J_left.block<3,1>(3, 4) = z5;
+        }
+
+        else if (leg == 1){
+            Vec3<double> z_axis = {0.0, 0.0, 1.0};
+            p01_right = T01_right.block<3,1>(0,3);
+            p02_right = T02_right.block<3,1>(0,3);
+            p03_right = T03_right.block<3,1>(0,3);
+            p04_right = T04_right.block<3,1>(0,3);
+            p05_right = T05_right.block<3,1>(0,3);
+
+            z1 = T01_right.block<3,3>(0,0) * z_axis;
+            z2 = T02_right.block<3,3>(0,0) * z_axis;
+            z3 = T03_right.block<3,3>(0,0) * z_axis;
+            z4 = T04_right.block<3,3>(0,0) * z_axis;
+            z5 = T05_right.block<3,3>(0,0) * z_axis;
+
+            J_right.block<3,1>(0, 0) = z1.cross(p0e_right - p01_right);
+            J_right.block<3,1>(3, 0) = z1;
+            J_right.block<3,1>(0, 1) = z2.cross(p0e_right - p02_right);
+            J_right.block<3,1>(3, 1) = z2;
+            J_right.block<3,1>(0, 2) = z3.cross(p0e_right - p03_right);
+            J_right.block<3,1>(3, 2) = z3;
+            J_right.block<3,1>(0, 3) = z4.cross(p0e_right - p04_right);
+            J_right.block<3,1>(3, 3) = z4;
+            J_right.block<3,1>(0, 4) = z5.cross(p0e_right - p05_right);
+            J_right.block<3,1>(3, 4) = z5;
+        }
+    }
+
+    Mat65<double> get_contact_jacobian(int leg)
+    {
+        if (leg == 0){
+            return J_left;
+        }
+        else{
+            return J_right;
+        }
+    }
+
+    Vec3<double> analytical_IK(Vec3<double> &p_foot_des_b, int leg)
+    {
+        // Analytic IK code (track only foot positin, not orientation)
+        // Arguments: 
+        // p_foot_des_b: desired foot position in body frame
+        // leg: 0 for left, 1 for right
+        // Returns: joint angles for hip roll, hip pitch, knee pitch
+        // reference: https://arxiv.org/abs/2502.02934 (appendix B)
+
+        Vec3<double> q;
+
+        double side; 
+        if (leg == 0) { // left
+            side = -1.0;
+        }
+        else if (leg == 1) { // right
+            side = 1.0;
+        }
+        // offset -0.06 in x direction is distance from hip roll origin to hip pitch origin 
+        // by adding this offset, hip roll and hip pitch frame have only y offset
+        Eigen::Vector3d hip_roll = {-0.005+0.0465-0.06, -0.047*side-0.015*side, -0.1265-0.0705}; // hip roll origin in body frame
+        double thigh_length = 0.22;
+        double calf_length = 0.22;
+        double d_foot = 0.042; 
+        Eigen::Vector3d foot_des_to_hip_roll = p_foot_des_b - hip_roll; // foot target position in hip roll frame (orientation aligned with body frame)
+        foot_des_to_hip_roll(2) += d_foot; // track ankle joint position instead of sole position
+        
+        // analytical IK solutions
+        double distance_3D = foot_des_to_hip_roll.norm();
+        double distance_2D_yOz = std::sqrt(std::pow(foot_des_to_hip_roll[1], 2) + std::pow(foot_des_to_hip_roll[2], 2)); // r1_yz
+        double distance_horizontal = 0.005; // r21_y (hip roll to hip pitch y distance)
+        double distance_vertical = std::sqrt(std::pow(distance_2D_yOz, 2) - std::pow(distance_horizontal, 2)); // r2_yz
+        double distance_2D_xOz = pow(( pow(distance_3D, 2.0) - pow(distance_horizontal, 2.0)), 0.5); // r1_xz
+
+        q(0) = std::asin(clamp(foot_des_to_hip_roll[1] / distance_2D_yOz, -1.0, 1.0)) + std::asin(clamp(distance_horizontal * side / distance_2D_yOz, -1.0, 1.0));        
+        q(1) = std::acos(clamp(distance_2D_xOz / (2.0 * thigh_length), -1.0, 1.0)) - std::acos(clamp(distance_vertical / distance_2D_xOz, -1.0, 1.0));
+        q(2) = 2.0 * std::asin(clamp(distance_2D_xOz / (2.0 * calf_length), -1.0, 1.0)) - M_PI;
+
+        return q;
+
+    }
+
 
 };
 
