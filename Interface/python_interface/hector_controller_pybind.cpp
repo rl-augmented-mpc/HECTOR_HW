@@ -12,6 +12,7 @@ PYBIND11_MODULE(hector_control, m) {
       // initial setups
       .def("reset", &HectorController::reset)
       .def("setGaitNum", &HectorController::setGaitNum, py::arg("gaitnum"))
+      .def("resetGaitParameter", &HectorController::resetGaitParameter, py::arg("dsp_durations"), py::arg("ssp_durations"))
       .def("updateGaitParameter", &HectorController::updateGaitParameter, py::arg("dsp_durations"), py::arg("ssp_durations"))
       .def("setFrictionCoefficient", &HectorController::setFrictionCoefficient, py::arg("mu"))
       .def("setFootPlacementPlanner", &HectorController::setFootPlacementPlanner, py::arg("planner_name"))

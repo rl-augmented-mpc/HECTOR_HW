@@ -51,7 +51,6 @@ class swingLegController {
         void updateSwingLeg();
         void updateFootPlacementPlanner();
         void updateSwingFootCommand();
-        void setSteppingFrequency(double stepping_frequency) { _stepping_frequency = stepping_frequency; }
         void setFootHeight(double foot_height) { _foot_height = foot_height; }
         
         /**
@@ -60,11 +59,13 @@ class swingLegController {
          * @param leg: leg index (0 for left, 1 for right)  
          * @param jointAngles: output joint angles
         */
+
+        // RL interface
         void setFootplacementResidual(Vec2<double> pf_residual, int foot);
+        void setSteppingFrequency(double stepping_frequency) { _stepping_frequency = stepping_frequency; }
+
         Vec3<double> getReibertFootPlacement(int foot);
         Vec3<double> getAugmentedFootPlacement(int foot);
-
-        // LIPController lip_controller;
         
 
     private:
@@ -89,6 +90,7 @@ class swingLegController {
         Vec3<double> Pf_augmented[nLegs];
         Vec2<double> Pf_residual[nLegs];
         bool firstSwing[nLegs] = {true, true};
+        int swing_counter[nLegs] = {0, 0};
         string plannar;
         
         void updateFootPosition();
@@ -99,7 +101,7 @@ class swingLegController {
         void setDesiredJointState();
 
         // swing leg related
-        double _foot_height = 0.2; 
+        double _foot_height = 0.1; 
         double _stepping_frequency = 1.0;
 
         // utility functions

@@ -59,7 +59,8 @@ public:
 private:
   void updateMPC(int* mpcTable, ControlFSMData& data, bool omniMode);
   void updateReferenceTrajectory(StateEstimate &seResult, DesiredStateCommand &stateCommand);
-  void updateGait(Vec2<int> dsp_durations, Vec2<int> ssp_durations);
+  void resetGait(Vec2<int> dsp_durations, Vec2<int> ssp_durations);
+  void updateWalkingGait(Vec2<int> dsp_durations, Vec2<int> ssp_durations);
   swingLegController swing;
   int iterationsBetweenMPC;
   int horizonLength;

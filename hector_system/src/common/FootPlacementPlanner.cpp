@@ -43,7 +43,8 @@ Vec2<double> LIPController::compute_foot_placement(StateEstimate &seResult, Desi
     double yaw = std::atan2(v_des_w(1), v_des_w(0));
     
     _sd = std::sqrt(v_des_w(0)*v_des_w(0) + v_des_w(1)*v_des_w(1))*_swing_time; // sagittal step length
-    _wd = step_width*(_swing_time/_total_swing_time); // lateral step width
+    // _wd = step_width*(_swing_time/_total_swing_time); // lateral step width
+    _wd = step_width; // lateral step width
 
     b << _sd/(std::exp(_omega*_swing_time)-1), _wd/(std::exp(_omega*_swing_time)+1); // eq.9
 

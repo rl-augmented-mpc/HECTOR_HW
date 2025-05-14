@@ -32,24 +32,24 @@ public:
   void update_parameter(Vec2<int> dsp_durations, Vec2<int> ssp_durations);
   Vec2<double> getContactSubPhase();
   Vec2<double> getSwingSubPhase();
-  int* mpc_gait(int iterations_between_mpc, float stepping_frequency);
-  void updatePhase(float stepping_frequency);
-  void reset(){_gait_phase = 0;};
+  int* mpc_gait(int iterations_between_mpc);
+  void updatePhase();
+  void reset(){
+    _gait_time_step = 0;
+    _gait_phase = 0;
+  };
   Vec2<int> _stance; 
   Vec2<int> _swing;
-
+  int _gait_time_step = 0; // counter
 
 private:
   int _mpc_horizon;
-  // std::shared_ptr<int[]> _mpc_table; // NOT supported in CXX14
-  std::unique_ptr<int[]> _mpc_table;
+  std::unique_ptr<int[]> _mpc_contact_table;
   
-  int _gait_time_step = 0;
   double _gait_phase = 0;
-
-  Array2i _dsp_durations;                   // duration of double support phase in mpc segments
+  Array2i _dsp_durations;                   // counter duration of double support phase in mpc segments
   Array2d _dsp_durations_phase;          // duration of double support phase in gait phase
-  Array2i _ssp_durations;              // duration of single support phase in mpc segments
+  Array2i _ssp_durations;              // counter duration of single support phase in mpc segments
   Array2d _ssp_durations_phase;        // duration of single support phase in gait phase
   int _gait_cycle_length;
 

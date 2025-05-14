@@ -19,7 +19,7 @@ class Biped{
         
         if (real_flag == 0)
         {
-            mass = 13.856;
+            mass = 11.856;
             I_body << 0.5413, 0.0, 0.0, 0.0, 0.5200, 0.0, 0.0, 0.0, 0.0691;
 
             // left leg hip yaw offset from com 
@@ -51,39 +51,25 @@ class Biped{
 
         define_kinematics_coordinates();
 
-
-
-    }
-
-    void setFootHeight(double _foot_height){
-        foot_height = _foot_height;
-    }
-
-    void setSteppingFrequency(double _gait_stepping_frequency){
-        gait_stepping_frequency = _gait_stepping_frequency;
     }
 
     void setFrictionCoefficient(float _mu){
         mu = _mu;
     }
 
-    void setSwingFootControlPoint(double _cp1_coef, double _cp2_coef){
-        cp1_coef = _cp1_coef;
-        cp2_coef = _cp2_coef;
+    // ** swing foot parameters **
+    void updateSlope(double _slope_pitch){
+        slope_pitch = _slope_pitch;
     }
 
     void setFootPlacementZ(double _pf_z){
         pf_z = _pf_z;
     }
 
-    void updateGaitParameter(Vec2<int> _dsp_durations, Vec2<int> _ssp_durations){
+    void resetGaitParameter(Vec2<int> _dsp_durations, Vec2<int> _ssp_durations){
         dsp_durations = _dsp_durations;
         ssp_durations = _ssp_durations;
         reset_gait = true;
-    }
-
-    void updateSlope(double _slope_pitch){
-        slope_pitch = _slope_pitch;
     }
 
     void setFootPlacementPlanner(std::string _foot_placement_planner){
@@ -95,13 +81,9 @@ class Biped{
             std::cout << "Foot placement planner is set to " << _foot_placement_planner << std::endl;
             foot_placement_planner = _foot_placement_planner;
         }
-        else if (_foot_placement_planner == "OpenLoop"){
-            std::cout << "Foot placement planner is set to " << _foot_placement_planner << std::endl;
-            foot_placement_planner = _foot_placement_planner;
-        }
         else{
             std::cout << "invalid planner choice, use default LIP planner" << std::endl;
-            foot_placement_planner = "LIP";
+            foot_placement_planner = "Raibert";
         }
     }
 
@@ -136,19 +118,12 @@ class Biped{
     float torque_limit[10]{33.5, 33.5, 33.5, 67.0, 33.5, 33.5, 33.5, 33.5, 67.0, 33.5};
 
     // parameters for reference and swing leg controller
-    double foot_height=0.12; // swing foot height
-    float gait_stepping_frequency = 1.0; // gait stepping frequency
-    double cp1_coef = 0.33;
-    double cp2_coef = 0.66;
     double pf_z = 0.0; // foot placement z value
-
-    // Parameters for slope terrain 
     double slope_pitch; // slope pitch in radian
 
     // foot placement planner (pick from here)
     std::string foot_placement_planner = "LIP";
     // std::string foot_placement_planner = "Raibert";
-    // std::string foot_placement_planner = "OpenLoop";
 
     int robot_index; // 1 for Aliengo, 2 for A1
     int _real_flag = 1;
@@ -577,7 +552,7 @@ class Biped{
     Vec3<double> p3{-0.06, 0.018, 0.0}; // hip roll to hip pitch in frame3
     Vec3<double> p4{0.0, 0.01805, -0.22}; // hip pitch to knee pitch in frame4
     Vec3<double> p5{0.0, 0.0, -0.22}; // knee pitch to angle pitch in frame5
-    Vec4<double> p5e{0.0, 0.042, 0.0, 1.0}; // ankle pitch to foot sole
+    Vec4<double> p5e{0.0, 0.0, -0.042, 1.0}; // ankle pitch to foot sole
     Vec3<double> z1, z2, z3, z4, z5;
 
     Mat4<double> T01_left, T12p_left, T2p2_left, T23p_left, T3p3_left, T34_left, T45_left; 
@@ -663,6 +638,7 @@ class Biped{
         p3 = T23p_left.block<3,3>(0,0).transpose() * T12p_left.block<3,3>(0,0).transpose() * p3;
         p4 = T23p_left.block<3,3>(0,0).transpose() * T12p_left.block<3,3>(0,0).transpose() * p4;
         p5 = T23p_left.block<3,3>(0,0).transpose() * T12p_left.block<3,3>(0,0).transpose() * p5; 
+        p5e = T23p_left.transpose() * T12p_left.transpose() * p5e;
     }
 
     void forward_kinematics(Vec5<double> &joint_angles, int leg){

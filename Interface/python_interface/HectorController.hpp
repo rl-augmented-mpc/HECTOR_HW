@@ -42,6 +42,8 @@ class HectorController{
 
         ~HectorController() = default;
 
+        // *** initialization function  
+        
         void reset(){
             fsm->reset();
         }
@@ -60,20 +62,15 @@ class HectorController{
             fsm->setGaitNum(gaitnum);
         }
 
-        void updateGaitParameter(Vec2<int> dsp_durations, Vec2<int> ssp_durations){
-            biped.updateGaitParameter(dsp_durations, ssp_durations);
-        }
-
         // Set target roll_pitch, 2D twist (vx, vy, wz), and height
         void setTargetCommand(Vec2<double> roll_pitch, Vec3<double> twist, double ref_height)
         {
             fsm->setStateCommands(roll_pitch, twist, ref_height);
         }
 
-        // set ground truth state to state estimator
+        // set state to state estimator container directly
         void setState(Vec3<double>position, Quat<double>orientation, Vec3<double>vBody, Vec3<double>omegaBody, Vec10<float> joint_position, Vec10<float> joint_velocity)
         {
-
             // set state estimation data
             stateEstimator->setStateEstimate(position, orientation, vBody, omegaBody);
 
@@ -84,29 +81,62 @@ class HectorController{
             }
         }
 
-        void setGaitSteppingFrequency(float stepping_frequency){
-            biped.setSteppingFrequency(stepping_frequency);
+
+        // *** setter functions
+
+        void resetGaitParameter(Vec2<int> dsp_durations, Vec2<int> ssp_durations){
+            biped.resetGaitParameter(dsp_durations, ssp_durations);
         }
 
-        void setFootHeight(float foot_height){
-            biped.setFootHeight(foot_height);
+        void updateGaitParameter(Vec2<int> dsp_durations, Vec2<int> ssp_durations){
+            biped.rl_params.updateGaitParameter(dsp_durations, ssp_durations);
         }
-
+    
         void setSlopePitch(float slope_pitch){
             biped.updateSlope(slope_pitch);
         }
 
-        void setSwingFootControlPoint(double cp1_coef, double cp2_coef){
-            biped.setSwingFootControlPoint(cp1_coef, cp2_coef);
+        void updateGRFM(Vec12<double> grfm){
+            legController->update_grw(grfm);
+        }
+
+        void addResidualGRFM(Vec12<double> delta_grfm){
+            legController->add_residual_grw(delta_grfm);
+        }
+
+        void updateLowLevelCommand(){
+            legController->updateCommandResidual(cmd.get());
         }
 
         void setFootPlacementZ(double pf_z){
             biped.setFootPlacementZ(pf_z);
         }
 
+        void setGaitSteppingFrequency(float stepping_frequency){
+            biped.rl_params.setSteppingFrequency(stepping_frequency);
+        }
+
+        void setFootHeight(float foot_height){
+            biped.rl_params.setFootHeight(foot_height);
+        }
+
+        void setSwingFootControlPoint(double cp1_coef, double cp2_coef){
+            biped.rl_params.setSwingFootControlPoint(cp1_coef, cp2_coef);
+        }
+
         void setSRBDResidual(Eigen::Matrix<float, 13, 13> A_residual, Eigen::Matrix<float, 13, 12> B_residual){
             biped.rl_params.set_residual_dynamics(A_residual, B_residual);
         }
+
+        void addResidualFootPlacement(Vec4<double> delta_foot_placement){
+            biped.rl_params.set_residual_foot_placement(delta_foot_placement);
+        }
+
+        void addResidualJointPosition(Vec10<double> delta_joint_position){
+            legController->add_residual_joint_position(delta_joint_position);
+        }
+
+        // *** main functions
 
         void run(){
             fsm->run();
@@ -122,26 +152,6 @@ class HectorController{
                             cmd->motorCmd[i].Kd * (cmd->motorCmd[i].dq-state->motorState[i].dq);
                 torque(i) = std::min(std::max(torque(i), -1* biped.torque_limit[i]), biped.torque_limit[i]);
             }
-        }
-
-        void updateGRFM(Vec12<double> grfm){
-            legController->update_grw(grfm);
-        }
-
-        void addResidualGRFM(Vec12<double> delta_grfm){
-            legController->add_residual_grw(delta_grfm);
-        }
-
-        void updateLowLevelCommand(){
-            legController->updateCommandResidual(cmd.get());
-        }
-
-        void addResidualFootPlacement(Vec4<double> delta_foot_placement){
-            biped.rl_params.set_residual_foot_placement(delta_foot_placement);
-        }
-
-        void addResidualJointPosition(Vec10<double> delta_joint_position){
-            legController->add_residual_joint_position(delta_joint_position);
         }
 
         /// **** helper functions to get access to the computed values **** ///

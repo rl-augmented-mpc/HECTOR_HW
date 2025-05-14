@@ -128,6 +128,8 @@
         Vec2<double> contact_state = Vec2<double>::Zero();
         Vec2<double> swing_state = Vec2<double>::Zero();
 
+        Vec3<double> foot_tmp[2] = {Vec3<double>::Zero(), Vec3<double>::Zero()};
+
         
     };
 
