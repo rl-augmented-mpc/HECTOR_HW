@@ -64,6 +64,10 @@ class HectorController{
             biped.updateGaitParameter(dsp_durations, ssp_durations);
         }
 
+        void updateSamplingTime(double dt_sampling){
+            biped.rl_params.update_sampling_dt(dt_sampling);
+        }
+
         // Set target roll_pitch, 2D twist (vx, vy, wz), and height
         void setTargetCommand(Vec2<double> roll_pitch, Vec3<double> twist, double ref_height)
         {

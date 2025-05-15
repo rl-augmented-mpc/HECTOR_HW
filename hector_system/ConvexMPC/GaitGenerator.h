@@ -27,16 +27,20 @@ using namespace std;
 class Gait
 {
 public:
-  Gait(int mpc_horizon, Vec2<int> dsp_durations, Vec2<int> ssp_durations);
+  Gait(int mpc_horizon, Vec2<int> dsp_durations, Vec2<int> ssp_durations, double dt);
   ~Gait();
   void update_parameter(Vec2<int> dsp_durations, Vec2<int> ssp_durations);
   Vec2<double> getContactSubPhase();
   Vec2<double> getSwingSubPhase();
   int* mpc_gait(int iterations_between_mpc, float stepping_frequency);
-  void updatePhase(float stepping_frequency);
+  void updatePhase();
+  void updateSamplingTime(double dt_sampling);
   void reset(){_gait_phase = 0;};
   Vec2<int> _stance; 
   Vec2<int> _swing;
+  Vec2<double> _swing_durations_sec; 
+  Vec2<double> _stance_durations_sec;
+  double gait_durations_sec;
 
 
 private:
@@ -46,6 +50,8 @@ private:
   
   int _gait_time_step = 0;
   double _gait_phase = 0;
+  double _dt;
+  double _stepping_frequency = 1.0;
 
   Array2i _dsp_durations;                   // duration of double support phase in mpc segments
   Array2d _dsp_durations_phase;          // duration of double support phase in gait phase

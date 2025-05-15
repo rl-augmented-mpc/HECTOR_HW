@@ -15,8 +15,8 @@ ConvexMPCLocomotion::ConvexMPCLocomotion(
  horizonLength(_horizon_length),
  dt(_dt),
  mpc_decimation(_mpc_decimation),
- standing(horizonLength, Vec2<int>(int(0.2/_dt), int(0.2/_dt)), Vec2<int>(0, 0)), // set random dsp duration b/c stance gait is non-periodic, infinite
- walking(horizonLength, Vec2<int>(int(0.0/_dt), int(0.0/_dt)), Vec2<int>(int(0.2/dt), int(0.2/dt))) // set nominal value at the beginning. You can change parameter through updateGait
+ standing(horizonLength, Vec2<int>(int(0.2/_dt), int(0.2/_dt)), Vec2<int>(0, 0), dt), // set random dsp duration b/c stance gait is non-periodic, infinite
+ walking(horizonLength, Vec2<int>(int(0.0/_dt), int(0.0/_dt)), Vec2<int>(int(0.2/dt), int(0.2/dt)), dt) // set nominal value at the beginning. You can change parameter through updateGait
 {
   dtMPC = dt * iterationsBetweenMPC;
   rpy_int[2] = 0;
@@ -144,8 +144,14 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
     data._stateEstimator->setContactPhase(se_contactState);
   }
 
-  // update time
-  gait->updatePhase(data._biped->gait_stepping_frequency);
+  // update sampling time when contact switch happens
+  if ((swingStates(0) != -1 && swing_states_prev(0) == -1) | (swingStates(1) != -1 && swing_states_prev(1) == -1)){
+    gait->updateSamplingTime(data._biped->rl_params._dt_sampling);
+    std::cout << "swing duration sec: " << gait->_swing_durations_sec.transpose() << std::endl;
+  }
+  swing_states_prev = swingStates;
+  
+  gait->updatePhase();
   iterationCounter++;
 
   // update contact state with incremented gait phase

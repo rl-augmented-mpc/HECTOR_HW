@@ -1,8 +1,8 @@
 #include "GaitGenerator.h"
 
 
-Gait::Gait(int mpc_horizon, Vec2<int> dsp_durations, Vec2<int> ssp_durations)
-: _mpc_horizon(mpc_horizon), _dsp_durations(dsp_durations.array()), _ssp_durations(ssp_durations.array())
+Gait::Gait(int mpc_horizon, Vec2<int> dsp_durations, Vec2<int> ssp_durations, double dt)
+: _mpc_horizon(mpc_horizon), _dsp_durations(dsp_durations.array()), _ssp_durations(ssp_durations.array()), _dt(dt)
 {
 
     //********Gait Cycle Design for Bipeds********//
@@ -32,6 +32,10 @@ Gait::Gait(int mpc_horizon, Vec2<int> dsp_durations, Vec2<int> ssp_durations)
     _swing = _swing_durations; 
     _stance = _stance_durations;
 
+    _swing_durations_sec = _swing_durations.cast<double>() * _dt;
+    _stance_durations_sec = _stance_durations.cast<double>() * _dt;
+    gait_durations_sec = _gait_cycle_length * _dt;
+
 }
 
 Gait::~Gait() = default;
@@ -55,18 +59,28 @@ void Gait::update_parameter(Vec2<int> dsp_durations, Vec2<int> ssp_durations)
     _swing = _swing_durations;
     _stance = _stance_durations;
 
+    _swing_durations_sec = _swing_durations.cast<double>() * _dt;
+    _stance_durations_sec = _stance_durations.cast<double>() * _dt;
+    gait_durations_sec = _gait_cycle_length * _dt;
+
     reset();
 }
 
-void Gait::updatePhase(float stepping_frequency)
+void Gait::updatePhase()
 {
     // update gait phase based on stepping frequency (default=1)
-    int delta_t = 1; 
-    _gait_phase += stepping_frequency * delta_t / _gait_cycle_length;
+    // _gait_phase += 1 / _gait_cycle_length;
+    _gait_phase += _dt/gait_durations_sec; 
     if (_gait_phase > 1.0)
     {
         _gait_phase -= 1.0;
     }
+}
+
+void Gait::updateSamplingTime(double dt_sampling){
+  _swing_durations_sec = _swing_durations.cast<double>() * dt_sampling;
+  _stance_durations_sec = _stance_durations.cast<double>() * dt_sampling;
+  gait_durations_sec = _gait_cycle_length * dt_sampling;
 }
 
 // Subphase is phase of each foot in contact/swing duration
@@ -139,7 +153,8 @@ int *Gait::mpc_gait(int iterations_between_mpc, float stepping_frequency){
   for (int tMPC = 0; tMPC < _mpc_horizon; tMPC++)
   {
     int gait_time_step_from_phase = (int)(_gait_phase * (double)_gait_cycle_length);
-    int gait_time_step_mpc_forward = (gait_time_step_from_phase + (int)(tMPC*iterations_between_mpc*stepping_frequency)) % _gait_cycle_length;
+    // int iteration_per_mpc = (int)(iterations_between_mpc * _stepping_frequency);
+    int gait_time_step_mpc_forward = (gait_time_step_from_phase + (int)(tMPC*iterations_between_mpc)) % _gait_cycle_length;
 
     if (gait_time_step_mpc_forward < _ssp_durations[0])
     {

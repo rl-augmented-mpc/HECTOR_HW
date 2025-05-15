@@ -23,6 +23,7 @@ PYBIND11_MODULE(hector_control, m) {
       .def("computeAction", &HectorController::computeAction)
 
       // update parameters
+      .def("updateSamplingTime", &HectorController::updateSamplingTime, py::arg("dt_sampling"))
       .def("setGaitSteppingFrequency", &HectorController::setGaitSteppingFrequency, py::arg("stepping_frequency"))
       .def("setFootHeight", &HectorController::setFootHeight, py::arg("foot_height"))
       .def("setSwingFootControlPoint", &HectorController::setSwingFootControlPoint, py::arg("cp1_coef"), py::arg("cp2_coef"))

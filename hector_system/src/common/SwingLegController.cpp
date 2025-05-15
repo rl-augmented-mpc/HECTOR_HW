@@ -56,10 +56,12 @@ void swingLegController::updateSwingStates(){
 void swingLegController::updateSwingTimes(){
     for(int leg = 0; leg < nLegs; leg++){
         if(firstSwing[leg]){
-            swingTimes[leg] = _dtSwing * gait->_swing(leg);
+            // swingTimes[leg] = _dtSwing * gait->_swing(leg);
+            swingTimes[leg] = gait->_swing_durations_sec[leg];
         }
         else{
-            swingTimes[leg] -= _stepping_frequency * _dtSwing;
+            // swingTimes[leg] -= _stepping_frequency * _dtSwing;
+            swingTimes[leg] -= _dtSwing;
             if(contactStates[leg] > 0){
                 firstSwing[leg] = true;
             }            

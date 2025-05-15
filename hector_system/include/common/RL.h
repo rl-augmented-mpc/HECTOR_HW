@@ -32,10 +32,15 @@ class RL {
             delta_joint_position = _delta_joint_position;
         }
 
+        void update_sampling_dt(double dt_sampling){
+            _dt_sampling = dt_sampling;
+        }
+
         Eigen::Matrix<float, 13, 13> A_residual; 
         Eigen::Matrix<float, 13, 12> B_residual;
         Vec12<double> delta_grw; 
         Vec4<double> delta_foot_placement; 
         Vec10<double> delta_joint_position; 
+        double _dt_sampling; 
 
 };

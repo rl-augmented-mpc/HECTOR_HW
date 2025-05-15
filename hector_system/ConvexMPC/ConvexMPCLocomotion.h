@@ -95,6 +95,8 @@ private:
   Vec3<double> a; // a = [a_0, a_1, a_2]; z(x,y) = a_0 + a_1x + a_2y
   Vec4<double> pz;
   double ground_pitch;
+
+  Vec2<double> swing_states_prev={-1, 0};
 };
 
 
