@@ -16,13 +16,14 @@ Gait::Gait(int mpc_horizon, Vec2<int> dsp_durations, Vec2<int> ssp_durations)
     //For standing, set DSP = 0.5*MPC_horizon (actially it can be arbitrary value), SSP,L = 0, SSP,R = 0
     // Phase is within 0 to 1, you can control the how fast each gait ticks with stepping_frequency (1.0 means no speedup)
 
-    _mpc_contact_table = std::make_unique<int[]>(2*_mpc_horizon); 
+    // _mpc_table = std::make_shared<int[]>(2*_mpc_horizon); // NOT supported in CXX14
+    _mpc_table = std::make_unique<int[]>(2*_mpc_horizon); 
     _gait_cycle_length = _dsp_durations.sum() + _ssp_durations.sum();
 
     _stance_durations << ssp_durations[0]+dsp_durations.sum(), ssp_durations[1]+dsp_durations.sum(); // left foot, right foot
-    _swing_durations << ssp_durations[1], ssp_durations[0]; // left foot, right foot
-
     _stance_durations_phase = _stance_durations.cast<double>() / (double)_gait_cycle_length; 
+
+    _swing_durations << ssp_durations[1], ssp_durations[0]; // left foot, right foot
     _swing_durations_phase = _swing_durations.cast<double>() / (double)_gait_cycle_length;
 
     _ssp_durations_phase = _ssp_durations.cast<double>() / (double)_gait_cycle_length;
@@ -35,6 +36,7 @@ Gait::Gait(int mpc_horizon, Vec2<int> dsp_durations, Vec2<int> ssp_durations)
 
 Gait::~Gait() = default;
 
+
 void Gait::update_parameter(Vec2<int> dsp_durations, Vec2<int> ssp_durations)
 {
     _dsp_durations = dsp_durations.array();
@@ -42,9 +44,9 @@ void Gait::update_parameter(Vec2<int> dsp_durations, Vec2<int> ssp_durations)
     _gait_cycle_length = _dsp_durations.sum() + _ssp_durations.sum();
 
     _stance_durations << ssp_durations[0]+dsp_durations.sum(), ssp_durations[1]+dsp_durations.sum(); // left foot, right foot
-    _swing_durations << ssp_durations[1], ssp_durations[0]; // left foot, right foot
-
     _stance_durations_phase = _stance_durations.cast<double>() / (double)_gait_cycle_length; 
+
+    _swing_durations << ssp_durations[1], ssp_durations[0]; // left foot, right foot
     _swing_durations_phase = _swing_durations.cast<double>() / (double)_gait_cycle_length;
 
     _ssp_durations_phase = _ssp_durations.cast<double>() / (double)_gait_cycle_length;
@@ -52,16 +54,18 @@ void Gait::update_parameter(Vec2<int> dsp_durations, Vec2<int> ssp_durations)
 
     _swing = _swing_durations;
     _stance = _stance_durations;
+
+    reset();
 }
 
-void Gait::updatePhase()
+void Gait::updatePhase(float stepping_frequency)
 {
-    _gait_phase += 1.0 / _gait_cycle_length;
-    _gait_time_step += 1;
+    // update gait phase based on stepping frequency (default=1)
+    int delta_t = 1; 
+    _gait_phase += stepping_frequency * delta_t / _gait_cycle_length;
     if (_gait_phase > 1.0)
     {
         _gait_phase -= 1.0;
-        _gait_time_step -= _gait_cycle_length;
     }
 }
 
@@ -130,33 +134,34 @@ Vec2<double> Gait::getSwingSubPhase(){
 }
 
 
-int *Gait::mpc_gait(int iterations_between_mpc){
+int *Gait::mpc_gait(int iterations_between_mpc, float stepping_frequency){
   // compute contact sequence during mpc horizon
   for (int tMPC = 0; tMPC < _mpc_horizon; tMPC++)
   {
-    int gait_time_step_mpc_forward = (_gait_time_step + (int)(tMPC*iterations_between_mpc)) % _gait_cycle_length;
+    int gait_time_step_from_phase = (int)(_gait_phase * (double)_gait_cycle_length);
+    int gait_time_step_mpc_forward = (gait_time_step_from_phase + (int)(tMPC*iterations_between_mpc*stepping_frequency)) % _gait_cycle_length;
 
     if (gait_time_step_mpc_forward < _ssp_durations[0])
     {
-      _mpc_contact_table.get()[tMPC * 2 + 0] = 1; // left foot: stance
-      _mpc_contact_table.get()[tMPC * 2 + 1] = 0; // right foot: swing
+      _mpc_table.get()[tMPC * 2 + 0] = 1; // left foot: stance
+      _mpc_table.get()[tMPC * 2 + 1] = 0; // right foot: swing
     }
     else if (_ssp_durations[0] <= gait_time_step_mpc_forward && gait_time_step_mpc_forward < _ssp_durations[0] + _dsp_durations[0])
     {
-      _mpc_contact_table.get()[tMPC * 2 + 0] = 1; // left foot: stance
-      _mpc_contact_table.get()[tMPC * 2 + 1] = 1; // right foot: stance
+      _mpc_table.get()[tMPC * 2 + 0] = 1; // left foot: stance
+      _mpc_table.get()[tMPC * 2 + 1] = 1; // right foot: stance
     }
     else if (_ssp_durations[0] + _dsp_durations[0] <= gait_time_step_mpc_forward && gait_time_step_mpc_forward < _ssp_durations[0] + _dsp_durations[0] + _ssp_durations[1])
     {
-      _mpc_contact_table.get()[tMPC * 2 + 0] = 0; // left foot: swing
-      _mpc_contact_table.get()[tMPC * 2 + 1] = 1; // right foot: stance
+      _mpc_table.get()[tMPC * 2 + 0] = 0; // left foot: swing
+      _mpc_table.get()[tMPC * 2 + 1] = 1; // right foot: stance
     }
     else{
-      _mpc_contact_table.get()[tMPC * 2 + 0] = 1; // left foot: stance
-      _mpc_contact_table.get()[tMPC * 2 + 1] = 1; // right foot: stance
+      _mpc_table.get()[tMPC * 2 + 0] = 1; // left foot: stance
+      _mpc_table.get()[tMPC * 2 + 1] = 1; // right foot: stance
     }
 
   }
 
-  return _mpc_contact_table.get();
+  return _mpc_table.get();
 }

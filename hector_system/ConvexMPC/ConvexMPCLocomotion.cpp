@@ -24,17 +24,12 @@ ConvexMPCLocomotion::ConvexMPCLocomotion(
     firstSwing[i] = true;
 }
 
-void ConvexMPCLocomotion::resetGait(Vec2<int> dsp_durations, Vec2<int> ssp_durations)
+void ConvexMPCLocomotion::updateGait(Vec2<int> dsp_durations, Vec2<int> ssp_durations)
 {
   standing.update_parameter(Vec2<int>(int(0.2/dt), int(0.2/dt)), Vec2<int>(0, 0));
   walking.update_parameter(dsp_durations, ssp_durations);
   walking.reset();
   standing.reset();
-}
-
-void ConvexMPCLocomotion::updateWalkingGait(Vec2<int> dsp_durations, Vec2<int> ssp_durations)
-{
-  walking.update_parameter(dsp_durations, ssp_durations);
 }
 
 void ConvexMPCLocomotion::run(ControlFSMData &data)
@@ -46,10 +41,9 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
   // pick gait
   if (data._biped->reset_gait)
   {
-    resetGait(data._biped->dsp_durations, data._biped->ssp_durations);
+    updateGait(data._biped->dsp_durations, data._biped->ssp_durations);
     data._biped->reset_gait = false;
   }
-
   Gait *gait = &standing;
   if (gaitNumber == 2)
     gait = &walking;
@@ -87,9 +81,9 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
   }
 
   // foot placement planner
-  updateWalkingGait(data._biped->rl_params.dsp_durations, data._biped->rl_params.ssp_durations);
   swing.setGait(gait);
-  swing.setFootHeight(data._biped->rl_params.foot_height);
+  swing.setFootHeight(data._biped->foot_height);
+  swing.setSteppingFrequency((double)data._biped->gait_stepping_frequency);
   swing.setFootplacementResidual(data._biped->rl_params.delta_foot_placement.segment(0,2), 0);
   swing.setFootplacementResidual(data._biped->rl_params.delta_foot_placement.segment(2,2), 1);
   swing.updateFootPlacementPlanner();
@@ -109,7 +103,7 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
   Vec2<double> swingStates = gait->getSwingSubPhase();
 
   // construct contact constraint booleans for MPC
-  int *mpcTable = gait->mpc_gait(iterationsBetweenMPC);
+  int *mpcTable = gait->mpc_gait(iterationsBetweenMPC, data._biped->gait_stepping_frequency);
   if (iterationCounter % mpc_decimation == 0){
     updateMPC(mpcTable, data, omniMode);
     data._biped->update_mpc_cost(qp_cost);
@@ -151,7 +145,7 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
   }
 
   // update time
-  gait->updatePhase();
+  gait->updatePhase(data._biped->gait_stepping_frequency);
   iterationCounter++;
 
   // update contact state with incremented gait phase
@@ -207,12 +201,10 @@ void ConvexMPCLocomotion::updateMPC(int *mpcTable, ControlFSMData &data, bool om
   // roll pitch yaw x y z droll dpitch dyaw dx dy dz
   // double Q[12] = {300, 300, 150,   300, 300, 100,   1, 1, 1,   5, 3, 3}; // original hardware
   // double Q[12] = {100, 200, 300,  300, 300, 300,  1, 1, 3.0,  2.0, 2.0, 1};
-  double Q[12] = {100, 100, 500,  500, 500, 800,  1, 1, 5,  8, 8, 1};
-  // double Q[12] = {200, 100, 500,  500, 500, 500,  1, 1, 5,  8, 8, 1};
+  double Q[12] = {200, 100, 500,  500, 500, 500,  1, 1, 5,  8, 8, 1};
+  // double Q[12] = {100, 200, 500,  800, 800, 500,  1, 1, 5,  8, 8, 1};
 
   // double Alpha[12] = {1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,   2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2}; // original hardware
-  // double Alpha[12] = {1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,   1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3};
-  // double Alpha[12] = {1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,   1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 1e-2};
   double Alpha[12] = {2e-4, 2e-4, 2e-4, 2e-4, 2e-4, 2e-4,   1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 1e-2};
 
   double *weights = Q;
@@ -332,22 +324,20 @@ void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, Des
     for (int j = 0; j < 12; j++)
       trajAll[12 * i + j] = trajInitial[j];
 
-    trajAll[12*i + 3] = seResult.position[0] + i * dtMPC * v_des_world[0];
-    trajAll[12*i + 4] = seResult.position[1] + i * dtMPC * v_des_world[1];
-    trajAll[12*i + 2] = seResult.rpy[2] + i * dtMPC * turn_rate_des;
 
     // blend closed-loop and open-loop trajectory
     // decrease alpha gradually through the horizon
     // alpha=1: knot point is current state, alpha=0: knot point is open-loop trajectory
-    // double alpha = 0.0;
-    // trajAll[12*i + 3] = alpha * (seResult.position[0] + i * dtMPC * v_des_world[0])
-    //                     + (1 - alpha) * (trajInitial[3] + i * dtMPC * v_des_world[0]);
+    // double alpha = 1.0 - 0.2 * (double)i/(horizonLength-1);
+    double alpha = 0.75;
+    trajAll[12*i + 3] = alpha * (seResult.position[0] + i * dtMPC * v_des_world[0])
+                        + (1 - alpha) * (trajInitial[3] + i * dtMPC * v_des_world[0]);
 
-    // trajAll[12*i + 4] = alpha * (seResult.position[1] + i * dtMPC * v_des_world[1])
-    //                     + (1 - alpha) * (trajInitial[4] + i * dtMPC * v_des_world[1]);
+    trajAll[12*i + 4] = alpha * (seResult.position[1] + i * dtMPC * v_des_world[1])
+                        + (1 - alpha) * (trajInitial[4] + i * dtMPC * v_des_world[1]);
     
-    // trajAll[12*i + 2] = alpha * (seResult.rpy[2] + i * dtMPC * turn_rate_des)
-    //                     + (1 - alpha) * (trajInitial[2] + i * dtMPC * turn_rate_des);
+    trajAll[12*i + 2] = alpha * (seResult.rpy[2] + i * dtMPC * turn_rate_des)
+                        + (1 - alpha) * (trajInitial[2] + i * dtMPC * turn_rate_des);
 
     // if velocity is too small, use open-loop trajectory
     if (std::abs(v_des_world[0]) < 0.01){
