@@ -577,7 +577,7 @@ class Biped{
     Vec3<double> p3{-0.06, 0.018, 0.0}; // hip roll to hip pitch in frame3
     Vec3<double> p4{0.0, 0.01805, -0.22}; // hip pitch to knee pitch in frame4
     Vec3<double> p5{0.0, 0.0, -0.22}; // knee pitch to angle pitch in frame5
-    Vec4<double> p5e{0.0, 0.042, 0.0, 1.0}; // ankle pitch to foot sole
+    Vec4<double> p5e{0.0, 0.0, -0.042, 1.0}; // ankle pitch to foot sole
     Vec3<double> z1, z2, z3, z4, z5;
 
     Mat4<double> T01_left, T12p_left, T2p2_left, T23p_left, T3p3_left, T34_left, T45_left; 
@@ -663,6 +663,7 @@ class Biped{
         p3 = T23p_left.block<3,3>(0,0).transpose() * T12p_left.block<3,3>(0,0).transpose() * p3;
         p4 = T23p_left.block<3,3>(0,0).transpose() * T12p_left.block<3,3>(0,0).transpose() * p4;
         p5 = T23p_left.block<3,3>(0,0).transpose() * T12p_left.block<3,3>(0,0).transpose() * p5; 
+        p5e = T23p_left.transpose() * T12p_left.transpose() * p5e;
     }
 
     void forward_kinematics(Vec5<double> &joint_angles, int leg){
