@@ -89,7 +89,7 @@ void swingLegController::computeFootPlacement(){
                 }
 
                 // update LIP 
-                lip_controller.update_swing_times(swingTimes[foot], _dtSwing * gait->_swing(foot));
+                lip_controller.update_swing_times(swingTimes[foot], gait->_swing_durations_sec[foot]);
                 lip_controller.compute_icp_init(seResult);
                 lip_controller.compute_icp_final();
                 lip_foot_placement = lip_controller.compute_foot_placement(seResult, stateCommand->data, Vec2<double>{0.0, 0.0});
@@ -135,12 +135,12 @@ void swingLegController::computeFootPlacement(){
             
             double p_rel_max_x = 0.3;
             double p_rel_max_y =  0.3;
-            double k_x = 0.05; 
-            double k_y = 0.05; // IMOPRTANT parameter for stable lateral motion
+            double k_x = 0.1; 
+            double k_y = 0.1; // IMOPRTANT parameter for stable lateral motion
             
             Vec3<double> cross_term = 0.5 * std::sqrt(0.55/9.81) * seResult.vWorld.cross(omega_des_world);
-            double pfx_rel   =  seResult.vWorld[0] * 0.5 * gait->_swing(foot) * _dtSwing + k_x  * (seResult.vWorld[0] - v_des_world[0]);
-            double pfy_rel   =  seResult.vWorld[1] * 0.5 * gait->_swing(foot) * _dtSwing + k_y  * (seResult.vWorld[1] - v_des_world[1]);
+            double pfx_rel   =  k_x  * (seResult.vWorld[0] - v_des_world[0]);
+            double pfy_rel   =  k_y  * (seResult.vWorld[1] - v_des_world[1]);
             pfx_rel = fminf(fmaxf(pfx_rel, -p_rel_max_x), p_rel_max_x);
             pfy_rel = fminf(fmaxf(pfy_rel, -p_rel_max_y), p_rel_max_y);
 
@@ -200,7 +200,7 @@ void swingLegController::computeFootDesiredPosition(){
             footSwingTrajectory[foot].setControlPointCoef(data->_biped->cp1_coef, data->_biped->cp2_coef);
             footSwingTrajectory[foot].computeSwingTrajectoryBezier(
                 swingStates[foot], 
-                (double)(_dtSwing*gait->_swing(foot))
+                gait->_swing_durations_sec[foot]
             );
             Vec3<double> pDesFootWorld = footSwingTrajectory[foot].getPosition().cast<double>();
             Vec3<double> vDesFootWorld = footSwingTrajectory[foot].getVelocity().cast<double>();

@@ -15,8 +15,8 @@ ConvexMPCLocomotion::ConvexMPCLocomotion(
  horizonLength(_horizon_length),
  dt(_dt),
  mpc_decimation(_mpc_decimation),
- standing(horizonLength, Vec2<int>(int(0.2/_dt), int(0.2/_dt)), Vec2<int>(0, 0), dt), // set random dsp duration b/c stance gait is non-periodic, infinite
- walking(horizonLength, Vec2<int>(int(0.0/_dt), int(0.0/_dt)), Vec2<int>(int(0.2/dt), int(0.2/dt)), dt) // set nominal value at the beginning. You can change parameter through updateGait
+ standing(horizonLength, Vec2<int>(5, 5), Vec2<int>(0, 0), dt, iterationsBetweenMPC*dt), // set random dsp duration b/c stance gait is non-periodic, infinite
+ walking(horizonLength, Vec2<int>(0, 0), Vec2<int>(5, 5), dt, iterationsBetweenMPC*dt) // set nominal value at the beginning. You can change parameter through updateGait
 {
   dtMPC = dt * iterationsBetweenMPC;
   rpy_int[2] = 0;
@@ -26,7 +26,7 @@ ConvexMPCLocomotion::ConvexMPCLocomotion(
 
 void ConvexMPCLocomotion::updateGait(Vec2<int> dsp_durations, Vec2<int> ssp_durations)
 {
-  standing.update_parameter(Vec2<int>(int(0.2/dt), int(0.2/dt)), Vec2<int>(0, 0));
+  standing.update_parameter(Vec2<int>(5, 5), Vec2<int>(0, 0));
   walking.update_parameter(dsp_durations, ssp_durations);
   walking.reset();
   standing.reset();
@@ -102,9 +102,9 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
   Vec2<double> contactStates = gait->getContactSubPhase();
   Vec2<double> swingStates = gait->getSwingSubPhase();
 
-  // construct contact constraint booleans for MPC
-  int *mpcTable = gait->mpc_gait(iterationsBetweenMPC, data._biped->gait_stepping_frequency);
+  // update MPC
   if (iterationCounter % mpc_decimation == 0){
+    int *mpcTable = gait->mpc_gait();
     updateMPC(mpcTable, data, omniMode);
     data._biped->update_mpc_cost(qp_cost);
   }
@@ -147,7 +147,6 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
   // update sampling time when contact switch happens
   if ((swingStates(0) != -1 && swing_states_prev(0) == -1) | (swingStates(1) != -1 && swing_states_prev(1) == -1)){
     gait->updateSamplingTime(data._biped->rl_params._dt_sampling);
-    std::cout << "swing duration sec: " << gait->_swing_durations_sec.transpose() << std::endl;
   }
   swing_states_prev = swingStates;
   
@@ -207,7 +206,7 @@ void ConvexMPCLocomotion::updateMPC(int *mpcTable, ControlFSMData &data, bool om
   // roll pitch yaw x y z droll dpitch dyaw dx dy dz
   // double Q[12] = {300, 300, 150,   300, 300, 100,   1, 1, 1,   5, 3, 3}; // original hardware
   // double Q[12] = {100, 200, 300,  300, 300, 300,  1, 1, 3.0,  2.0, 2.0, 1};
-  double Q[12] = {200, 100, 500,  500, 500, 500,  1, 1, 5,  8, 8, 1};
+  double Q[12] = {100, 100, 500,  100, 100, 100,  1, 1, 5,  5, 5, 1};
   // double Q[12] = {100, 200, 500,  800, 800, 500,  1, 1, 5,  8, 8, 1};
 
   // double Alpha[12] = {1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,   2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2}; // original hardware
@@ -218,7 +217,8 @@ void ConvexMPCLocomotion::updateMPC(int *mpcTable, ControlFSMData &data, bool om
 
   updateReferenceTrajectory(seResult, *stateCommand);
 
-  dtMPC = dt * iterationsBetweenMPC;
+  // dtMPC = dt * iterationsBetweenMPC;
+  dtMPC = data._biped->rl_params._dt_sampling;
   setup_problem(
   dtMPC, horizonLength, data._biped->mu, data._biped->f_max, data._biped->mass, 
   data._biped->I_body, data._biped->rl_params.A_residual, data._biped->rl_params.B_residual);
@@ -330,20 +330,22 @@ void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, Des
     for (int j = 0; j < 12; j++)
       trajAll[12 * i + j] = trajInitial[j];
 
-
+    trajAll[12*i + 3] = seResult.position[0] + i * dtMPC * v_des_world[0];
+    trajAll[12*i + 4] = seResult.position[1] + i * dtMPC * v_des_world[1];
+    trajAll[12*i + 2] = seResult.rpy[2] + i * dtMPC * turn_rate_des;
     // blend closed-loop and open-loop trajectory
     // decrease alpha gradually through the horizon
     // alpha=1: knot point is current state, alpha=0: knot point is open-loop trajectory
     // double alpha = 1.0 - 0.2 * (double)i/(horizonLength-1);
-    double alpha = 0.75;
-    trajAll[12*i + 3] = alpha * (seResult.position[0] + i * dtMPC * v_des_world[0])
-                        + (1 - alpha) * (trajInitial[3] + i * dtMPC * v_des_world[0]);
+    // double alpha = 0.75;
+    // trajAll[12*i + 3] = alpha * (seResult.position[0] + i * dtMPC * v_des_world[0])
+    //                     + (1 - alpha) * (trajInitial[3] + i * dtMPC * v_des_world[0]);
 
-    trajAll[12*i + 4] = alpha * (seResult.position[1] + i * dtMPC * v_des_world[1])
-                        + (1 - alpha) * (trajInitial[4] + i * dtMPC * v_des_world[1]);
+    // trajAll[12*i + 4] = alpha * (seResult.position[1] + i * dtMPC * v_des_world[1])
+    //                     + (1 - alpha) * (trajInitial[4] + i * dtMPC * v_des_world[1]);
     
-    trajAll[12*i + 2] = alpha * (seResult.rpy[2] + i * dtMPC * turn_rate_des)
-                        + (1 - alpha) * (trajInitial[2] + i * dtMPC * turn_rate_des);
+    // trajAll[12*i + 2] = alpha * (seResult.rpy[2] + i * dtMPC * turn_rate_des)
+    //                     + (1 - alpha) * (trajInitial[2] + i * dtMPC * turn_rate_des);
 
     // if velocity is too small, use open-loop trajectory
     if (std::abs(v_des_world[0]) < 0.01){
