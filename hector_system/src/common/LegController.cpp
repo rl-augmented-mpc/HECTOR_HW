@@ -154,12 +154,13 @@ void LegController::updateCommand(LowlevelCmd* cmd){
         // //// Joint PD gains //
         if (_biped._real_flag == 1){
             commands[leg].kpJoint << 10.0, 30.0, 30.0, 30.0, 10.0;
-            // commands[leg].kdJoint << 1.5, 1.5, 1.5, 1.5, 1;
             commands[leg].kdJoint << 2.0, 2.0, 2.0, 2.0, 1.5;
         }
         else{
-            commands[leg].kpJoint << 10.0, 20.0, 20.0, 20.0, 10.0;
-            commands[leg].kdJoint << 0.45, 0.6, 0.45, 1.0, 0.6;
+            commands[leg].kpJoint << 10.0, 20.0, 20.0, 20.0, 30.0;
+            commands[leg].kdJoint << 0.45, 0.6, 0.45, 1.0, 1.5;
+            // commands[leg].kpJoint << 10.0, 30.0, 30.0, 30.0, 30.0;
+            // commands[leg].kdJoint << 2.0, 2.0, 2.0, 2.0, 1.5;
         }
 
 
@@ -241,15 +242,15 @@ void LegController::updateCommand(LowlevelCmd* cmd){
             Vec3<double> foot_des = commands[leg].pDes; 
             Vec3<double> foot_v_des = commands[leg].vDes;
 
-            //qDes
-            // commands[leg].qDes.block(1,0, 3,1) = _biped.ComputeIK(foot_des, leg); // legacy
+            //desired joint position
             commands[leg].qDes.block(1,0, 3,1) = _biped.analytical_IK(foot_des, leg);
-            // To remove 2 redundancies in DoFs (3D foot pos constraint versus 5 DoFs in each leg) -> hip yaw = 0, ankle pitch designed to be parallel to the ground
             commands[leg].qDes(0) = 0;
             commands[leg].qDes(4) = -_biped.slope_pitch - data[leg].q(3) - data[leg].q(2); // Ankle joint parallel to (sloped) ground
-
-            // qdDes
+            
+            // desrired joint velocity
             commands[leg].qdDes = data[leg].J2.transpose() * foot_v_des;
+            commands[leg].qdDes(0) = 0; // yaw zero
+            commands[leg].qdDes(4) = 0; // ankle zero
 
             // std::cout << "control_mode 3" << std::endl;
 

@@ -96,7 +96,7 @@ private:
   Vec4<double> pz;
   double ground_pitch;
 
-  Vec2<double> swing_states_prev={-1, 0};
+  Vec2<double> swing_states_prev={0, 0};
 };
 
 

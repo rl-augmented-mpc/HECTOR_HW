@@ -600,11 +600,11 @@ class Biped{
     Vec3<double> get_hip_roll_offset(int leg)
     {
         if (leg == 0) {
-            Vec3<double> offset = {0.0, 0.047+0.015, 0.0};
+            Vec3<double> offset = {0.0, 0.047+0.015+0.036, 0.0};
             return offset;
         }
         else{
-            Vec3<double> offset = {0.0, -0.047-0.015, 0.0};
+            Vec3<double> offset = {0.0, -0.047-0.015-0.036, 0.0};
             return offset;
         }
     }
@@ -816,7 +816,7 @@ class Biped{
         // analytical IK solutions
         double distance_3D = foot_des_to_hip_roll.norm();
         double distance_2D_yOz = std::sqrt(std::pow(foot_des_to_hip_roll[1], 2) + std::pow(foot_des_to_hip_roll[2], 2)); // r1_yz
-        double distance_horizontal = 0.005; // r21_y (hip roll to hip pitch y distance)
+        double distance_horizontal = 0.036; // r21_y (hip roll to hip pitch y distance)
         double distance_vertical = std::sqrt(std::pow(distance_2D_yOz, 2) - std::pow(distance_horizontal, 2)); // r2_yz
         double distance_2D_xOz = pow(( pow(distance_3D, 2.0) - pow(distance_horizontal, 2.0)), 0.5); // r1_xz
 

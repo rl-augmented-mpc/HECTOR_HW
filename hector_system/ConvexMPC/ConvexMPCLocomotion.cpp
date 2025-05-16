@@ -145,9 +145,12 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
   }
 
   // update sampling time when contact switch happens
-  if ((swingStates(0) != -1 && swing_states_prev(0) == -1) | (swingStates(1) != -1 && swing_states_prev(1) == -1)){
-    gait->updateSamplingTime(data._biped->rl_params._dt_sampling);
-  }
+  gait->updateSamplingTime(data._biped->rl_params._dt_sampling);
+  // if ((swingStates(0) == -1 && swing_states_prev(0) != -1) || 
+  // (swingStates(1) == -1 && swing_states_prev(1) != -1) || 
+  // (swing_states_prev(0)==0 && swing_states_prev(1)==0)){
+  //   gait->updateSamplingTime(data._biped->rl_params._dt_sampling);
+  // }
   swing_states_prev = swingStates;
   
   gait->updatePhase();
@@ -206,11 +209,12 @@ void ConvexMPCLocomotion::updateMPC(int *mpcTable, ControlFSMData &data, bool om
   // roll pitch yaw x y z droll dpitch dyaw dx dy dz
   // double Q[12] = {300, 300, 150,   300, 300, 100,   1, 1, 1,   5, 3, 3}; // original hardware
   // double Q[12] = {100, 200, 300,  300, 300, 300,  1, 1, 3.0,  2.0, 2.0, 1};
-  double Q[12] = {100, 100, 500,  100, 100, 100,  1, 1, 5,  5, 5, 1};
-  // double Q[12] = {100, 200, 500,  800, 800, 500,  1, 1, 5,  8, 8, 1};
+  // double Q[12] = {100, 100, 500,  100, 100, 100,  1, 1, 5,  5, 5, 1};
+  double Q[12] = {150, 150, 250,  500, 500, 500,  1, 1, 5,  1, 1, 1}; //best weight
 
   // double Alpha[12] = {1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,   2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2}; // original hardware
-  double Alpha[12] = {2e-4, 2e-4, 2e-4, 2e-4, 2e-4, 2e-4,   1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 1e-2};
+  // double Alpha[12] = {2e-4, 2e-4, 2e-4, 2e-4, 2e-4, 2e-4,   1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 1e-2};
+  double Alpha[12] = {1e-5, 1e-5, 1e-5, 1e-5, 1e-5, 1e-5,   1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4}; // best weight
 
   double *weights = Q;
   double *Alpha_K = Alpha;
@@ -238,6 +242,7 @@ void ConvexMPCLocomotion::updateMPC(int *mpcTable, ControlFSMData &data, bool om
       GRF[axis] = get_solution(leg * 3 + axis);
       GRM[axis] = get_solution(leg * 3 + axis + 6);
     }
+    // std::cout << "GRF: " << GRF.transpose() << std::endl;
     GRF_R = -seResult.rBody * GRF;
     GRM_R = -seResult.rBody * GRM;
 
@@ -333,19 +338,6 @@ void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, Des
     trajAll[12*i + 3] = seResult.position[0] + i * dtMPC * v_des_world[0];
     trajAll[12*i + 4] = seResult.position[1] + i * dtMPC * v_des_world[1];
     trajAll[12*i + 2] = seResult.rpy[2] + i * dtMPC * turn_rate_des;
-    // blend closed-loop and open-loop trajectory
-    // decrease alpha gradually through the horizon
-    // alpha=1: knot point is current state, alpha=0: knot point is open-loop trajectory
-    // double alpha = 1.0 - 0.2 * (double)i/(horizonLength-1);
-    // double alpha = 0.75;
-    // trajAll[12*i + 3] = alpha * (seResult.position[0] + i * dtMPC * v_des_world[0])
-    //                     + (1 - alpha) * (trajInitial[3] + i * dtMPC * v_des_world[0]);
-
-    // trajAll[12*i + 4] = alpha * (seResult.position[1] + i * dtMPC * v_des_world[1])
-    //                     + (1 - alpha) * (trajInitial[4] + i * dtMPC * v_des_world[1]);
-    
-    // trajAll[12*i + 2] = alpha * (seResult.rpy[2] + i * dtMPC * turn_rate_des)
-    //                     + (1 - alpha) * (trajInitial[2] + i * dtMPC * turn_rate_des);
 
     // if velocity is too small, use open-loop trajectory
     if (std::abs(v_des_world[0]) < 0.01){

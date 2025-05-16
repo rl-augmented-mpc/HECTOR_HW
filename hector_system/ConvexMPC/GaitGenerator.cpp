@@ -34,8 +34,8 @@ Gait::Gait(int mpc_horizon, Vec2<int> dsp_durations, Vec2<int> ssp_durations, do
 
     
     _swing_durations_sec = _swing_durations.cast<double>() * _dt_mpc;
-    _stance_durations_sec = _stance_durations.cast<double>() * _dt;
-    gait_durations_sec = _gait_cycle_length * _dt;
+    _stance_durations_sec = _stance_durations.cast<double>() * _dt_mpc;
+    gait_durations_sec = _gait_cycle_length * _dt_mpc;
 
 }
 
@@ -154,8 +154,6 @@ int *Gait::mpc_gait(){
   for (int tMPC = 0; tMPC < _mpc_horizon; tMPC++)
   {
     int gait_time_step_from_phase = (int)(_gait_phase * (double)_gait_cycle_length);
-    int iteration_per_mpc = (int)(_dt_mpc/_dt);
-    // int gait_time_step_mpc_forward = (gait_time_step_from_phase + (int)(tMPC*iteration_per_mpc)) % _gait_cycle_length;
     int gait_time_step_mpc_forward = (gait_time_step_from_phase + tMPC) % _gait_cycle_length;
 
     if (gait_time_step_mpc_forward < _ssp_durations[0])
