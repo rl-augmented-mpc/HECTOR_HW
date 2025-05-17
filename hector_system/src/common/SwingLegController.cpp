@@ -129,8 +129,8 @@ void swingLegController::computeFootPlacement(){
             
             double p_rel_max_x = 0.3;
             double p_rel_max_y =  0.3;
-            double k_x = 0.1; 
-            double k_y = 0.03; // IMOPRTANT parameter for stable lateral motion
+            double k_x = 0.05; 
+            double k_y = 0.05; // IMOPRTANT parameter for stable lateral motion
             
             double pfx_rel   =  seResult.vWorld[0] * 0.5 * gait->_swing_durations_sec(foot) + k_x  * (seResult.vWorld[0] - v_des_world[0]);
             double pfy_rel   =  seResult.vWorld[1] * 0.5 * gait->_swing_durations_sec(foot) + k_y  * (seResult.vWorld[1] - v_des_world[1]);

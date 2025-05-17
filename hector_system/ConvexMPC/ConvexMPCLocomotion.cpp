@@ -342,9 +342,20 @@ void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, Des
     for (int j = 0; j < 12; j++)
       trajAll[12 * i + j] = trajInitial[j];
 
-    trajAll[12*i + 3] = seResult.position[0] + i * dtMPC * v_des_world[0];
-    trajAll[12*i + 4] = seResult.position[1] + i * dtMPC * v_des_world[1];
-    trajAll[12*i + 2] = seResult.rpy[2] + i * dtMPC * turn_rate_des;
+    // trajAll[12*i + 3] = seResult.position[0] + i * dtMPC * v_des_world[0];
+    // trajAll[12*i + 4] = seResult.position[1] + i * dtMPC * v_des_world[1];
+    // trajAll[12*i + 2] = seResult.rpy[2] + i * dtMPC * turn_rate_des;
+
+    // blend closed-loop and open-loop trajectory
+    double alpha = 1.0 - (double)i/(horizonLength-1);
+    trajAll[12*i + 3] = alpha * (seResult.position[0] + i * dtMPC * v_des_world[0])
+                        + (1 - alpha) * (trajInitial[3] + i * dtMPC * v_des_world[0]);
+
+    trajAll[12*i + 4] = alpha * (seResult.position[1] + i * dtMPC * v_des_world[1])
+                        + (1 - alpha) * (trajInitial[4] + i * dtMPC * v_des_world[1]);
+    
+    trajAll[12*i + 2] = alpha * (seResult.rpy[2] + i * dtMPC * turn_rate_des)
+                        + (1 - alpha) * (trajInitial[2] + i * dtMPC * turn_rate_des);
 
     // if velocity is too small, use open-loop trajectory
     if (std::abs(v_des_world[0]) < 0.01){
