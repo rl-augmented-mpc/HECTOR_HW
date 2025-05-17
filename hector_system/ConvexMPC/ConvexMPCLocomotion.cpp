@@ -102,6 +102,10 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
   Vec2<double> contactStates = gait->getContactSubPhase();
   Vec2<double> swingStates = gait->getSwingSubPhase();
 
+  if (contactStates(0) == -1 && contactStates(1) == -1){
+    std::cout << "something wrong with contact state" << std::endl;
+  }
+
   // update MPC
   if (iterationCounter % mpc_decimation == 0){
     int *mpcTable = gait->mpc_gait();
