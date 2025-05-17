@@ -157,10 +157,12 @@ void LegController::updateCommand(LowlevelCmd* cmd){
             commands[leg].kdJoint << 2.0, 2.0, 2.0, 2.0, 1.5;
         }
         else{
-            commands[leg].kpJoint << 10.0, 20.0, 20.0, 20.0, 30.0;
-            commands[leg].kdJoint << 0.45, 0.6, 0.45, 1.0, 1.5;
+            // commands[leg].kpJoint << 10.0, 20.0, 20.0, 20.0, 30.0;
+            // commands[leg].kdJoint << 0.45, 0.6, 0.45, 1.0, 1.5;
             // commands[leg].kpJoint << 10.0, 30.0, 30.0, 30.0, 30.0;
             // commands[leg].kdJoint << 2.0, 2.0, 2.0, 2.0, 1.5;
+            commands[leg].kpJoint << 10.0, 20.0, 20.0, 20.0, 10.0;
+            commands[leg].kdJoint << 0.45, 0.6, 0.45, 1.0, 0.6;
         }
 
 

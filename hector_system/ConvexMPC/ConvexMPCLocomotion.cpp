@@ -148,14 +148,17 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
     data._stateEstimator->setContactPhase(se_contactState);
   }
 
-  // update sampling time when contact switch happens
-  // gait->updateSamplingTime(data._biped->rl_params._dt_sampling);
-  if ((swingStates(0) == -1 && swing_states_prev(0) != -1) || 
-  (swingStates(1) == -1 && swing_states_prev(1) != -1) || 
-  (swing_states_prev(0)==0 && swing_states_prev(1)==0)){
-    gait->updateSamplingTime(data._biped->rl_params._dt_sampling);
-  }
-  swing_states_prev = swingStates;
+  // // update sampling time when contact switch happens
+  // // gait->updateSamplingTime(data._biped->rl_params._dt_sampling);
+  // if ((swingStates(0) == -1 && swing_states_prev(0) != -1) || 
+  // (swingStates(1) == -1 && swing_states_prev(1) != -1) || 
+  // (swing_states_prev(0)==0 && swing_states_prev(1)==0)){
+  //   gait->updateSamplingTime(data._biped->rl_params._dt_sampling);
+  // }
+  // swing_states_prev = swingStates;
+  
+  // update every control time step
+  gait->updateSamplingTime(data._biped->rl_params._dt_sampling);
   
   gait->updatePhase();
   iterationCounter++;
