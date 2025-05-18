@@ -36,9 +36,9 @@ void swingLegController::updateSwingFootCommand(){
 void swingLegController::updateFootPosition(){
 
     for(int i = 0; i < nLegs; i++){
-        // pFoot_w[i] =  seResult.position + seResult.rBody.transpose() 
-        //             * ( data->_biped->getHip2Location(i) + data->_legController->data[i].p);
-        pFoot_w[i] =  seResult.position + seResult.rBody.transpose()*(data->_legController->data[i].p);
+        pFoot_w[i] =  seResult.position + seResult.rBody.transpose() 
+                    * ( data->_biped->getHip2Location(i) + data->_legController->data[i].p);
+        // pFoot_w[i] =  seResult.position + seResult.rBody.transpose()*(data->_legController->data[i].p);
     }
 }
 
@@ -124,8 +124,8 @@ void swingLegController::computeFootPlacement(){
             footSwingTrajectory[foot].setPitch(data->_biped->slope_pitch); 
 
             // Reibert heuristic
-            // Pf[foot] = seResult.position + seResult.rBody.transpose() * (data->_biped->getHip2Location(foot)) + seResult.vWorld * swingTimes[foot];
-            Pf[foot] = seResult.position + seResult.rBody.transpose() * (data->_biped->get_hip_yaw_offset(foot)) + seResult.vWorld * swingTimes[foot];
+            Pf[foot] = seResult.position + seResult.rBody.transpose() * (data->_biped->getHip2Location(foot)) + seResult.vWorld * swingTimes[foot];
+            // Pf[foot] = seResult.position + seResult.rBody.transpose() * (data->_biped->get_hip_yaw_offset(foot)) + seResult.vWorld * swingTimes[foot];
             
             double p_rel_max_x = 0.3;
             double p_rel_max_y =  0.3;

@@ -114,17 +114,17 @@ void LegController::updateData(const LowlevelState* state){
 
 
         // legacy code
-        // data[leg].J = _biped.HiptoFootJacobian(data[leg].q, leg);
-        // data[leg].J2 = data[leg].J.block(0,0, 3,5);
-        // data[leg].p = _biped.HiptoFoot(data[leg].q, leg);
-        // data[leg].v = data[leg].J2 * data[leg].qd;
-
-        _biped.forward_kinematics(data[leg].q, leg);
-        _biped.contact_jacobian(leg);
-        data[leg].J = _biped.get_contact_jacobian(leg);
+        data[leg].J = _biped.HiptoFootJacobian(data[leg].q, leg);
         data[leg].J2 = data[leg].J.block(0,0, 3,5);
-        data[leg].p = _biped.get_p0e(leg);
+        data[leg].p = _biped.HiptoFoot(data[leg].q, leg);
         data[leg].v = data[leg].J2 * data[leg].qd;
+
+        // _biped.forward_kinematics(data[leg].q, leg);
+        // _biped.contact_jacobian(leg);
+        // data[leg].J = _biped.get_contact_jacobian(leg);
+        // data[leg].J2 = data[leg].J.block(0,0, 3,5);
+        // data[leg].p = _biped.get_p0e(leg);
+        // data[leg].v = data[leg].J2 * data[leg].qd;
 
 
     }
@@ -358,8 +358,10 @@ Vec6<double> LegController::get_ref_swing_position(){
 
 Vec6<double> LegController::get_swing_position(){
     // return foot position in body frame
-    foot_pos.block<3,1>(0,0) = data[0].p;
-    foot_pos.block<3,1>(3,0) = data[1].p;
+    // foot_pos.block<3,1>(0,0) = data[0].p;
+    // foot_pos.block<3,1>(3,0) = data[1].p;
+    foot_pos.block<3,1>(0,0) = data[0].p + _biped.getHip2Location(0);
+    foot_pos.block<3,1>(3,0) = data[1].p + _biped.getHip2Location(1);
     return foot_pos;
 }
 
