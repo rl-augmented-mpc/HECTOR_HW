@@ -16,6 +16,23 @@ class Biped{
         _real_flag = real_flag;
         mu = 0.3; // friction coefficient
         f_max = 500; // maximum grf_z
+
+
+        // geometry (left foot centric)
+        leg_yaw_offset_x = -0.005;
+        leg_yaw_offset_y = 0.047;
+        leg_yaw_offset_z = -0.126;
+        leg_roll_offset_x = -0.0465;
+        leg_roll_offset_y = 0.015;
+        leg_roll_offset_z = -0.0705;
+        hipLinkLength = 0.038;
+        thighLinkLength = 0.22;
+        calfLinkLength = 0.22;
+
+        L_hipYawLocation = getHipYawLocation(0);
+        L_hipRollLocation = getHipRollLocation(0);
+        R_hipYawLocation = getHipYawLocation(1);
+        R_hipRollLocation = getHipRollLocation(1);
         
         if (real_flag == 0)
         {
@@ -113,15 +130,18 @@ class Biped{
     RL rl_params; // RL parameters
 
     //robot geometry
-    double hipLinkLength;
-    double thighLinkLength;
-    double calfLinkLength;
+    double hipLinkLength, thighLinkLength, calfLinkLength;
+    double leg_yaw_offset_x, leg_yaw_offset_y, leg_yaw_offset_z;
+    double leg_roll_offset_x, leg_roll_offset_y, leg_roll_offset_z;
+    Vec3<double> L_hipYawLocation;
+    Vec3<double> L_hipRollLocation;
+    Vec3<double> R_hipYawLocation;
+    Vec3<double> R_hipRollLocation;
+
 
     double leg_offset_x;
     double leg_offset_y;
     double leg_offset_z;
-
-    double foot_area;
 
     // qp cost
     double mpc_cost = 0; 
@@ -344,6 +364,13 @@ class Biped{
         return pHip;
     };
 
+    Vec3<double> getHipYawLocation(int leg){
+        return Vec3<double>(leg_yaw_offset_x, leg == 0 ? leg_yaw_offset_y : -leg_yaw_offset_y, leg_yaw_offset_z);
+    }
+
+    Vec3<double> getHipRollLocation(int leg){
+        return Vec3<double>(leg_roll_offset_x, leg == 0 ? leg_roll_offset_y : -leg_roll_offset_y, leg_roll_offset_z);
+    }
 
 
     Vec3<double> HiptoFoot(Vec5<double> &joint_angles, int leg)
@@ -533,16 +560,20 @@ class Biped{
 
         double side; 
         if (leg == 0) { // left
-            side = 1.0;
-        }
-        else if (leg == 1) { // right
             side = -1.0;
         }
-        Eigen::Vector3d hip_roll;
-        hip_roll << -0.005+0.0465, 0.047*side+0.015*side, -0.1265-0.0705; // hip roll origin in body frame
-        Eigen::Vector3d foot_des_to_hip_roll = p_foot_des_b - hip_roll; // foot target position in hip roll frame (orientation aligned with body frame)
-        foot_des_to_hip_roll(0) += 0.06; // hardware-related offset??
-        
+        else if (leg == 1) { // right
+            side = 1.0;
+        }
+        Eigen::Vector3d hipWidthOffSet = {-0.015, side*-0.055, 0.0}; // TODO: sync with Biped.h
+        Eigen::Vector3d hip_roll(L_hipRollLocation[0]-0.06, 0.0, L_hipYawLocation[2]+L_hipRollLocation[2]*2);
+        Eigen::Vector3d foot_des_to_hip_roll = p_foot_des_b - hip_roll + hipWidthOffSet;
+
+        // Eigen::Vector3d hip_roll;
+        // hip_roll << -0.005+0.0465, 0.047*side+0.015*side, -0.1265-0.0705; // hip roll origin in body frame
+        // Eigen::Vector3d foot_des_to_hip_roll = p_foot_des_b - hip_roll; // foot target position in hip roll frame (orientation aligned with body frame)
+        // foot_des_to_hip_roll(0) += 0.06; // hardware-related offset??
+
         double distance_3D = foot_des_to_hip_roll.norm();
         double distance_2D_yOz = std::sqrt(std::pow(foot_des_to_hip_roll[1], 2) + std::pow(foot_des_to_hip_roll[2], 2));
         double distance_horizontal = 0.0205;
@@ -550,14 +581,12 @@ class Biped{
         double distance_2D_xOz = pow(( pow(distance_3D,2.0)-pow(distance_horizontal,2.0)), 0.5);
                        
         // Ensure arguments are within valid range for acos and asin to avoid NaN
-        double acosArg1 = clamp(distance_2D_xOz / (2.0 * 0.22), -1.0, 1.0);
-        double acosArg2 = clamp(distance_vertical / distance_2D_xOz, -1.0, 1.0);
         double divisor = std::abs(foot_des_to_hip_roll[0]);
         divisor = (divisor == 0.0) ? 1e-6 : divisor; // Prevent division by zero
 
         q(0) = std::asin(clamp(foot_des_to_hip_roll[1] / distance_2D_yOz, -1.0, 1.0)) + std::asin(clamp(distance_horizontal * side / distance_2D_yOz, -1.0, 1.0));        
-        q(1) = std::acos(acosArg1) - std::acos(acosArg2) * (foot_des_to_hip_roll[0]) / divisor;
-        q(2) = 2.0 * std::asin(clamp(distance_2D_xOz / 2.0 / 0.22, -1.0, 1.0)) - 3.14159;
+        q(1) = std::acos(clamp(distance_2D_xOz / (2.0 * thighLinkLength), -1.0, 1.0)) - std::acos(clamp(distance_vertical / distance_2D_xOz, -1.0, 1.0)) * (foot_des_to_hip_roll[0]) / divisor;
+        q(2) = 2.0 * std::asin(clamp(distance_2D_xOz / (2.0*calfLinkLength), -1.0, 1.0)) - M_PI;
 
         return q;
 
