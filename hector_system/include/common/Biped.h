@@ -565,13 +565,14 @@ class Biped{
         else if (leg == 1) { // right
             side = 1.0;
         }
-        Eigen::Vector3d hipWidthOffSet = {0.025, side*0.06, -0.136*0}; // TODO: sync with Biped.h
-        Eigen::Vector3d hip_roll = {0.0465, 0.02*side, -0.197};
-        Eigen::Vector3d foot_des_to_hip_roll = p_foot_des_b - hip_roll - hipWidthOffSet;
+        // Eigen::Vector3d hipWidthOffSet = {0.025, side*0.06, -0.136*0}; // TODO: sync with Biped.h
+        // Eigen::Vector3d hip_roll = {0.0465, 0.02*side, -0.197};
+        // Eigen::Vector3d foot_des_to_hip_roll = p_foot_des_b - hip_roll - hipWidthOffSet;
+        // foot_des_to_hip_roll(0) += 0.06;
 
-        // Eigen::Vector3d hip_roll;
-        // hip_roll << -0.005+0.0465-0.06, -0.047*side-0.015*side, -0.1265-0.0705; // hip roll origin in body frame
-        // Eigen::Vector3d foot_des_to_hip_roll = p_foot_des_b - hip_roll; // foot target position in hip roll frame (orientation aligned with body frame)
+        Eigen::Vector3d hip_roll;
+        hip_roll << -0.005+0.0465-0.06, -0.047*side-0.015*side, -0.1265-0.0705-0.042; // hip roll origin in body frame
+        Eigen::Vector3d foot_des_to_hip_roll = p_foot_des_b - hip_roll; // foot target position in hip roll frame (orientation aligned with body frame)
 
         double distance_3D = foot_des_to_hip_roll.norm();
         double distance_2D_yOz = std::sqrt(std::pow(foot_des_to_hip_roll[1], 2) + std::pow(foot_des_to_hip_roll[2], 2));
@@ -600,7 +601,7 @@ class Biped{
     /// new kinematics, contact jacobian code ///
     
     // offset between each links in 0 positions (from URDF)
-    Vec3<double> p1{0.0, 0.047, -0.1265}; // base to hip yaw in frame1
+    Vec3<double> p1{-0.005, 0.047, -0.1265}; // base to hip yaw in frame1
     Vec3<double> p2{0.0465, 0.015, -0.0705}; // hip yaw to hip roll in frame2
     Vec3<double> p3{-0.06, 0.018, 0.0}; // hip roll to hip pitch in frame3
     Vec3<double> p4{0.0, 0.01805, -0.22}; // hip pitch to knee pitch in frame4
