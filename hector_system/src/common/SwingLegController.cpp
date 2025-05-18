@@ -199,7 +199,7 @@ void swingLegController::computeFootDesiredPosition(){
             Vec3<double> vDesFootWorld = footSwingTrajectory[foot].getVelocity().cast<double>();
             
             pFoot_b[foot] = seResult.rBody * (pDesFootWorld - seResult.position);
-            vFoot_b[foot] = seResult.rBody * (vDesFootWorld*0 - seResult.vWorld);  
+            vFoot_b[foot] = seResult.rBody * (vDesFootWorld - seResult.vWorld);  
         }
 
         if (pFoot_b[foot].hasNaN()){
