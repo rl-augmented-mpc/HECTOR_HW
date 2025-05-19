@@ -626,7 +626,7 @@ class Biped{
         double divisor = std::abs(foot_des_to_hip_roll[0]);
         divisor = (divisor == 0.0) ? 1e-6 : divisor; // Prevent division by zero
 
-        q(0) = std::asin(clamp(foot_des_to_hip_roll[1] / distance_2D_yOz, -1.0, 1.0)) + std::asin(clamp(distance_horizontal * side / distance_2D_yOz, -1.0, 1.0));        
+        q(0) = std::asin(clamp(foot_des_to_hip_roll[1] / distance_2D_yOz, -1.0, 1.0)) - std::asin(clamp(distance_horizontal * side / distance_2D_yOz, -1.0, 1.0));        
         q(1) = std::acos(acosArg1) - std::acos(acosArg2) * (foot_des_to_hip_roll[0]) / divisor;
         q(2) = 2.0 * std::asin(clamp(distance_2D_xOz / 2.0 / 0.22, -1.0, 1.0)) - 3.14159;
 
