@@ -548,6 +548,48 @@ class Biped{
         return CoM2Foot;
     }
 
+    Vec3<double> ComputeIK(Vec3<double> &p_foot_des_b, int leg)
+    {
+        // Analytic IK code (USC original)
+        // Arguments: 
+        // p_foot_des_b: desired foot position in body frame
+        // leg: 0 for left, 1 for right
+        // Returns: joint angles for hip roll, hip pitch, knee pitch
+
+        Vec3<double> q;
+
+        double side; 
+        if (leg == 0) { // left
+            side = -1.0;
+        }
+        else if (leg == 1) { // right
+            side = 1.0;
+        }
+
+        Eigen::Vector3d hip_roll;
+        // hip_roll << -0.005+0.0465-0.06, -0.047*side-0.015*side, -0.1265-2*0.0705; // hip roll origin in body frame
+        hip_roll << 0.015+0.0465-0.06, -0.055*side, -0.1265-0.0705-0.042; // hip roll origin in body frame
+        // hip_roll = {0.025+0.0465-0.06, -0.06*side - 0.02*side, -0.197};
+        Eigen::Vector3d foot_des_to_hip_roll = p_foot_des_b - hip_roll; // foot target position in hip roll frame (orientation aligned with body frame)
+
+        double distance_3D = foot_des_to_hip_roll.norm();
+        double distance_2D_yOz = std::sqrt(std::pow(foot_des_to_hip_roll[1], 2) + std::pow(foot_des_to_hip_roll[2], 2));
+        double distance_horizontal = 0.0205;
+        double distance_vertical = std::sqrt(std::max(0.00001, std::pow(distance_2D_yOz, 2) - std::pow(distance_horizontal, 2)));        // double distance_vertical = std::sqrt(std::pow(distance_2D_yOz, 2) - std::pow(distance_horizontal, 2));
+        double distance_2D_xOz = pow(( pow(distance_3D,2.0)-pow(distance_horizontal,2.0)), 0.5);
+                       
+        // Ensure arguments are within valid range for acos and asin to avoid NaN
+        double divisor = std::abs(foot_des_to_hip_roll[0]);
+        divisor = (divisor == 0.0) ? 1e-6 : divisor; // Prevent division by zero
+
+        q(0) = std::asin(clamp(foot_des_to_hip_roll[1] / distance_2D_yOz, -1.0, 1.0)) + std::asin(clamp(distance_horizontal * side / distance_2D_yOz, -1.0, 1.0));        
+        q(1) = std::acos(clamp(distance_2D_xOz / (2.0 * thighLinkLength), -1.0, 1.0)) - std::acos(clamp(distance_vertical / distance_2D_xOz, -1.0, 1.0)) * (foot_des_to_hip_roll[0]) / divisor;
+        q(2) = 2.0 * std::asin(clamp(distance_2D_xOz / (2.0*calfLinkLength), -1.0, 1.0)) - M_PI;
+
+        return q;
+
+    }
+
     // Vec3<double> ComputeIK(Vec3<double> &p_foot_des_b, int leg)
     // {
     //     // Analytic IK code (track only foot positin, not orientation)
@@ -560,20 +602,16 @@ class Biped{
 
     //     double side; 
     //     if (leg == 0) { // left
-    //         side = -1.0;
-    //     }
-    //     else if (leg == 1) { // right
     //         side = 1.0;
     //     }
-    //     // Eigen::Vector3d hipWidthOffSet = {0.025, side*0.06, -0.136*0}; // TODO: sync with Biped.h
-    //     // Eigen::Vector3d hip_roll = {0.0465, 0.02*side, -0.197};
-    //     // Eigen::Vector3d foot_des_to_hip_roll = p_foot_des_b - hip_roll - hipWidthOffSet;
-    //     // foot_des_to_hip_roll(0) += 0.06;
-
+    //     else if (leg == 1) { // right
+    //         side = -1.0;
+    //     }
     //     Eigen::Vector3d hip_roll;
-    //     hip_roll << -0.005+0.0465-0.06, -0.047*side-0.015*side, -0.1265-0.0705-0.042; // hip roll origin in body frame
+    //     hip_roll << -0.005+0.0465, 0.047*side+0.015*side, -0.1265-0.0705; // hip roll origin in body frame
     //     Eigen::Vector3d foot_des_to_hip_roll = p_foot_des_b - hip_roll; // foot target position in hip roll frame (orientation aligned with body frame)
-
+    //     foot_des_to_hip_roll(0) += 0.06; // hardware-related offset??
+        
     //     double distance_3D = foot_des_to_hip_roll.norm();
     //     double distance_2D_yOz = std::sqrt(std::pow(foot_des_to_hip_roll[1], 2) + std::pow(foot_des_to_hip_roll[2], 2));
     //     double distance_horizontal = 0.0205;
@@ -581,58 +619,18 @@ class Biped{
     //     double distance_2D_xOz = pow(( pow(distance_3D,2.0)-pow(distance_horizontal,2.0)), 0.5);
                        
     //     // Ensure arguments are within valid range for acos and asin to avoid NaN
+    //     double acosArg1 = clamp(distance_2D_xOz / (2.0 * 0.22), -1.0, 1.0);
+    //     double acosArg2 = clamp(distance_vertical / distance_2D_xOz, -1.0, 1.0);
     //     double divisor = std::abs(foot_des_to_hip_roll[0]);
     //     divisor = (divisor == 0.0) ? 1e-6 : divisor; // Prevent division by zero
 
-    //     q(0) = std::asin(clamp(foot_des_to_hip_roll[1] / distance_2D_yOz, -1.0, 1.0)) + std::asin(clamp(distance_horizontal * side / distance_2D_yOz, -1.0, 1.0));        
-    //     q(1) = std::acos(clamp(distance_2D_xOz / (2.0 * thighLinkLength), -1.0, 1.0)) - std::acos(clamp(distance_vertical / distance_2D_xOz, -1.0, 1.0)) * (foot_des_to_hip_roll[0]) / divisor;
-    //     q(2) = 2.0 * std::asin(clamp(distance_2D_xOz / (2.0*calfLinkLength), -1.0, 1.0)) - M_PI;
+    //     q(0) = std::asin(clamp(foot_des_to_hip_roll[1] / distance_2D_yOz, -1.0, 1.0)) - std::asin(clamp(distance_horizontal * side / distance_2D_yOz, -1.0, 1.0));        
+    //     q(1) = std::acos(acosArg1) - std::acos(acosArg2) * (foot_des_to_hip_roll[0]) / divisor;
+    //     q(2) = 2.0 * std::asin(clamp(distance_2D_xOz / 2.0 / 0.22, -1.0, 1.0)) - 3.14159;
 
     //     return q;
 
     // }
-
-    Vec3<double> ComputeIK(Vec3<double> &p_foot_des_b, int leg)
-    {
-        // Analytic IK code (track only foot positin, not orientation)
-        // Arguments: 
-        // p_foot_des_b: desired foot position in body frame
-        // leg: 0 for left, 1 for right
-        // Returns: joint angles for hip roll, hip pitch, knee pitch
-
-        Vec3<double> q;
-
-        double side; 
-        if (leg == 0) { // left
-            side = 1.0;
-        }
-        else if (leg == 1) { // right
-            side = -1.0;
-        }
-        Eigen::Vector3d hip_roll;
-        hip_roll << -0.005+0.0465, 0.047*side+0.015*side, -0.1265-0.0705; // hip roll origin in body frame
-        Eigen::Vector3d foot_des_to_hip_roll = p_foot_des_b - hip_roll; // foot target position in hip roll frame (orientation aligned with body frame)
-        foot_des_to_hip_roll(0) += 0.06; // hardware-related offset??
-        
-        double distance_3D = foot_des_to_hip_roll.norm();
-        double distance_2D_yOz = std::sqrt(std::pow(foot_des_to_hip_roll[1], 2) + std::pow(foot_des_to_hip_roll[2], 2));
-        double distance_horizontal = 0.0205;
-        double distance_vertical = std::sqrt(std::max(0.00001, std::pow(distance_2D_yOz, 2) - std::pow(distance_horizontal, 2)));        // double distance_vertical = std::sqrt(std::pow(distance_2D_yOz, 2) - std::pow(distance_horizontal, 2));
-        double distance_2D_xOz = pow(( pow(distance_3D,2.0)-pow(distance_horizontal,2.0)), 0.5);
-                       
-        // Ensure arguments are within valid range for acos and asin to avoid NaN
-        double acosArg1 = clamp(distance_2D_xOz / (2.0 * 0.22), -1.0, 1.0);
-        double acosArg2 = clamp(distance_vertical / distance_2D_xOz, -1.0, 1.0);
-        double divisor = std::abs(foot_des_to_hip_roll[0]);
-        divisor = (divisor == 0.0) ? 1e-6 : divisor; // Prevent division by zero
-
-        q(0) = std::asin(clamp(foot_des_to_hip_roll[1] / distance_2D_yOz, -1.0, 1.0)) - std::asin(clamp(distance_horizontal * side / distance_2D_yOz, -1.0, 1.0));        
-        q(1) = std::acos(acosArg1) - std::acos(acosArg2) * (foot_des_to_hip_roll[0]) / divisor;
-        q(2) = 2.0 * std::asin(clamp(distance_2D_xOz / 2.0 / 0.22, -1.0, 1.0)) - 3.14159;
-
-        return q;
-
-    }
 
     double clamp(double val, double minVal, double maxVal) {
                 return std::max(minVal, std::min(val, maxVal));

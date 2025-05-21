@@ -95,7 +95,8 @@ void swingLegController::computeFootPlacement(){
                 lip_foot_placement = lip_controller.compute_foot_placement(seResult, stateCommand->data, Vec2<double>{0.0, 0.0});
 
                 // Reibert for lateral
-                Vec3<double>rb_fps = seResult.position + seResult.rBody.transpose() * (data->_biped->get_hip_roll_offset(foot)) + seResult.vWorld * swingTimes[foot];
+                // Vec3<double>rb_fps = seResult.position + seResult.rBody.transpose() * (data->_biped->get_hip_roll_offset(foot)) + seResult.vWorld * swingTimes[foot];
+                Vec3<double> rb_fps = seResult.position + seResult.rBody.transpose() * (data->_biped->getHip2Location(foot)) + seResult.vWorld * swingTimes[foot];
                 double p_rel_max_y =  0.1;
                 double k_y = 0.03; // IMOPRTANT parameter for stable lateral motion
                 double pfy_rel   =  k_y  * (seResult.vWorld[1] - v_des_world[1]);
@@ -189,7 +190,6 @@ void swingLegController::computeFootDesiredPosition(){
               footSwingTrajectory[foot].setInitialPosition(pFoot_w[foot]);
                }
             //Compute and get the desired foot position and velocity
-            // std::cout << "cp1_coef: " << data->_biped->cp1_coef << " cp2_coef: " << data->_biped->cp2_coef << std::endl;
             footSwingTrajectory[foot].setControlPointCoef(data->_biped->cp1_coef, data->_biped->cp2_coef);
             footSwingTrajectory[foot].computeSwingTrajectoryBezier(
                 swingStates[foot], 

@@ -148,17 +148,17 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
     data._stateEstimator->setContactPhase(se_contactState);
   }
 
-  // // update sampling time when contact switch happens
-  // // gait->updateSamplingTime(data._biped->rl_params._dt_sampling);
-  // if ((swingStates(0) == -1 && swing_states_prev(0) != -1) || 
-  // (swingStates(1) == -1 && swing_states_prev(1) != -1) || 
-  // (swing_states_prev(0)==0 && swing_states_prev(1)==0)){
-  //   gait->updateSamplingTime(data._biped->rl_params._dt_sampling);
-  // }
-  // swing_states_prev = swingStates;
+  // update sampling time when contact switch happens
+  // gait->updateSamplingTime(data._biped->rl_params._dt_sampling);
+  if ((swingStates(0) == -1 && swing_states_prev(0) != -1) || 
+  (swingStates(1) == -1 && swing_states_prev(1) != -1) || 
+  (swing_states_prev(0)==0 && swing_states_prev(1)==0)){
+    gait->updateSamplingTime(data._biped->rl_params._dt_sampling);
+  }
+  swing_states_prev = swingStates;
   
   // update every control time step
-  gait->updateSamplingTime(data._biped->rl_params._dt_sampling);
+  // gait->updateSamplingTime(data._biped->rl_params._dt_sampling);
   
   gait->updatePhase();
   iterationCounter++;
@@ -220,8 +220,8 @@ void ConvexMPCLocomotion::updateMPC(int *mpcTable, ControlFSMData &data, bool om
   double Q[12] = {150, 150, 250,  500, 500, 500,  1, 1, 5,  1, 1, 1}; //best weight
 
   // double Alpha[12] = {1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,   2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2}; // original hardware
-  // double Alpha[12] = {2e-4, 2e-4, 2e-4, 2e-4, 2e-4, 2e-4,   1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 1e-2};
-  double Alpha[12] = {1e-5, 1e-5, 1e-5, 1e-5, 1e-5, 1e-5,   1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4}; // best weight
+  double Alpha[12] = {2e-4, 2e-4, 2e-4, 2e-4, 2e-4, 2e-4,   1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 1e-2};
+  // double Alpha[12] = {1e-5, 1e-5, 5e-5, 1e-5, 1e-5, 5e-5,   1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4}; // best weight
 
   double *weights = Q;
   double *Alpha_K = Alpha;
