@@ -93,17 +93,17 @@ void swingLegController::computeFootPlacement(){
                 lip_controller.compute_icp_init(seResult);
                 lip_controller.compute_icp_final();
                 lip_foot_placement = lip_controller.compute_foot_placement(seResult, stateCommand->data, Vec2<double>{0.0, 0.0});
+                Pf[foot] << lip_foot_placement[0], lip_foot_placement[1], data->_biped->pf_z;
 
                 // Reibert for lateral
                 // Vec3<double>rb_fps = seResult.position + seResult.rBody.transpose() * (data->_biped->get_hip_roll_offset(foot)) + seResult.vWorld * swingTimes[foot];
                 Vec3<double> rb_fps = seResult.position + seResult.rBody.transpose() * (data->_biped->getHip2Location(foot)) + seResult.vWorld * swingTimes[foot];
-                double p_rel_max_y =  0.1;
+                double p_rel_max_y =  0.3;
                 double k_y = 0.03; // IMOPRTANT parameter for stable lateral motion
-                double pfy_rel   =  k_y  * (seResult.vWorld[1] - v_des_world[1]);
+                double pfy_rel = seResult.vWorld[1] * 0.5 * gait->_swing_durations_sec(foot) + k_y  * (seResult.vWorld[1] - v_des_world[1]);
                 pfy_rel = fminf(fmaxf(pfy_rel, -p_rel_max_y), p_rel_max_y);
 
-                // Pf[foot] << lip_foot_placement[0], lip_foot_placement[1] + pfy_rel, data->_biped->pf_z;
-                Pf[foot] << lip_foot_placement[0], rb_fps[1] + pfy_rel, data->_biped->pf_z;
+                // Pf[foot] << lip_foot_placement[0], rb_fps[1] + pfy_rel, data->_biped->pf_z;
                 Pf_augmented[foot] << Pf[foot][0] + Pf_residual[foot][0], Pf[foot][1] + Pf_residual[foot][1], data->_biped->pf_z;
 
             }
@@ -128,10 +128,10 @@ void swingLegController::computeFootPlacement(){
             Pf[foot] = seResult.position + seResult.rBody.transpose() * (data->_biped->getHip2Location(foot)) + seResult.vWorld * swingTimes[foot];
             // Pf[foot] = seResult.position + seResult.rBody.transpose() * (data->_biped->get_hip_yaw_offset(foot)) + seResult.vWorld * swingTimes[foot];
             
-            double p_rel_max_x = 0.3;
-            double p_rel_max_y =  0.3;
-            double k_x = 0.03; 
-            double k_y = 0.03; // IMOPRTANT parameter for stable lateral motion
+            double p_rel_max_x = 0.4;
+            double p_rel_max_y =  0.4;
+            double k_x = 0.1; 
+            double k_y = 0.1; // IMOPRTANT parameter for stable lateral motion
             
             double pfx_rel   =  seResult.vWorld[0] * 0.5 * gait->_swing_durations_sec(foot) + k_x  * (seResult.vWorld[0] - v_des_world[0]);
             double pfy_rel   =  seResult.vWorld[1] * 0.5 * gait->_swing_durations_sec(foot) + k_y  * (seResult.vWorld[1] - v_des_world[1]);

@@ -65,5 +65,5 @@ class LIPController
         double _sd;
         double _wd;
         // double step_width = 0.3; // baseline step width
-        double step_width = 0.2; // baseline step width
+        double step_width = 0.3; // baseline step width
 };
