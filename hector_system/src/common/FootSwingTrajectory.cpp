@@ -18,7 +18,7 @@
 template <typename T>
 void FootSwingTrajectory<T>::computeSwingTrajectoryBezier(T phase, T swingTime) {
 
-  // Cycloid trajectory
+  // // Cycloid trajectory
   // _pf[2] = _p0[2];
   // T phasePI = 2 * M_PI * phase;
   // T zp, zv;

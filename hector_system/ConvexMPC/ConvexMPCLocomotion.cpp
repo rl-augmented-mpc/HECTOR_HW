@@ -53,9 +53,9 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
   // get then foot location in world frame
   for (int i = 0; i < 2; i++)
   {
-    // pFoot[i] = seResult.position + seResult.rBody.transpose() 
-    // * (data._biped->getHip2Location(i) + data._legController->data[i].p);
-    pFoot[i] = seResult.position + seResult.rBody.transpose()*(data._legController->data[i].p);
+    pFoot[i] = seResult.position + seResult.rBody.transpose() 
+    * (data._biped->getHip2Location(i) + data._legController->data[i].p);
+    // pFoot[i] = seResult.position + seResult.rBody.transpose()*(data._legController->data[i].p);
   }
 
   // some first time initialization
@@ -348,8 +348,8 @@ void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, Des
     // trajAll[12*i + 4] = seResult.position[1] + i * dtMPC * v_des_world[1];
     // trajAll[12*i + 2] = seResult.rpy[2] + i * dtMPC * turn_rate_des;
 
-    // blend closed-loop and open-loop trajectory
-    double alpha = 1.0 - (double)i/(horizonLength-1);
+    // // blend closed-loop and open-loop trajectory
+    double alpha = 0.75;
     trajAll[12*i + 3] = alpha * (seResult.position[0] + i * dtMPC * v_des_world[0])
                         + (1 - alpha) * (trajInitial[3] + i * dtMPC * v_des_world[0]);
 

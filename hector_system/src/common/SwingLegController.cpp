@@ -36,9 +36,9 @@ void swingLegController::updateSwingFootCommand(){
 void swingLegController::updateFootPosition(){
 
     for(int i = 0; i < nLegs; i++){
-        // pFoot_w[i] =  seResult.position + seResult.rBody.transpose() 
-        //             * ( data->_biped->getHip2Location(i) + data->_legController->data[i].p);
-        pFoot_w[i] =  seResult.position + seResult.rBody.transpose()*(data->_legController->data[i].p);
+        pFoot_w[i] =  seResult.position + seResult.rBody.transpose() 
+                    * ( data->_biped->getHip2Location(i) + data->_legController->data[i].p);
+        // pFoot_w[i] =  seResult.position + seResult.rBody.transpose()*(data->_legController->data[i].p);
     }
 }
 
@@ -93,6 +93,7 @@ void swingLegController::computeFootPlacement(){
                 lip_controller.compute_icp_init(seResult);
                 lip_controller.compute_icp_final();
                 lip_foot_placement = lip_controller.compute_foot_placement(seResult, stateCommand->data, Vec2<double>{0.0, 0.0});
+                Pf[foot] << lip_foot_placement[0], lip_foot_placement[1], data->_biped->pf_z;
 
                 // Reibert for lateral
                 Vec3<double>rb_fps = seResult.position + seResult.rBody.transpose() * (data->_biped->get_hip_offset(foot)) + seResult.vWorld * swingTimes[foot];
@@ -101,8 +102,7 @@ void swingLegController::computeFootPlacement(){
                 double pfy_rel   =  k_y  * (seResult.vWorld[1] - v_des_world[1]);
                 pfy_rel = fminf(fmaxf(pfy_rel, -p_rel_max_y), p_rel_max_y);
 
-                // Pf[foot] << lip_foot_placement[0], lip_foot_placement[1] + pfy_rel, data->_biped->pf_z;
-                Pf[foot] << lip_foot_placement[0], rb_fps[1] + pfy_rel, data->_biped->pf_z;
+                // Pf[foot] << lip_foot_placement[0], rb_fps[1] + pfy_rel, data->_biped->pf_z;
                 Pf_augmented[foot] << Pf[foot][0] + Pf_residual[foot][0], Pf[foot][1] + Pf_residual[foot][1], data->_biped->pf_z;
 
             }
@@ -196,7 +196,6 @@ void swingLegController::computeFootDesiredPosition(){
               footSwingTrajectory[foot].setInitialPosition(pFoot_w[foot]);
                }
             //Compute and get the desired foot position and velocity
-            // std::cout << "cp1_coef: " << data->_biped->cp1_coef << " cp2_coef: " << data->_biped->cp2_coef << std::endl;
             footSwingTrajectory[foot].setControlPointCoef(data->_biped->cp1_coef, data->_biped->cp2_coef);
             footSwingTrajectory[foot].computeSwingTrajectoryBezier(
                 swingStates[foot], 

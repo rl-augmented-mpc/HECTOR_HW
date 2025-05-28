@@ -41,6 +41,6 @@ class RL {
         Vec12<double> delta_grw; 
         Vec4<double> delta_foot_placement; 
         Vec10<double> delta_joint_position; 
-        double _dt_sampling; 
+        double _dt_sampling= 0.02;
 
 };

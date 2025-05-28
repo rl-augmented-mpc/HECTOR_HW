@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "*.py": "python",
         "cctype": "cpp",
         "clocale": "cpp",
         "cmath": "cpp",
@@ -75,6 +76,21 @@
         "valarray": "cpp",
         "regex": "cpp",
         "future": "cpp",
-        "shared_mutex": "cpp"
+        "shared_mutex": "cpp",
+        "__bit_reference": "cpp",
+        "__config": "cpp",
+        "__hash_table": "cpp",
+        "__locale": "cpp",
+        "__node_handle": "cpp",
+        "__split_buffer": "cpp",
+        "__threading_support": "cpp",
+        "__tree": "cpp",
+        "__verbose_abort": "cpp",
+        "charconv": "cpp",
+        "execution": "cpp",
+        "ios": "cpp",
+        "locale": "cpp",
+        "queue": "cpp",
+        "span": "cpp"
     }
 }
