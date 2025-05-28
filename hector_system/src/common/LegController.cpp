@@ -245,6 +245,7 @@ void LegController::updateCommand(LowlevelCmd* cmd){
             Vec3<double> foot_v_des = commands[leg].vDes;
 
             //desired joint position
+            // commands[leg].qDes.block(1,0, 3,1) = _biped.ComputeIK(foot_des, leg);
             commands[leg].qDes.block(1,0, 3,1) = _biped.analytical_IK(foot_des, leg);
             commands[leg].qDes(0) = 0;
             commands[leg].qDes(4) = -_biped.slope_pitch - data[leg].q(3) - data[leg].q(2); // Ankle joint parallel to (sloped) ground
@@ -357,8 +358,10 @@ Vec6<double> LegController::get_ref_swing_position(){
 
 Vec6<double> LegController::get_swing_position(){
     // return foot position in body frame
-    foot_pos.block<3,1>(0,0) = data[0].p + _biped.getHip2Location(0);
-    foot_pos.block<3,1>(3,0) = data[1].p + _biped.getHip2Location(1);
+    // foot_pos.block<3,1>(0,0) = data[0].p + _biped.getHip2Location(0);
+    // foot_pos.block<3,1>(3,0) = data[1].p + _biped.getHip2Location(1);
+    foot_pos.block<3,1>(0,0) = data[0].p;
+    foot_pos.block<3,1>(3,0) = data[1].p;
     return foot_pos;
 }
 

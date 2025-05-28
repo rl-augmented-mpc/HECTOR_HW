@@ -555,7 +555,7 @@ class Biped{
         double divisor = std::abs(foot_des_to_hip_roll[0]);
         divisor = (divisor == 0.0) ? 1e-6 : divisor; // Prevent division by zero
 
-        q(0) = std::asin(clamp(foot_des_to_hip_roll[1] / distance_2D_yOz, -1.0, 1.0)) + std::asin(clamp(distance_horizontal * side / distance_2D_yOz, -1.0, 1.0));        
+        q(0) = std::asin(clamp(foot_des_to_hip_roll[1] / distance_2D_yOz, -1.0, 1.0)) - std::asin(clamp(distance_horizontal * side / distance_2D_yOz, -1.0, 1.0));        
         q(1) = std::acos(acosArg1) - std::acos(acosArg2) * (foot_des_to_hip_roll[0]) / divisor;
         q(2) = 2.0 * std::asin(clamp(distance_2D_xOz / 2.0 / 0.22, -1.0, 1.0)) - 3.14159;
 
@@ -572,7 +572,7 @@ class Biped{
     /// new kinematics, contact jacobian code ///
     
     // offset between each links in 0 positions (from URDF)
-    Vec3<double> p1{0.0, 0.047, -0.1265}; // base to hip yaw in frame1
+    Vec3<double> p1{-0.005, 0.047, -0.1265}; // base to hip yaw in frame1
     Vec3<double> p2{0.0465, 0.015, -0.0705}; // hip yaw to hip roll in frame2
     Vec3<double> p3{-0.06, 0.018, 0.0}; // hip roll to hip pitch in frame3
     Vec3<double> p4{0.0, 0.01805, -0.22}; // hip pitch to knee pitch in frame4
@@ -597,14 +597,14 @@ class Biped{
             return p01_right;
     }
 
-    Vec3<double> get_hip_roll_offset(int leg)
+    Vec3<double> get_hip_offset(int leg)
     {
         if (leg == 0) {
-            Vec3<double> offset = {0.0, 0.047+0.015+0.036, 0.0};
+            Vec3<double> offset = {-0.005+0.0465-0.06, 0.047+0.015+0.03605, 0.0};
             return offset;
         }
         else{
-            Vec3<double> offset = {0.0, -0.047-0.015-0.036, 0.0};
+            Vec3<double> offset = {-0.005+0.0465-0.06, -0.047-0.015-0.03605, 0.0};
             return offset;
         }
     }
@@ -793,7 +793,6 @@ class Biped{
         // p_foot_des_b: desired foot position in body frame
         // leg: 0 for left, 1 for right
         // Returns: joint angles for hip roll, hip pitch, knee pitch
-        // reference: https://arxiv.org/abs/2502.02934 (appendix B)
 
         Vec3<double> q;
 
@@ -804,28 +803,34 @@ class Biped{
         else if (leg == 1) { // right
             side = 1.0;
         }
-        // offset -0.06 in x direction is distance from hip roll origin to hip pitch origin 
-        // by adding this offset, hip roll and hip pitch frame have only y offset
+
         Eigen::Vector3d hip_roll = {-0.005+0.0465-0.06, -0.047*side-0.015*side, -0.1265-0.0705}; // hip roll origin in body frame
         double thigh_length = 0.22;
         double calf_length = 0.22;
         double d_foot = 0.042; 
-        Eigen::Vector3d foot_des_to_hip_roll = p_foot_des_b - hip_roll; // foot target position in hip roll frame (orientation aligned with body frame)
-        foot_des_to_hip_roll(2) += d_foot; // track ankle joint position instead of sole position
+        Eigen::Vector3d foot_des_from_hip_roll = p_foot_des_b - hip_roll; // foot target position in hip roll frame (orientation aligned with body frame)
+        foot_des_from_hip_roll(2) += d_foot; // track ankle joint position instead of sole position
         
         // analytical IK solutions
-        double distance_3D = foot_des_to_hip_roll.norm();
-        double distance_2D_yOz = std::sqrt(std::pow(foot_des_to_hip_roll[1], 2) + std::pow(foot_des_to_hip_roll[2], 2)); // r1_yz
-        double distance_horizontal = 0.036; // r21_y (hip roll to hip pitch y distance)
-        double distance_vertical = std::sqrt(std::pow(distance_2D_yOz, 2) - std::pow(distance_horizontal, 2)); // r2_yz
-        double distance_2D_xOz = pow(( pow(distance_3D, 2.0) - pow(distance_horizontal, 2.0)), 0.5); // r1_xz
+        double distance_2D_yOz = std::sqrt(std::pow(foot_des_from_hip_roll[1], 2) + std::pow(foot_des_from_hip_roll[2], 2)); // r1_yz
+        double distance_horizontal = 0.018+0.01805; // hip roll to end-effector y distance
 
-        q(0) = std::asin(clamp(foot_des_to_hip_roll[1] / distance_2D_yOz, -1.0, 1.0)) + std::asin(clamp(distance_horizontal * side / distance_2D_yOz, -1.0, 1.0));        
-        q(1) = std::acos(clamp(distance_2D_xOz / (2.0 * thigh_length), -1.0, 1.0)) - std::acos(clamp(distance_vertical / distance_2D_xOz, -1.0, 1.0));
-        q(2) = 2.0 * std::asin(clamp(distance_2D_xOz / (2.0 * calf_length), -1.0, 1.0)) - M_PI;
+        // hip roll
+        q(0) = std::asin(clamp(foot_des_from_hip_roll[1] / distance_2D_yOz, -1.0, 1.0)) + std::asin(clamp(distance_horizontal * side / distance_2D_yOz, -1.0, 1.0));
+
+        // transform foot_des_from_hip_roll to hip pitch frame
+        Mat3<double> R_hip_roll = rot_x(q(0));
+        Vec3<double> hip_roll_to_hip_pitch_offset = {0.0, 0.018*side, 0.0};
+        Vec3<double> foot_des_from_hip_pitch = R_hip_roll.transpose() * foot_des_from_hip_roll + hip_roll_to_hip_pitch_offset;
+        double r = foot_des_from_hip_pitch.norm();
+
+        // planar 2R IK (xz plane)
+        double cos_q2 = clamp((std::pow(r, 2) - std::pow(thigh_length, 2) - std::pow(calf_length, 2)) / (2.0 * thigh_length * calf_length), -1.0, 1.0); 
+        double sin_q2 = clamp(-std::sqrt(1.0 - std::pow(cos_q2, 2)), -1.0, 1.0);
+        q(2) = std::atan2(sin_q2, cos_q2); 
+        q(1) = std::atan2(-foot_des_from_hip_pitch(0), -foot_des_from_hip_pitch(2)) - std::atan2(calf_length * sin_q2, thigh_length + calf_length * cos_q2);
 
         return q;
-
     }
 
 
