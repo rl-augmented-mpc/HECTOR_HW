@@ -53,9 +53,9 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
   // get then foot location in world frame
   for (int i = 0; i < 2; i++)
   {
-    pFoot[i] = seResult.position + seResult.rBody.transpose() 
-    * (data._biped->getHip2Location(i) + data._legController->data[i].p);
-    // pFoot[i] = seResult.position + seResult.rBody.transpose()*(data._legController->data[i].p);
+    // pFoot[i] = seResult.position + seResult.rBody.transpose() 
+    // * (data._biped->getHip2Location(i) + data._legController->data[i].p);
+    pFoot[i] = seResult.position + seResult.rBody.transpose()*(data._legController->data[i].p);
   }
 
   // some first time initialization

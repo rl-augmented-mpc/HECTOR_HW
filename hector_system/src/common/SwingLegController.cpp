@@ -36,9 +36,9 @@ void swingLegController::updateSwingFootCommand(){
 void swingLegController::updateFootPosition(){
 
     for(int i = 0; i < nLegs; i++){
-        pFoot_w[i] =  seResult.position + seResult.rBody.transpose() 
-                    * ( data->_biped->getHip2Location(i) + data->_legController->data[i].p);
-        // pFoot_w[i] =  seResult.position + seResult.rBody.transpose()*(data->_legController->data[i].p);
+        // pFoot_w[i] =  seResult.position + seResult.rBody.transpose() 
+        //             * ( data->_biped->getHip2Location(i) + data->_legController->data[i].p);
+        pFoot_w[i] =  seResult.position + seResult.rBody.transpose()*(data->_legController->data[i].p);
     }
 }
 
@@ -102,7 +102,7 @@ void swingLegController::computeFootPlacement(){
                 double pfy_rel   =  k_y  * (seResult.vWorld[1] - v_des_world[1]);
                 pfy_rel = fminf(fmaxf(pfy_rel, -p_rel_max_y), p_rel_max_y);
 
-                // Pf[foot] << lip_foot_placement[0], rb_fps[1] + pfy_rel, data->_biped->pf_z;
+                Pf[foot] << lip_foot_placement[0], rb_fps[1] + pfy_rel, data->_biped->pf_z;
                 Pf_augmented[foot] << Pf[foot][0] + Pf_residual[foot][0], Pf[foot][1] + Pf_residual[foot][1], data->_biped->pf_z;
 
             }

@@ -114,17 +114,17 @@ void LegController::updateData(const LowlevelState* state){
 
 
         // legacy code
-        data[leg].J = _biped.HiptoFootJacobian(data[leg].q, leg);
-        data[leg].J2 = data[leg].J.block(0,0, 3,5);
-        data[leg].p = _biped.HiptoFoot(data[leg].q, leg);
-        data[leg].v = data[leg].J2 * data[leg].qd;
-
-        // _biped.forward_kinematics(data[leg].q, leg);
-        // _biped.contact_jacobian(leg);
-        // data[leg].J = _biped.get_contact_jacobian(leg);
+        // data[leg].J = _biped.HiptoFootJacobian(data[leg].q, leg);
         // data[leg].J2 = data[leg].J.block(0,0, 3,5);
-        // data[leg].p = _biped.get_p0e(leg);
+        // data[leg].p = _biped.HiptoFoot(data[leg].q, leg);
         // data[leg].v = data[leg].J2 * data[leg].qd;
+
+        _biped.forward_kinematics(data[leg].q, leg);
+        _biped.contact_jacobian(leg);
+        data[leg].J = _biped.get_contact_jacobian(leg);
+        data[leg].J2 = data[leg].J.block(0,0, 3,5);
+        data[leg].p = _biped.get_p0e(leg);
+        data[leg].v = data[leg].J2 * data[leg].qd;
 
 
     }
