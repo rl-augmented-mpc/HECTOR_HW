@@ -640,7 +640,7 @@ class Biped{
     /// new kinematics, contact jacobian code ///
     
     // offset between each links in 0 positions (from URDF)
-    Vec3<double> p1{-0.005, 0.047, -0.1265}; // base to hip yaw in frame1
+    Vec3<double> p1{-0.00, 0.047, -0.1265}; // base to hip yaw in frame1
     Vec3<double> p2{0.0465, 0.015, -0.0705}; // hip yaw to hip roll in frame2
     Vec3<double> p3{-0.06, 0.018, 0.0}; // hip roll to hip pitch in frame3
     Vec3<double> p4{0.0, 0.01805, -0.22}; // hip pitch to knee pitch in frame4
@@ -668,11 +668,11 @@ class Biped{
     Vec3<double> get_hip_offset(int leg)
     {
         if (leg == 0) {
-            Vec3<double> offset = {-0.005+0.0465-0.06, 0.047+0.015+0.03605, 0.0};
+            Vec3<double> offset = {-0.00+0.0465-0.06, 0.047+0.015+0.03605, 0.0};
             return offset;
         }
         else{
-            Vec3<double> offset = {-0.005+0.0465-0.06, -0.047-0.015-0.03605, 0.0};
+            Vec3<double> offset = {-0.00+0.0465-0.06, -0.047-0.015-0.03605, 0.0};
             return offset;
         }
     }
@@ -872,7 +872,7 @@ class Biped{
             side = 1.0;
         }
 
-        Eigen::Vector3d hip_roll = {-0.005+0.0465-0.06, -0.047*side-0.015*side, -0.1265-0.0705}; // hip roll origin in body frame
+        Eigen::Vector3d hip_roll = {-0.00+0.0465-0.06, -0.047*side-0.015*side, -0.1265-0.0705}; // hip roll origin in body frame
         double thigh_length = 0.22;
         double calf_length = 0.22;
         double d_foot = 0.042; 

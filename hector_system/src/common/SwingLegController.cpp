@@ -98,7 +98,7 @@ void swingLegController::computeFootPlacement(){
                 // Reibert for lateral
                 Vec3<double>rb_fps = seResult.position + seResult.rBody.transpose() * (data->_biped->get_hip_offset(foot)) + seResult.vWorld * swingTimes[foot];
                 double p_rel_max_y =  0.3;
-                double k_y = 0.03;
+                double k_y = 0.1;
                 double pfy_rel   =  k_y  * (seResult.vWorld[1] - v_des_world[1]);
                 pfy_rel = fminf(fmaxf(pfy_rel, -p_rel_max_y), p_rel_max_y);
 
@@ -127,7 +127,7 @@ void swingLegController::computeFootPlacement(){
                 Pf[foot] = seResult.position + seResult.rBody.transpose() * (data->_biped->get_hip_offset(foot)) + seResult.vWorld * swingTimes[foot];
                 
                 double p_rel_max_x = 0.1;
-                double p_rel_max_y =  0.015;
+                double p_rel_max_y =  0.03;
                 double k_x = 0.03; 
                 double k_y = 0.03; // IMOPRTANT parameter for stable lateral motion
                 
