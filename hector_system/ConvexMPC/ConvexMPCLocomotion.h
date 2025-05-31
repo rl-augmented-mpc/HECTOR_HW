@@ -52,13 +52,16 @@ public:
 
   Vec2<double> contact_state;
 
+  Vec3<double> reference_position[10];
+  Vec3<double> reference_orientation[10];
+
   bool climb = 0;
   bool firstRun = true;
   // ofstream foot_position;
 
 private:
   void updateMPC(int* mpcTable, ControlFSMData& data, bool omniMode);
-  void updateReferenceTrajectory(StateEstimate &seResult, DesiredStateCommand &stateCommand);
+  void updateReferenceTrajectory(StateEstimate &seResult, DesiredStateCommand &stateCommand, ControlFSMData &data);
   void updateGait(Vec2<int> dsp_durations, Vec2<int> ssp_durations);
   swingLegController swing;
   int iterationsBetweenMPC;

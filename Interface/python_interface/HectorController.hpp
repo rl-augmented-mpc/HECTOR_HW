@@ -6,6 +6,10 @@
 #include <thread>
 #include <memory>
 
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+#include <pybind11/eigen.h>
+
 #include "../../hector_system/include/common/ControlFSMData.h"
 #include "../../hector_system/include/FSM/FSM.h"
 
@@ -204,6 +208,42 @@ class HectorController{
 
         double getCost(){
             return biped.mpc_cost; 
+        }
+
+        pybind11::array_t<double> getReferencePositionTrajectory(){
+            pybind11::array_t<double> reference_positions({10, 3}); // 10 positions, each with 3 dimensions
+            auto r = reference_positions.mutable_unchecked<2>();
+            for (size_t i = 0; i < 10; ++i) {
+                r(i, 0) = biped.rl_params.reference_position[i](0); // x
+                r(i, 1) = biped.rl_params.reference_position[i](1); // y
+                r(i, 2) = biped.rl_params.reference_position[i](2); // z
+            }
+
+            return reference_positions;
+        }
+
+        pybind11::array_t<double> getReferenceOrientationTrajectory(){
+            pybind11::array_t<double> reference_orientations({10, 3}); // 10 orientations, each with 3 dimensions
+            auto r = reference_orientations.mutable_unchecked<2>();
+            for (size_t i = 0; i < 10; ++i) {
+                r(i, 0) = biped.rl_params.reference_orientation[i](0); // roll
+                r(i, 1) = biped.rl_params.reference_orientation[i](1); // pitch
+                r(i, 2) = biped.rl_params.reference_orientation[i](2); // yaw
+            }
+
+            return reference_orientations;
+        }
+
+        pybind11::array_t<double> getReferenceFootPositionTrajectory(){
+            pybind11::array_t<double> reference_foot_positions({10, 3}); // 10 foot positions, each with 3 dimensions
+            auto r = reference_foot_positions.mutable_unchecked<2>();
+            for (size_t i = 0; i < 10; ++i) {
+                r(i, 0) = biped.rl_params.reference_foot_position[i](0); // x
+                r(i, 1) = biped.rl_params.reference_foot_position[i](1); // y
+                r(i, 2) = biped.rl_params.reference_foot_position[i](2); // z
+            }
+
+            return reference_foot_positions;
         }
     
     private:

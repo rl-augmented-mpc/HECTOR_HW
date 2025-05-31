@@ -228,7 +228,7 @@ void ConvexMPCLocomotion::updateMPC(int *mpcTable, ControlFSMData &data, bool om
   double *weights = Q;
   double *Alpha_K = Alpha;
 
-  updateReferenceTrajectory(seResult, *stateCommand);
+  updateReferenceTrajectory(seResult, *stateCommand, data);
 
   // dtMPC = dt * iterationsBetweenMPC;
   dtMPC = data._biped->rl_params._dt_sampling;
@@ -268,7 +268,7 @@ void ConvexMPCLocomotion::updateMPC(int *mpcTable, ControlFSMData &data, bool om
 }
 
 
-void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, DesiredStateCommand &stateCommand){
+void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, DesiredStateCommand &stateCommand, ControlFSMData &data){
   // planar condition
 
   // reset yaw knot point (to deal with euler angle singularity)
@@ -308,22 +308,28 @@ void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, Des
   double yStart = world_position_desired[1];
   double yawStart = yaw_desired;
   if(xStart - seResult.position[0] > max_pos_error){
-    xStart = seResult.position[0] + max_pos_error;
+    // xStart = seResult.position[0] + max_pos_error;
+    xStart = seResult.position[0];
   }
   if(seResult.position[0] - xStart > max_pos_error){
-    xStart = seResult.position[0] - max_pos_error;
+    // xStart = seResult.position[0] - max_pos_error;
+    xStart = seResult.position[0];
   }
   if(yStart - seResult.position[1] > max_pos_error){
-    yStart = seResult.position[1] + max_pos_error;
+    // yStart = seResult.position[1] + max_pos_error;
+    yStart = seResult.position[1];
   }
   if(seResult.position[1] - yStart > max_pos_error){
-    yStart = seResult.position[1] - max_pos_error;
+    // yStart = seResult.position[1] - max_pos_error;
+    yStart = seResult.position[1];
   }
   if(yawStart - seResult.rpy[2] > max_yaw_error){
-    yawStart = seResult.rpy[2] + max_yaw_error;
+    // yawStart = seResult.rpy[2] + max_yaw_error;
+    yawStart = seResult.rpy[2];
   }
   if(seResult.rpy[2] - yawStart > max_yaw_error){
-    yawStart = seResult.rpy[2] - max_yaw_error;
+    // yawStart = seResult.rpy[2] - max_yaw_error;
+    yawStart = seResult.rpy[2];
   }
   double trajInitial[12] = {stateCommand.data.stateDes[3],  // roll
                             stateCommand.data.stateDes[4],   // pitch
@@ -344,20 +350,20 @@ void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, Des
     for (int j = 0; j < 12; j++)
       trajAll[12 * i + j] = trajInitial[j];
 
-    // trajAll[12*i + 3] = seResult.position[0] + i * dtMPC * v_des_world[0];
-    // trajAll[12*i + 4] = seResult.position[1] + i * dtMPC * v_des_world[1];
-    // trajAll[12*i + 2] = seResult.rpy[2] + i * dtMPC * turn_rate_des;
+    trajAll[12*i + 3] = seResult.position[0] + i * dtMPC * v_des_world[0];
+    trajAll[12*i + 4] = seResult.position[1] + i * dtMPC * v_des_world[1];
+    trajAll[12*i + 2] = seResult.rpy[2] + i * dtMPC * turn_rate_des;
 
-    // blend closed-loop and open-loop trajectory
-    double alpha = 0.5;
-    trajAll[12*i + 3] = alpha * (seResult.position[0] + i * dtMPC * v_des_world[0])
-                        + (1 - alpha) * (trajInitial[3] + i * dtMPC * v_des_world[0]);
+    // // combine closed-loop and open-loop trajectory
+    // double alpha = 0.5;
+    // trajAll[12*i + 3] = alpha * (seResult.position[0] + i * dtMPC * v_des_world[0])
+    //                     + (1 - alpha) * (trajInitial[3] + i * dtMPC * v_des_world[0]);
 
-    trajAll[12*i + 4] = alpha * (seResult.position[1] + i * dtMPC * v_des_world[1])
-                        + (1 - alpha) * (trajInitial[4] + i * dtMPC * v_des_world[1]);
+    // trajAll[12*i + 4] = alpha * (seResult.position[1] + i * dtMPC * v_des_world[1])
+    //                     + (1 - alpha) * (trajInitial[4] + i * dtMPC * v_des_world[1]);
     
-    trajAll[12*i + 2] = alpha * (seResult.rpy[2] + i * dtMPC * turn_rate_des)
-                        + (1 - alpha) * (trajInitial[2] + i * dtMPC * turn_rate_des);
+    // trajAll[12*i + 2] = alpha * (seResult.rpy[2] + i * dtMPC * turn_rate_des)
+    //                     + (1 - alpha) * (trajInitial[2] + i * dtMPC * turn_rate_des);
 
     // if velocity is too small, use open-loop trajectory
     if (std::abs(v_des_world[0]) < 0.01){
@@ -371,5 +377,11 @@ void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, Des
     if (std::abs(turn_rate_des) < 0.01){
       trajAll[12*i + 2] = trajInitial[2] + i * dtMPC * turn_rate_des;
     }
+  }
+
+  for (int i = 0; i < 10; i++)
+  {
+    data._biped->rl_params.reference_position[i] = Vec3<double>(trajAll[12 * i + 3], trajAll[12 * i + 4], trajAll[12 * i + 5]);
+    data._biped->rl_params.reference_orientation[i] = Vec3<double>(trajAll[12 * i + 0], trajAll[12 * i + 1], trajAll[12 * i + 2]);
   }
 }

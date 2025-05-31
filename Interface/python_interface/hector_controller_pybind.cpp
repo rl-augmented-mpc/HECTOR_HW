@@ -50,6 +50,10 @@ PYBIND11_MODULE(hector_control, m) {
       .def("getFootPlacement", &HectorController::getFootPlacement)
       .def("getRefFootPosition", &HectorController::getRefFootPosition)
       .def("getFootPosition", &HectorController::getFootPosition)
-      .def("getCost", &HectorController::getCost);
+      .def("getCost", &HectorController::getCost)
+      .def("getReferencePositionTrajectory", &HectorController::getReferencePositionTrajectory)
+      .def("getReferenceOrientationTrajectory", &HectorController::getReferenceOrientationTrajectory)
+      .def("getReferenceFootPositionTrajectory", &HectorController::getReferenceFootPositionTrajectory);
+
       
 }

@@ -16,6 +16,12 @@ class RL {
             delta_grw.setZero();
             delta_foot_placement.setZero();
             delta_joint_position.setZero();
+            
+            for (int i = 0; i < 10; ++i) {
+                reference_position[i].setZero();
+                reference_orientation[i].setZero();
+                reference_foot_position[i].setZero();
+            }
         }
         ~RL() = default;
 
@@ -42,5 +48,9 @@ class RL {
         Vec4<double> delta_foot_placement; 
         Vec10<double> delta_joint_position; 
         double _dt_sampling= 0.02;
+
+        std::array<Vec3<double>, 10> reference_position;
+        std::array<Vec3<double>, 10> reference_orientation;
+        std::array<Vec3<double>, 10> reference_foot_position;
 
 };
