@@ -348,8 +348,8 @@ void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, Des
     // trajAll[12*i + 4] = seResult.position[1] + i * dtMPC * v_des_world[1];
     // trajAll[12*i + 2] = seResult.rpy[2] + i * dtMPC * turn_rate_des;
 
-    // // blend closed-loop and open-loop trajectory
-    double alpha = 0.75;
+    // blend closed-loop and open-loop trajectory
+    double alpha = 0.5;
     trajAll[12*i + 3] = alpha * (seResult.position[0] + i * dtMPC * v_des_world[0])
                         + (1 - alpha) * (trajInitial[3] + i * dtMPC * v_des_world[0]);
 
