@@ -122,25 +122,26 @@ void swingLegController::computeFootPlacement(){
         for(int foot = 0; foot < nLegs; foot++){
             if(swingStates[foot] >= 0){
 
-                // Reibert heuristic
-                // Pf[foot] = seResult.position + seResult.rBody.transpose() * (data->_biped->getHip2Location(foot)) + seResult.vWorld * swingTimes[foot];
-                Pf[foot] = seResult.position + seResult.rBody.transpose() * (data->_biped->get_hip_offset(foot)) + seResult.vWorld * swingTimes[foot];
-                
+                // Raibert heuristic: Pf = p_hip + v * \Delta{t}/2 + k * (v - v_ref)
+                // eq.7.4 https://www.ri.cmu.edu/pub_files/pub3/raibert_marc_h_1983_1/raibert_marc_h_1983_1.pdf
+                Vec3<double> hip_pos = seResult.position + seResult.rBody.transpose() * (data->_biped->get_hip_offset(foot));
+                Pf[foot] = hip_pos + seResult.vWorld * swingTimes[foot];
+
+                // feedback correction term
                 double p_rel_max_x = 0.4;
                 double p_rel_max_y =  0.4;
                 double k_x = 0.03; 
-                double k_y = 0.03; // IMOPRTANT parameter for stable lateral motion
-                
-                double pfx_rel   =  k_x  * (seResult.vWorld[0] - v_des_world[0]);
-                double pfy_rel   =  k_y  * (seResult.vWorld[1] - v_des_world[1]);
+                double k_y = 0.03;
+                double pfx_rel = k_x  * (seResult.vWorld[0] - v_des_world[0]);
+                double pfy_rel = k_y  * (seResult.vWorld[1] - v_des_world[1]);
                 pfx_rel = fminf(fmaxf(pfx_rel, -p_rel_max_x), p_rel_max_x);
                 pfy_rel = fminf(fmaxf(pfy_rel, -p_rel_max_y), p_rel_max_y);
 
-                Pf[foot][0] += pfx_rel;
-                Pf[foot][1] += pfy_rel; 
+                Pf[foot][0] = Pf[foot][0] + pfx_rel;
+                Pf[foot][1] = Pf[foot][1] + pfy_rel; 
                 Pf[foot][2] = data->_biped->pf_z;
 
-                // footplacement from reibert heuristic and residual learning
+                // add residual
                 Pf_augmented[foot][0] = Pf[foot][0] + Pf_residual[foot][0];
                 Pf_augmented[foot][1] = Pf[foot][1] + Pf_residual[foot][1];
             }
