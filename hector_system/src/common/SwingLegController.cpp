@@ -125,7 +125,7 @@ void swingLegController::computeFootPlacement(){
                 // Raibert heuristic: Pf = p_hip + v * \Delta{t}/2 + k * (v - v_ref)
                 // eq.7.4 https://www.ri.cmu.edu/pub_files/pub3/raibert_marc_h_1983_1/raibert_marc_h_1983_1.pdf
                 Vec3<double> hip_pos = seResult.position + seResult.rBody.transpose() * (data->_biped->get_hip_offset(foot));
-                Pf[foot] = hip_pos + seResult.vWorld * swingTimes[foot];
+                Pf[foot] = hip_pos + 0.5 * seResult.vWorld * swingTimes[foot];
 
                 // feedback correction term
                 double p_rel_max_x = 0.4;
