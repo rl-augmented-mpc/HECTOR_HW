@@ -107,7 +107,7 @@ void swingLegController::computeFootPlacement(){
 
             }
             else{
-                Pf[foot] << pFoot_w[foot].block<2,1>(0,0);
+                Pf[foot] = pFoot_w[foot];
                 Pf_augmented[foot] = Pf[foot];
             }
 
@@ -125,15 +125,25 @@ void swingLegController::computeFootPlacement(){
                 // Raibert heuristic: Pf = p_hip + v * \Delta{t}/2 + k * (v - v_ref)
                 // eq.7.4 https://www.ri.cmu.edu/pub_files/pub3/raibert_marc_h_1983_1/raibert_marc_h_1983_1.pdf
                 Vec3<double> hip_pos = seResult.position + seResult.rBody.transpose() * (data->_biped->get_hip_offset(foot));
+
+                // // USC original
+                // Pf[foot] = hip_pos + seResult.vWorld * swingTimes[foot];
                 Pf[foot] = hip_pos + 0.5 * seResult.vWorld * swingTimes[foot];
 
                 // feedback correction term
-                double p_rel_max_x = 0.4;
-                double p_rel_max_y =  0.4;
+                double p_rel_max_x = 0.3;
+                double p_rel_max_y =  0.3;
                 double k_x = 0.03; 
                 double k_y = 0.03;
+
+                // // USC original
+                // double pfx_rel = 0.5*seResult.vWorld[0] * gait->_swing_durations_sec[foot] + k_x * (seResult.vWorld[0] - v_des_world[0]);
+                // double pfy_rel = 0.5*seResult.vWorld[1] * gait->_swing_durations_sec[foot] + k_y  * (seResult.vWorld[1] - v_des_world[1]);
+
+                // Raibert feedback correction from original paper
                 double pfx_rel = k_x  * (seResult.vWorld[0] - v_des_world[0]);
                 double pfy_rel = k_y  * (seResult.vWorld[1] - v_des_world[1]);
+
                 pfx_rel = fminf(fmaxf(pfx_rel, -p_rel_max_x), p_rel_max_x);
                 pfy_rel = fminf(fmaxf(pfy_rel, -p_rel_max_y), p_rel_max_y);
 
@@ -146,8 +156,7 @@ void swingLegController::computeFootPlacement(){
                 Pf_augmented[foot][1] = Pf[foot][1] + Pf_residual[foot][1];
             }
             else{
-                Pf[foot] << pFoot_w[foot].block<2,1>(0,0);
-                Pf[foot][2] = 0.0; 
+                Pf[foot] = pFoot_w[foot];
                 Pf_augmented[foot] = Pf[foot];
             }
 
