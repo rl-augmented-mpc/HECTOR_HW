@@ -7,6 +7,7 @@ option(HARDWARE "Build with hardware interface" OFF)
 include_directories(${CMAKE_BINARY_DIR})
 set(CMAKE_CXX_FLAGS "-fPIC")
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 
 if(HARDWARE)
     message(STATUS "Building with hardware interface")

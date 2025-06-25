@@ -3,17 +3,14 @@
 #include <csignal>
 #include <sched.h>
 
-
-
-#include "../Interface/HW_interface/include/interface/IOSDK.h"
-#include "../Interface/HW_interface/include/interface/WirelessHandle.h"
-
 #include "../hector_system/include/common/ControlFSMData.h"
 #include "../hector_system/include/FSM/FSM.h"
 #include "../hector_system/include/common/ContactEstimator.h"
 #include "../hector_system/include/common/OrientationEstimator.h"
-#include "../Interface/HW_interface/include/stateestimator/PositionVelocityEstimator.h"
 
+#include "../Interface/HW_interface/include/interface/IOSDK.h"
+#include "../Interface/HW_interface/include/interface/WirelessHandle.h"
+#include "../Interface/HW_interface/include/stateestimator/PositionVelocityEstimator.h"
 
 
 using namespace UNITREE_LEGGED_SDK;

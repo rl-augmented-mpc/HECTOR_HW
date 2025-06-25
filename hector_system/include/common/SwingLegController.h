@@ -63,8 +63,7 @@ class swingLegController {
         void setFootplacementResidual(Vec2<double> pf_residual, int foot);
         Vec3<double> getReibertFootPlacement(int foot);
         Vec3<double> getAugmentedFootPlacement(int foot);
-
-        // LIPController lip_controller;
+        std::array<Vec3<double>, 10> getReferenceSwingFootPosition();
         
 
     private:

@@ -36,8 +36,6 @@ void swingLegController::updateSwingFootCommand(){
 void swingLegController::updateFootPosition(){
 
     for(int i = 0; i < nLegs; i++){
-        // pFoot_w[i] =  seResult.position + seResult.rBody.transpose() 
-        //             * ( data->_biped->getHip2Location(i) + data->_legController->data[i].p);
         pFoot_w[i] =  seResult.position + seResult.rBody.transpose()*(data->_legController->data[i].p);
     }
 }
@@ -95,14 +93,14 @@ void swingLegController::computeFootPlacement(){
                 lip_foot_placement = lip_controller.compute_foot_placement(seResult, stateCommand->data, Vec2<double>{0.0, 0.0});
                 Pf[foot] << lip_foot_placement[0], lip_foot_placement[1], data->_biped->pf_z;
 
-                // Reibert for lateral
-                Vec3<double>rb_fps = seResult.position + seResult.rBody.transpose() * (data->_biped->get_hip_offset(foot)) + seResult.vWorld * swingTimes[foot];
-                double p_rel_max_y =  0.3;
-                double k_y = 0.1;
-                double pfy_rel   =  k_y  * (seResult.vWorld[1] - v_des_world[1]);
-                pfy_rel = fminf(fmaxf(pfy_rel, -p_rel_max_y), p_rel_max_y);
+                // // Reibert for lateral
+                // Vec3<double>rb_fps = seResult.position + seResult.rBody.transpose() * (data->_biped->get_hip_offset(foot)) + seResult.vWorld * swingTimes[foot];
+                // double p_rel_max_y =  0.3;
+                // double k_y = 0.1;
+                // double pfy_rel   =  k_y  * (seResult.vWorld[1] - v_des_world[1]);
+                // pfy_rel = fminf(fmaxf(pfy_rel, -p_rel_max_y), p_rel_max_y);
+                // Pf[foot] << lip_foot_placement[0], rb_fps[1] + pfy_rel, data->_biped->pf_z;
 
-                Pf[foot] << lip_foot_placement[0], rb_fps[1] + pfy_rel, data->_biped->pf_z;
                 Pf_augmented[foot] << Pf[foot][0] + Pf_residual[foot][0], Pf[foot][1] + Pf_residual[foot][1], data->_biped->pf_z;
 
             }
@@ -165,33 +163,6 @@ void swingLegController::computeFootPlacement(){
             footSwingTrajectory[foot].setFinalPosition(Pf_augmented[foot]);   
         }
     }
-
-    else if (plannar == "OpenLoop"){
-        // Open loop gait + raibert for lateral direction 
-        for(int foot = 0; foot < nLegs; foot++){
-            footSwingTrajectory[foot].setHeight(data->_biped->foot_height);
-            footSwingTrajectory[foot].setPitch(data->_biped->slope_pitch); 
-
-            // Reibert heuristic
-            Vec3<double> rbf = seResult.position + seResult.rBody.transpose() * (data->_biped->getHip2Location(foot)) + seResult.vWorld * swingTimes[foot];
-            Vec3<double> hip_pos = seResult.position + seResult.rBody.transpose() * (data->_biped->getHip2Location(foot));
-            if (firstSwing[foot]){
-                float px = v_des_robot[0]*swingTimes[foot];
-                Pf[foot][0] = hip_pos[0]+ px;
-                Pf[foot][1] = rbf[1];
-            }
-            else{
-                Pf[foot][1] = rbf[1];
-            }
-
-            Pf[foot][2] = 0.0;
-
-            // footplacement from reibert heuristic and residual learning
-            Pf_augmented[foot][0] = Pf[foot][0];
-            Pf_augmented[foot][1] = Pf[foot][1];
-            footSwingTrajectory[foot].setFinalPosition(Pf_augmented[foot]);   
-        }
-    }
 }
 
 
@@ -241,6 +212,25 @@ void swingLegController::setDesiredJointState(){
     }
 }
 
+
+std::array<Vec3<double>, 10> swingLegController::getReferenceSwingFootPosition(){
+    std::array<Vec3<double>, 10> refSwingFootPosition;
+    double phase = 0.0;
+    for (int i = 0; i < 10; i++){
+        for (int leg = 0; leg < nLegs; leg++){
+            if (swingStates[leg] >= 0){
+                footSwingTrajectory[leg].computeSwingTrajectoryBezier(
+                    phase, 
+                    gait->_swing_durations_sec[leg]
+                );
+                refSwingFootPosition[i] = footSwingTrajectory[leg].getPosition().cast<double>();
+                phase += 0.11;
+            }
+        }
+    }
+    return refSwingFootPosition;
+}
+
 // ======================
 // residual footplacement
 
@@ -255,3 +245,4 @@ Vec3<double> swingLegController::getReibertFootPlacement(int foot){
 Vec3<double> swingLegController::getAugmentedFootPlacement(int foot){
     return Pf_augmented[foot];
 }
+

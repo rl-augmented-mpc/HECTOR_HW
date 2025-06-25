@@ -53,8 +53,6 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
   // get then foot location in world frame
   for (int i = 0; i < 2; i++)
   {
-    // pFoot[i] = seResult.position + seResult.rBody.transpose() 
-    // * (data._biped->getHip2Location(i) + data._legController->data[i].p);
     pFoot[i] = seResult.position + seResult.rBody.transpose()*(data._legController->data[i].p);
   }
 
@@ -192,8 +190,11 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
     else{
       data._legController->commands[foot].swing_state = 0.;
     }
-
   }
+
+  // update swing foot traj log
+  data._biped->rl_params.reference_foot_position = swing.getReferenceSwingFootPosition();
+
 }
 
 void ConvexMPCLocomotion::updateMPC(int *mpcTable, ControlFSMData &data, bool omniMode)
@@ -379,6 +380,7 @@ void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, Des
     }
   }
 
+  // get reference trajectories
   for (int i = 0; i < 10; i++)
   {
     data._biped->rl_params.reference_position[i] = Vec3<double>(trajAll[12 * i + 3], trajAll[12 * i + 4], trajAll[12 * i + 5]);

@@ -530,9 +530,7 @@ void T265TrackingCameraEstimator::run(){
 
     for (int i = 0; i < 2; i++){
       Biped& biped = *(this->_stateEstimatorData.legControllerData->hector);
-
-      Vec3<double> ph = biped.getHip2Location(i);
-      Vec3<double> p_rel = ph + this->_stateEstimatorData.legControllerData[i].p;
+      Vec3<double> p_rel = this->_stateEstimatorData.legControllerData[i].p;
       Vec3<double> dp_rel = this->_stateEstimatorData.legControllerData[i].v;
       Vec3<double> p_f = this->_stateEstimatorData.result->rBody.transpose() * p_rel;
       if (i == 0){
