@@ -112,6 +112,16 @@ s8 near_one(fpt a)
   return near_zero(a - 2);
 }
 
+// Matrix Operations:
+inline Matrix<fpt, 3, 3> cross_mat(Matrix<fpt, 3, 3> I_inv, Matrix<fpt, 3, 1> r)
+{
+  Matrix<fpt, 3, 3> cm;
+  cm << 0.f, -r(2), r(1),
+      r(2), 0.f, -r(0),
+      -r(1), r(0), 0.f;
+  return I_inv * cm;
+}
+
 // Sets parameter matrices to qpOASES type:
 void matrix_to_real(qpOASES::real_t *dst, Matrix<fpt, Dynamic, Dynamic> src, s16 rows, s16 cols)
 {
@@ -126,6 +136,33 @@ void matrix_to_real(qpOASES::real_t *dst, Matrix<fpt, Dynamic, Dynamic> src, s16
   }
 }
 
+// continuous time state space matrices with residual matrices
+// https://arxiv.org/abs/2104.00065 eq.8-9
+// nonlinear dynamics is linearized around the current state (operating point)
+void ct_ss_mats(Matrix<fpt, 3, 3> I_world, fpt m, Matrix<fpt,13,13> 
+  A_residual, Matrix<fpt,13,12> B_residual, 
+  Matrix<fpt, 3, 2> r_feet, Matrix<fpt, 3, 3> R_yaw, 
+  Matrix<fpt, 13, 13> &A, Matrix<fpt, 13, 12> &B)
+{
+  A.setZero();
+  A.block<3, 3>(0, 6) << R_yaw;
+  A.block<3, 3>(3, 9) << Matrix<fpt, 3, 3>::Identity();
+  A.block<3, 1>(9, 12) << 0, 0, -9.81f;
+  A += A_residual;
+
+  B.setZero();
+  Matrix<fpt, 3, 3> I_inv = I_world.inverse();
+  for (s16 b = 0; b < 2; b++)
+  {
+    B.block<3, 3>(6, b * 3) << cross_mat(I_inv, r_feet.col(b));
+  }
+  B.block<3, 3>(6, 6) << I_inv ;
+  B.block<3, 3>(6, 9) << I_inv ;  
+  B.block<3, 3>(9, 0) << Matrix<fpt, 3, 3>::Identity() / m ; 
+  B.block<3, 3>(9, 3) << Matrix<fpt, 3, 3>::Identity() / m ;
+  B += B_residual;
+}
+
 void c2qp(Matrix<fpt, 13, 13> Ac, Matrix<fpt, 13, 12> Bc, fpt dt, s16 horizon)
 {
   if (horizon > 19)
@@ -136,7 +173,7 @@ void c2qp(Matrix<fpt, 13, 13> Ac, Matrix<fpt, 13, 12> Bc, fpt dt, s16 horizon)
   Matrix<fpt, 13, 13> Acd = Matrix<fpt, 13, 13>::Identity() + dt * Ac;
   Matrix<fpt, 13, 12> Bcd = dt * Bc;
 
-  for (int i = 0; i < 10; i++)
+  for (int i = 0; i < horizon; i++)
   {
     Eigen::Matrix<fpt, 13, 13> Acdm;
     Acdm = Matrix<fpt, 13, 13>::Identity();
@@ -149,7 +186,7 @@ void c2qp(Matrix<fpt, 13, 13> Ac, Matrix<fpt, 13, 12> Bc, fpt dt, s16 horizon)
   }
 
   Eigen::Matrix<fpt, 13, 13> Acdp;
-  for (int i = 0; i < 10; i++)
+  for (int i = 0; i < horizon; i++)
   {
     for (int j = 0; j < i + 1; j++)
     {
@@ -168,9 +205,9 @@ void c2qp(Matrix<fpt, 13, 13> Ac, Matrix<fpt, 13, 12> Bc, fpt dt, s16 horizon)
     }
   }
 
-  for (int i = 0; i < 10; i++)
+  for (int i = 0; i < horizon; i++)
   {
-    for (int j = i + 1; j < 10; j++)
+    for (int j = i + 1; j < horizon; j++)
     {
       B_qp.block<13, 12>(i * 13, j * 12) << Matrix<fpt, 13, 12>::Zero();
     }
@@ -281,39 +318,6 @@ void resize_qp_mats(s16 horizon)
 #ifdef K_DEBUG
   printf("RESIZED MATRICES FOR HORIZON: %d\n", horizon);
 #endif
-}
-
-// Matrix Operations:
-inline Matrix<fpt, 3, 3> cross_mat(Matrix<fpt, 3, 3> I_inv, Matrix<fpt, 3, 1> r)
-{
-  Matrix<fpt, 3, 3> cm;
-  cm << 0.f, -r(2), r(1),
-      r(2), 0.f, -r(0),
-      -r(1), r(0), 0.f;
-  return I_inv * cm;
-}
-
-// continuous time state space matrices with residual matrices
-// https://arxiv.org/abs/2104.00065 eq.8-9
-void ct_ss_mats(Matrix<fpt, 3, 3> I_world, fpt m, Matrix<fpt,13,13> A_residual, Matrix<fpt,13,12> B_residual, Matrix<fpt, 3, 2> r_feet, Matrix<fpt, 3, 3> R_yaw, Matrix<fpt, 13, 13> &A, Matrix<fpt, 13, 12> &B)
-{
-  A.setZero();
-  A.block<3, 3>(0, 6) << R_yaw;
-  A.block<3, 3>(3, 9) << Matrix<fpt, 3, 3>::Identity();
-  A.block<3, 1>(9, 12) << 0, 0, -9.81f;
-  A += A_residual;
-
-  B.setZero();
-  Matrix<fpt, 3, 3> I_inv = I_world.inverse();
-  for (s16 b = 0; b < 2; b++)
-  {
-    B.block<3, 3>(6, b * 3) << cross_mat(I_inv, r_feet.col(b));
-  }
-  B.block<3, 3>(6, 6) << I_inv ;
-  B.block<3, 3>(6, 9) << I_inv ;  
-  B.block<3, 3>(9, 0) << Matrix<fpt, 3, 3>::Identity() / m ; 
-  B.block<3, 3>(9, 3) << Matrix<fpt, 3, 3>::Identity() / m ;
-  B += B_residual;
 }
 
 void quat_to_rpy(Quaternionf q, Matrix<fpt, 3, 1> &rpy)
@@ -521,7 +525,7 @@ void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data
       << lh_vec * R_foot_L.transpose()* rs.R.transpose(),   0, 0, 0,   -M_vec * R_foot_L.transpose()* rs.R.transpose(),   0, 0, 0;
       
   F_control.block<1, 12>(7, 0) //Fz Leg 1
-      << 0, 0, 2.f, 0, 0, 0, 0, 0, 0, 0, 0, 0;
+      << 0, 0, 1.f, 0, 0, 0, 0, 0, 0, 0, 0, 0;
 
   //leg 2
   F_control.block<1, 12>(8, 0) //Friction leg 2
@@ -542,7 +546,7 @@ void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data
       << 0, 0, 0,   lh_vec * R_foot_R.transpose()* rs.R.transpose(),   0, 0, 0,   -M_vec * R_foot_R.transpose()* rs.R.transpose();  
   
   F_control.block<1, 12>(15, 0)  //Fz Leg 2
-      << 0, 0, 0, 0, 0, 2.f, 0, 0, 0, 0, 0, 0;
+      << 0, 0, 0, 0, 0, 1.f, 0, 0, 0, 0, 0, 0;
 
   // //leg 1
   // F_control.block<1, 12>(0, 0) //Friction leg 1

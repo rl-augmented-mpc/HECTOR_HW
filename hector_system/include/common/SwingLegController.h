@@ -50,8 +50,8 @@ class swingLegController {
          */
         void updateSwingLeg();
         void updateFootPlacementPlanner();
+        void computeFootPlacement();
         void updateSwingFootCommand();
-        void setSteppingFrequency(double stepping_frequency) { _stepping_frequency = stepping_frequency; }
         void setFootHeight(double foot_height) { _foot_height = foot_height; }
         
         /**
@@ -93,7 +93,6 @@ class swingLegController {
         void updateFootPosition();
         void updateSwingStates();
         void updateSwingTimes();
-        void computeFootPlacement();
         void computeFootDesiredPosition();
         void setDesiredJointState();
 

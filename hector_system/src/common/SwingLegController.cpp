@@ -22,7 +22,6 @@ void swingLegController::updateFootPlacementPlanner(){
     updateSwingStates();
     updateFootPosition();
     updateSwingTimes();
-    computeFootPlacement();     
 }
 
 void swingLegController::updateSwingFootCommand(){
@@ -186,7 +185,7 @@ void swingLegController::computeFootDesiredPosition(){
             Vec3<double> vDesFootWorld = footSwingTrajectory[foot].getVelocity().cast<double>();
             
             pFoot_b[foot] = seResult.rBody * (pDesFootWorld - seResult.position);
-            vFoot_b[foot] = seResult.rBody * (vDesFootWorld - seResult.vWorld);  
+            vFoot_b[foot] = seResult.rBody * (vDesFootWorld * 0 - seResult.vWorld);  
         }
 
         if (pFoot_b[foot].hasNaN()){
@@ -226,6 +225,10 @@ std::array<Vec3<double>, 10> swingLegController::getReferenceSwingFootPosition()
                 refSwingFootPosition[i] = footSwingTrajectory[leg].getPosition().cast<double>();
                 phase += 0.11;
             }
+        }
+
+        if (contactStates[0] >= 0 && contactStates[1] >= 0){
+            refSwingFootPosition[i] = pFoot_w[0]; 
         }
     }
     return refSwingFootPosition;

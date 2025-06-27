@@ -219,6 +219,7 @@ void LegController::updateCommand(LowlevelCmd* cmd){
         }else if (commands[leg].control_mode == 2){ // stance
 
             commands[leg].kpJoint = Vec5<double>::Zero();
+            // commands[leg].kdJoint[4] *= 3.0; // increase ankle stiffness
 
 
             // Stabilizing the motor control and prevent jittering: Giving D target to 0 joint velocity

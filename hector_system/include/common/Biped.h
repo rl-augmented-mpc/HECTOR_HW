@@ -16,30 +16,28 @@ class Biped{
         _real_flag = real_flag;
         mu = 0.3; // friction coefficient
         f_max = 500; // maximum grf_z
-
-        // geometry (NOT USED)
-        leg_yaw_offset_x = -0.005;
-        leg_yaw_offset_y = 0.047;
-        leg_yaw_offset_z = -0.126;
-        leg_roll_offset_x = -0.0465;
-        leg_roll_offset_y = 0.015;
-        leg_roll_offset_z = -0.0705;
-        hipLinkLength = 0.038;
-        thighLinkLength = 0.22;
-        calfLinkLength = 0.22;
-        L_hipYawLocation = getHipYawLocation(0);
-        L_hipRollLocation = getHipRollLocation(0);
-        R_hipYawLocation = getHipYawLocation(1);
-        R_hipRollLocation = getHipRollLocation(1);
-        ////////////////////////
-
         mass = 13.856;
         I_body << 0.5413, 0.0, 0.0, 0.0, 0.5200, 0.0, 0.0, 0.0, 0.0691;
 
+        // // geometry (NOT USED)
+        // leg_yaw_offset_x = -0.005;
+        // leg_yaw_offset_y = 0.047;
+        // leg_yaw_offset_z = -0.126;
+        // leg_roll_offset_x = -0.0465;
+        // leg_roll_offset_y = 0.015;
+        // leg_roll_offset_z = -0.0705;
+        // hipLinkLength = 0.038;
+        // thighLinkLength = 0.22;
+        // calfLinkLength = 0.22;
+        // L_hipYawLocation = getHipYawLocation(0);
+        // L_hipRollLocation = getHipRollLocation(0);
+        // R_hipYawLocation = getHipYawLocation(1);
+        // R_hipRollLocation = getHipRollLocation(1);
         // left leg hip yaw offset from com 
-        leg_offset_x = -0.005;
-        leg_offset_y = 0.047;
-        leg_offset_z = -0.126;
+        // leg_offset_x = -0.005;
+        // leg_offset_y = 0.047;
+        // leg_offset_z = -0.126;
+        // ////////////////////////
         
         if (real_flag == 0)
         {
@@ -62,6 +60,8 @@ class Biped{
         define_kinematics_coordinates();
 
     }
+
+    // ** setter methods **
 
     void setFootHeight(double _foot_height){
         foot_height = _foot_height;
@@ -188,171 +188,19 @@ class Biped{
 
 
 
-
-
-
-
-
-    double* Joint_Calibration(){
-        std::ifstream angle_file;
-        std::string angle_name;
-        int i = 0;
-
-        angle_file.open("../Interface/HW_interface/Calibration/offset.txt");
-
-        getline(angle_file, angle_name);
-        std::cout << "Calibration Done." << std::endl;
-
-        std::stringstream ss(angle_name);
-        double angle1, angle2, angle3, angle4, angle5, 
-                angle6, angle7, angle8, angle9, angle10;
-        ss >> angle1 >> angle2 >> angle3 >> angle4 >> angle5 >> angle6 >> angle7 >> angle8 >> angle9 >> angle10;
-
-        static double offset_angle[10] = {angle1, angle2, angle3, angle4, angle5, angle6, angle7, angle8, angle9, angle10};
-
-        return offset_angle;
-    }
-
-
-
-
-    // encoder data remapping
-    void Joint_Remapping_lowfromhigh(int leg, Vec5<double> &q, Vec5<double> &qd, Vec5<double> &tau){
-
-        if (_real_flag == 1){
-
-            // offset importing
-            for (int i = 0; i < 5; i++)
-            {
-                q[i] = q[i] + offset[i + leg * 5];
-            }
-
-            // Unitree-related calibration
-            if (leg == 0)
-            {
-                q(0) = -q(0);
-                q(1) = -q(1);
-                q(2) = -q(2);
-                qd(0) = -qd(0);
-                qd(1) = -qd(1);
-                qd(2) = -qd(2);
-            }
-
-            // For knee pully system
-            q(3) = q(3) / gear_ratio;
-            qd(3) = qd(3) / gear_ratio;
-            tau(3) = tau(3) * gear_ratio * beltCompRatio;
-
-            // For Ankle actuation linkage
-            q(4) = q(4) - q(3);
-            qd(4) = qd(4) - qd(3);
-        
-        }
-
-    }
-
-
-
-    // encoder data remapping
-    void Joint_Remapping_highfromlow(int leg, Vec5<double> &q, Vec5<double> &qd, Vec5<double> &tau){
-
-        if (_real_flag == 1){
-
-            // For Ankle actuation linkage and knee pully system
-            q[4] = q[4] + q[3];
-            qd[4] = qd[4] + qd[3];
-
-            q[3] = q[3] * gear_ratio;
-            qd[3] = qd[3] * gear_ratio;
-            tau[3] = tau[3] / gear_ratio * beltCompRatio;
-
-            // Unitree-related
-            if (leg == 0) {
-                q[0]   *= -1.0;
-                q[1]   *= -1.0;
-                q[2]   *= -1.0;
-
-                qd[0]   *= -1.0;
-                qd[1]   *= -1.0;
-                qd[2]   *= -1.0;
-
-                tau[0]   *= -1.0;
-                tau[1]   *= -1.0;
-                tau[2]   *= -1.0;
-            }
-
-            //offset 
-            for(int i = 0; i < 5; i++){
-                q[i] -= offset[i+leg*5];
-            }
-
-        
-        }
-
-    }
-
-
-
-    bool CheckMotorConnection(int leg, Vec5<double> data_q){
-
-        if (_real_flag == 1){
-            // check motor connection
-            for (int j = 0; j < 5; j++)
-            {
-                if (data_q[j] == 0)
-                {
-                    std::cout << "\nMotor Connection on leg " << leg << " at " << j << " LOST!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
-                    return false;
-                }
-            }
-        }
-        return true;
-
-    }
-
-    void SafeGuardUnusedMotor(LowlevelCmd* cmd){
-        //For unused actuators - just for safety
-        if (_real_flag == 1){
-            cmd->motorCmd[0].tau = 0;
-            cmd->motorCmd[3].tau = 0;
-            cmd->motorCmd[0].Kp = 0;
-            cmd->motorCmd[0].Kd = 5;
-            cmd->motorCmd[3].Kp = 0;
-            cmd->motorCmd[3].Kd = 5;
-        }
-
-        else {
-            cmd->motorCmd[10].tau = 0;
-            cmd->motorCmd[11].tau = 0;
-            cmd->motorCmd[10].Kp = 0;
-            cmd->motorCmd[11].Kd = 5;
-            cmd->motorCmd[10].Kp = 0;
-            cmd->motorCmd[11].Kd = 5;
-        }
-    }
-
-    Vec3<double> getHipYawLocation(int leg){
-        return Vec3<double>(leg_yaw_offset_x, leg == 0 ? leg_yaw_offset_y : -leg_yaw_offset_y, leg_yaw_offset_z);
-    }
-
-    Vec3<double> getHipRollLocation(int leg){
-        return Vec3<double>(leg_roll_offset_x, leg == 0 ? leg_roll_offset_y : -leg_roll_offset_y, leg_roll_offset_z);
-    }
-
-    double clamp(double val, double minVal, double maxVal) {
-                return std::max(minVal, std::min(val, maxVal));
-        }
-
-
- 
-    // ***** kinematics code *****
+    // ** kinematics code **
     // offset between each links in 0 positions (from URDF)
+    double thigh_length = 0.22;
+    double calf_length = 0.22;
+    double d_foot = 0.04; // original foot
+    // double d_foot = 0.042; // capstone project foot
     Vec3<double> p1{-0.00, 0.047, -0.1265}; // base to hip yaw in frame1
     Vec3<double> p2{0.0465, 0.015, -0.0705}; // hip yaw to hip roll in frame2
     Vec3<double> p3{-0.06, 0.018, 0.0}; // hip roll to hip pitch in frame3
     Vec3<double> p4{0.0, 0.01805, -0.22}; // hip pitch to knee pitch in frame4
     Vec3<double> p5{0.0, 0.0, -0.22}; // knee pitch to angle pitch in frame5
-    Vec4<double> p5e{0.0, 0.0, -0.042, 1.0}; // ankle pitch to foot sole
+    Vec4<double> p5e{0.0, 0.0, -0.04, 1.0}; // ankle pitch to foot sole (original foot)
+    // Vec4<double> p5e{0.0, 0.0, -0.042, 1.0}; // ankle pitch to foot sole (capstone project foot)
     Vec3<double> z1, z2, z3, z4, z5;
 
     Mat4<double> T01_left, T12p_left, T2p2_left, T23p_left, T3p3_left, T34_left, T45_left; 
@@ -580,9 +428,6 @@ class Biped{
         }
 
         Eigen::Vector3d hip_roll = {-0.00+0.0465-0.06, -0.047*side-0.015*side, -0.1265-0.0705}; // hip roll origin in body frame
-        double thigh_length = 0.22;
-        double calf_length = 0.22;
-        double d_foot = 0.042; 
         Eigen::Vector3d foot_des_from_hip_roll = p_foot_des_b - hip_roll; // foot target position in hip roll frame (orientation aligned with body frame)
         foot_des_from_hip_roll(2) += d_foot; // track ankle joint position instead of sole position
         
@@ -606,6 +451,156 @@ class Biped{
         q(1) = std::atan2(-foot_des_from_hip_pitch(0), -foot_des_from_hip_pitch(2)) - std::atan2(calf_length * sin_q2, thigh_length + calf_length * cos_q2);
 
         return q;
+    }
+
+    double clamp(double val, double minVal, double maxVal) {
+        return std::max(minVal, std::min(val, maxVal));
+    }
+
+
+
+    // **** The following is interface code ****
+    // ** joint - motor interface code **
+
+    double* Joint_Calibration(){
+        std::ifstream angle_file;
+        std::string angle_name;
+        int i = 0;
+
+        angle_file.open("../Interface/HW_interface/Calibration/offset.txt");
+
+        getline(angle_file, angle_name);
+        std::cout << "Calibration Done." << std::endl;
+
+        std::stringstream ss(angle_name);
+        double angle1, angle2, angle3, angle4, angle5, 
+                angle6, angle7, angle8, angle9, angle10;
+        ss >> angle1 >> angle2 >> angle3 >> angle4 >> angle5 >> angle6 >> angle7 >> angle8 >> angle9 >> angle10;
+
+        static double offset_angle[10] = {angle1, angle2, angle3, angle4, angle5, angle6, angle7, angle8, angle9, angle10};
+
+        return offset_angle;
+    }
+
+    // raw encoder reading to joint angle
+    void Joint_Remapping_lowfromhigh(int leg, Vec5<double> &q, Vec5<double> &qd, Vec5<double> &tau){
+
+        if (_real_flag == 1){
+
+            // offset importing
+            for (int i = 0; i < 5; i++)
+            {
+                q[i] = q[i] + offset[i + leg * 5];
+            }
+
+            // Unitree-related calibration
+            if (leg == 0)
+            {
+                q(0) = -q(0);
+                q(1) = -q(1);
+                q(2) = -q(2);
+                qd(0) = -qd(0);
+                qd(1) = -qd(1);
+                qd(2) = -qd(2);
+            }
+
+            // For knee pully system
+            q(3) = q(3) / gear_ratio;
+            qd(3) = qd(3) / gear_ratio;
+            tau(3) = tau(3) * gear_ratio * beltCompRatio;
+
+            // For Ankle actuation linkage
+            q(4) = q(4) - q(3);
+            qd(4) = qd(4) - qd(3);
+        
+        }
+
+    }
+
+
+
+    // joint angle to raw encoder reading
+    void Joint_Remapping_highfromlow(int leg, Vec5<double> &q, Vec5<double> &qd, Vec5<double> &tau){
+
+        if (_real_flag == 1){
+
+            // For Ankle actuation linkage and knee pully system
+            q[4] = q[4] + q[3];
+            qd[4] = qd[4] + qd[3];
+
+            q[3] = q[3] * gear_ratio;
+            qd[3] = qd[3] * gear_ratio;
+            tau[3] = tau[3] / gear_ratio * beltCompRatio;
+
+            // Unitree-related
+            if (leg == 0) {
+                q[0]   *= -1.0;
+                q[1]   *= -1.0;
+                q[2]   *= -1.0;
+
+                qd[0]   *= -1.0;
+                qd[1]   *= -1.0;
+                qd[2]   *= -1.0;
+
+                tau[0]   *= -1.0;
+                tau[1]   *= -1.0;
+                tau[2]   *= -1.0;
+            }
+
+            //offset 
+            for(int i = 0; i < 5; i++){
+                q[i] -= offset[i+leg*5];
+            }
+
+        
+        }
+
+    }
+
+    bool CheckMotorConnection(int leg, Vec5<double> data_q){
+
+        if (_real_flag == 1){
+            // check motor connection
+            for (int j = 0; j < 5; j++)
+            {
+                if (data_q[j] == 0)
+                {
+                    std::cout << "\nMotor Connection on leg " << leg << " at " << j << " LOST!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+                    return false;
+                }
+            }
+        }
+        return true;
+
+    }
+
+    void SafeGuardUnusedMotor(LowlevelCmd* cmd){
+        //For unused actuators - just for safety
+        if (_real_flag == 1){
+            cmd->motorCmd[0].tau = 0;
+            cmd->motorCmd[3].tau = 0;
+            cmd->motorCmd[0].Kp = 0;
+            cmd->motorCmd[0].Kd = 5;
+            cmd->motorCmd[3].Kp = 0;
+            cmd->motorCmd[3].Kd = 5;
+        }
+
+        else {
+            cmd->motorCmd[10].tau = 0;
+            cmd->motorCmd[11].tau = 0;
+            cmd->motorCmd[10].Kp = 0;
+            cmd->motorCmd[11].Kd = 5;
+            cmd->motorCmd[10].Kp = 0;
+            cmd->motorCmd[11].Kd = 5;
+        }
+    }
+
+    Vec3<double> getHipYawLocation(int leg){
+        return Vec3<double>(leg_yaw_offset_x, leg == 0 ? leg_yaw_offset_y : -leg_yaw_offset_y, leg_yaw_offset_z);
+    }
+
+    Vec3<double> getHipRollLocation(int leg){
+        return Vec3<double>(leg_roll_offset_x, leg == 0 ? leg_roll_offset_y : -leg_roll_offset_y, leg_roll_offset_z);
     }
 
 
