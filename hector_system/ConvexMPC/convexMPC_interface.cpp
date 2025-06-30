@@ -109,7 +109,8 @@ int has_solved = 0;
 
 void update_problem_data(double* p, double* v, double* q, double* w, 
                          double* r, double yaw, double* weights, 
-                         double* state_trajectory, double* Alpha_K, int* gait, ControlFSMData &data)
+                         double* state_trajectory, double* Alpha_K, int* gait, 
+                         ControlFSMData &data)
 {
   mfp_to_flt(update.p,p,3);
   mfp_to_flt(update.v,v,3);

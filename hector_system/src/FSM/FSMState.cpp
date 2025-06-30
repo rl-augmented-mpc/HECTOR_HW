@@ -56,31 +56,34 @@ FSMState::FSMState(ControlFSMData *data, FSMStateName stateName, std::string sta
 
 }
 
-void FSMState::Logging()
+void FSMState::Logging(ConvexMPCLocomotion &mpc)
 {
 
     // Data Recording
-
-    // LIDAR added=======================================================
+    // sensor data recording
     for (int temp_idx = 0; temp_idx < 3; temp_idx++)
     {
         sensor_data_array[idx_imu + temp_idx] = _data->_stateEstimator->getResult().omegaWorld(temp_idx);
         sensor_data_array[idx_imu + 3 + temp_idx] = _data->_stateEstimator->getResult().aWorld(temp_idx);
-        // sensor_data_array[idx_imu_bias + temp_idx] = _data->_stateEstimator->getResult().gyro_bias(temp_idx);
-        // sensor_data_array[idx_imu_bias + 3 + temp_idx] = _data->_stateEstimator->getResult().acc_bias(temp_idx);
     }
     for (int temp_idx = 0; temp_idx < 5; temp_idx++)
     {
-        sensor_data_array[idx_joint_pos + temp_idx] = _data->_legController->data[0].q(temp_idx);       // left, already calibrated
+        sensor_data_array[idx_joint_pos + temp_idx] = _data->_legController->data[0].q(temp_idx);       // left
         sensor_data_array[idx_joint_pos + 5 + temp_idx] = _data->_legController->data[1].q(temp_idx);   // right
         sensor_data_array[idx_joint_vel + temp_idx] = _data->_legController->data[0].qd(temp_idx);      // left
         sensor_data_array[idx_joint_vel + 5 + temp_idx] = _data->_legController->data[1].qd(temp_idx);  // right
         sensor_data_array[idx_joint_tau + temp_idx] = _data->_legController->data[0].tau(temp_idx);     // left
         sensor_data_array[idx_joint_tau + 5 + temp_idx] = _data->_legController->data[1].tau(temp_idx); // right
     }
+    for (int temp_idx = 0; temp_idx < 3; temp_idx++)
+    {
+        sensor_data_array[idx_foot_pos + temp_idx] = _data->_legController->data[0].p(temp_idx); // left
+        sensor_data_array[idx_foot_pos + 3 + temp_idx] = _data->_legController->data[1].p(temp_idx); // right
+        sensor_data_array[idx_foot_vel + temp_idx] = _data->_legController->data[0].v(temp_idx); // left
+        sensor_data_array[idx_foot_vel + 3 + temp_idx] = _data->_legController->data[1].v(temp_idx); // right
+    }
 
-    // Vec3<double> temp_rpy_left = BasicFunctions::Rotation_to_EulerZYX(_data->_stateEstimator->getResult().RFootWorld[0]);
-    // Vec3<double> temp_rpy_right = BasicFunctions::Rotation_to_EulerZYX(_data->_stateEstimator->getResult().RFootWorld[1]);
+    // state estimator data recording
     for (int temp_idx = 0; temp_idx < 3; temp_idx++)
     {
         estimated_data_array[idx_com_rpy + temp_idx] = _data->_stateEstimator->getResult().rpy(temp_idx);
@@ -88,54 +91,20 @@ void FSMState::Logging()
         estimated_data_array[idx_com_pos + temp_idx] = _data->_stateEstimator->getResult().position(temp_idx); // or T265_pose
         estimated_data_array[idx_com_vel + temp_idx] = _data->_stateEstimator->getResult().vWorld(temp_idx);
         estimated_data_array[idx_com_acc + temp_idx] = _data->_stateEstimator->getResult().aWorld(temp_idx);
-
-        // estimated_data_array[idx_foot_left_rpy + temp_idx] = temp_rpy_left(temp_idx);
-        // estimated_data_array[idx_foot_left_omega + temp_idx] = _data->_stateEstimator->getResult().omegaFootWorld[0](temp_idx);
-        // estimated_data_array[idx_foot_left_pos + temp_idx] = _data->_stateEstimator->getResult().pFootWorld[0](temp_idx);
-        // estimated_data_array[idx_foot_left_vel + temp_idx] = _data->_stateEstimator->getResult().vFootWorld[0](temp_idx);
-
-        // estimated_data_array[idx_foot_right_rpy + temp_idx] = temp_rpy_right(temp_idx);
-        // estimated_data_array[idx_foot_right_omega + temp_idx] = _data->_stateEstimator->getResult().omegaFootWorld[1](temp_idx);
-        // estimated_data_array[idx_foot_right_pos + temp_idx] = _data->_stateEstimator->getResult().pFootWorld[1](temp_idx);
-        // estimated_data_array[idx_foot_right_vel + temp_idx] = _data->_stateEstimator->getResult().vFootWorld[1](temp_idx);
-
-        // estimated_data_array[idx_foot_left_contact] -> contact estimator not implemented yet.
     }
 
-    // for (int temp_idx = 0; temp_idx < 3; temp_idx++)
-    // {
-    //     controller_data_array[idx_GRF_left + temp_idx] = GMmpc.GetGMMPCSolution(temp_idx); // world frame. should be in foot frame
-    //     controller_data_array[idx_GRF_right + temp_idx] = GMmpc.GetGMMPCSolution(3 + temp_idx);
-    //     controller_data_array[idx_GRM_left + temp_idx] = GMmpc.GetGMMPCSolution(6 + temp_idx);
-    //     controller_data_array[idx_GRM_right + temp_idx] = GMmpc.GetGMMPCSolution(9 + temp_idx);
+    estimated_data_array[idx_foot_left_contact] = _data->_legController->commands[0].contact_state; 
+    estimated_data_array[idx_foot_right_contact] = _data->_legController->commands[1].contact_state;
 
-        // controller_data_array[idx_ref_com_rpy + temp_idx] = GMmpc.trajAll[12*(GMmpc.iterationCounter%5)+temp_idx];
-        // controller_data_array[idx_ref_com_omega + temp_idx] = GMmpc.trajAll[12*(GMmpc.iterationCounter%5) + 6 + temp_idx];
-        // controller_data_array[idx_ref_com_pos + temp_idx] = GMmpc.trajAll[12*(GMmpc.iterationCounter%5) + 3 + temp_idx];
-        // controller_data_array[idx_ref_com_vel + temp_idx] = GMmpc.trajAll[12*(GMmpc.iterationCounter%5) + 9 + temp_idx];
 
-        // controller_data_array[idx_ref_com_rpy + temp_idx] = GMmpc.Ref_Traj(0 + temp_idx, 0);
-        // controller_data_array[idx_ref_com_pos + temp_idx] = GMmpc.Ref_Traj(9 + temp_idx, 0);
-        // controller_data_array[idx_ref_com_omega + temp_idx] = GMmpc.Ref_Traj(18 + temp_idx, GMmpc.iterationCounter % 5);
-        // controller_data_array[idx_ref_com_vel + temp_idx] = GMmpc.Ref_Traj(27 + temp_idx, GMmpc.iterationCounter % 5);
-
-        // controller_data_array[idx_ref_foot_left_contact] = GMmpc.contact_states(0);
-        // controller_data_array[idx_ref_foot_right_contact] = GMmpc.contact_states(1);
-    //     if (GMmpc.contact_states(0) == 1)
-    //     {
-    //         controller_data_array[idx_ref_foot_left_pos + temp_idx] = 0;
-    //         controller_data_array[idx_ref_foot_left_vel + temp_idx] = 0;
-    //         controller_data_array[idx_ref_foot_right_pos + temp_idx] = GMmpc.pDesFootWorld(temp_idx); // should be checked
-    //         controller_data_array[idx_ref_foot_right_vel + temp_idx] = GMmpc.vDesFootWorld(temp_idx);
-    //     }
-    //     else if (GMmpc.contact_states(1) == 1)
-    //     {
-    //         controller_data_array[idx_ref_foot_left_pos + temp_idx] = GMmpc.pDesFootWorld(temp_idx);
-    //         controller_data_array[idx_ref_foot_left_vel + temp_idx] = GMmpc.vDesFootWorld(temp_idx);
-    //         controller_data_array[idx_ref_foot_right_pos + temp_idx] = 0;
-    //         controller_data_array[idx_ref_foot_right_vel + temp_idx] = 0;
-    //     }
-    // }
+    // controller data recording
+    for (int temp_idx = 0; temp_idx < 3; temp_idx++){
+        controller_data_array[idx_GRF_left + temp_idx] = _data->_legController->commands[0].feedforwardForce(temp_idx);
+        controller_data_array[idx_GRF_right + temp_idx] = _data->_legController->commands[1].feedforwardForce(temp_idx);
+        controller_data_array[idx_GRM_left + temp_idx] = _data->_legController->commands[0].feedforwardForce(temp_idx+3);
+        controller_data_array[idx_GRM_right + temp_idx] = _data->_legController->commands[1].feedforwardForce(temp_idx+3);
+    }
+    
     for (int temp_idx = 0; temp_idx < 5; temp_idx++)
     {
         controller_data_array[idx_joint_cmd_tau + temp_idx] = _data->_legController->commands[0].tau(temp_idx);
@@ -145,16 +114,26 @@ void FSMState::Logging()
         controller_data_array[idx_joint_cmd_vel + temp_idx] = _data->_legController->commands[0].qdDes(temp_idx);
         controller_data_array[idx_joint_cmd_vel + 5 + temp_idx] = _data->_legController->commands[1].qdDes(temp_idx);
     }
-    // std::cout<<"controller_data_array debugging "<<idx_joint_cmd_pos<<" "<<_data->_legController->commands[0].qDes(3)<<std::endl;
 
-    // controller_data_array[idx_ctrl_solver_time] = 0.001 * GMmpc.gmmpcsolvetime; // mpcsolvetime is in ms
-    // controller_data_array[idx_ctrl_solver_cost] = GMmpc.t2; //TBA
-    // controller_data_array[idx_ctrl_solver_iter] = get_solver_iter();
+    for (int temp_idx = 0; temp_idx < 3; temp_idx++)
+    {   
+        if (temp_idx == 0){
+            controller_data_array[idx_ref_com_rpy + temp_idx] = 0.0;
+            controller_data_array[idx_ref_com_omega + temp_idx] = 0.0;
+        }
 
+        else if (temp_idx == 1){
+            controller_data_array[idx_ref_com_rpy + temp_idx] = 0.0;
+            controller_data_array[idx_ref_com_omega + temp_idx] = 0.0;
+        }
+        else if (temp_idx == 2){
+            controller_data_array[idx_ref_com_rpy + temp_idx] = mpc.yaw_desired; 
+            controller_data_array[idx_ref_com_omega + temp_idx] = mpc.turn_rate_des;
+        }
 
-    // LIDAR added=======================================================
-
-    // LIDAR added=======================================================
+        controller_data_array[idx_ref_com_pos + temp_idx] = mpc.world_position_desired(temp_idx);
+        controller_data_array[idx_ref_com_vel + temp_idx] = mpc.v_des_world(temp_idx);
+    }
 
     for (int idx = 0; idx < sensor_data_size; idx++)
     {
@@ -174,7 +153,6 @@ void FSMState::Logging()
     controller_data << std::endl;
     
 }
-
 
 
 void FSMState::CheckJointSafety(){

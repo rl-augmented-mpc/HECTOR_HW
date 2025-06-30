@@ -72,18 +72,26 @@ int main()
     _controlData->_lowCmd = lowCmd;
     _controlData->_lowState = lowState;
 
-    Vec2<int> dsp_durations = {int(0.0/dt), int(0.0/dt)};
-    Vec2<int> ssp_durations = {int(0.3/dt), int(0.3/dt)};
+    // gait parameters
+    // Vec2<int> dsp_durations = {0, 0};
+    // Vec2<int> ssp_durations = {5, 5};
+    Vec2<int> dsp_durations = {3, 3}; // 0.05*3 = 0.15s
+    Vec2<int> ssp_durations = {3, 3}; // 0.05*3 = 0.15s
     biped.updateGaitParameter(dsp_durations, ssp_durations);
-    double slope_angle = 0.0; 
+    double slope_angle = (15.0 / 180.0) * M_PI;
     biped.updateSlope(slope_angle);
-    std::string planner = "LIP"; // Raibert; OpenLoop;
+    std::string planner = "Raibert"; // or LIP
     biped.setFootPlacementPlanner(planner);
+
+    // MPC sampling time
+    // double dt_mpc = 0.045; 
+    double dt_mpc = 0.05; 
+    biped.rl_params.update_sampling_dt(dt_mpc);
     
     std::string fsm_name = "passive";
-    int iterations_between_mpc = 50;
+    int iterations_between_mpc = 50; // this does not have any effect
     int horizon_length = 10;
-    int mpc_decimation = 5;
+    int mpc_decimation = 5; // 1000/5 = 200Hz
     FSM* _FSMController = new FSM(_controlData, dt, iterations_between_mpc, horizon_length, mpc_decimation, fsm_name);
     ioInter->_data = _controlData;
 

@@ -39,7 +39,9 @@ void FSMState_Walking::run()
     // set reference command
     setCommand();
     Cmpc.run(*_data);
-    Logging();
+    if (Cmpc.gaitNumber == 2){
+      Logging(Cmpc);
+    }
     //Push the Command to Leg Controller
     _data->_legController->updateCommand(_data->_lowCmd);
 }

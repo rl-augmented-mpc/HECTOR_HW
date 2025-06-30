@@ -64,8 +64,7 @@ void LegController::zeroCommand(){
 }
 
 void LegController::updateData(const LowlevelState* state){
-
-
+    // update robot state (center of mass, foot, joint state)
     for (int i = 0; i< 2; i++){
         data[i].zero();
     }
@@ -126,22 +125,8 @@ void LegController::updateData(const LowlevelState* state){
 
 }
 
-
-
-
-
-
-
-
 void LegController::updateCommand(LowlevelCmd* cmd){
-    
-    
-
-    //For high-lev(controller-configuired) q, qd, tau, all the axis of rotations are in the same direction; +z, +x, +y.
-
-    //LIDAR-modified
-
-
+    // calculate motor commands from low level control
     for (int leg = 0; leg < 2; leg++){
 
 
@@ -241,7 +226,6 @@ void LegController::updateCommand(LowlevelCmd* cmd){
             Vec3<double> foot_v_des = commands[leg].vDes;
 
             //desired joint position
-            // commands[leg].qDes.block(1,0, 3,1) = _biped.ComputeIK(foot_des, leg);
             commands[leg].qDes.block(1,0, 3,1) = _biped.analytical_IK(foot_des, leg);
             commands[leg].qDes(0) = 0;
             commands[leg].qDes(4) = -_biped.slope_pitch - data[leg].q(3) - data[leg].q(2); // Ankle joint parallel to (sloped) ground
@@ -254,19 +238,6 @@ void LegController::updateCommand(LowlevelCmd* cmd){
             // std::cout << "control_mode 3" << std::endl;
 
         }
-
-
-        
-
-    
-
-
-        
-
-
-
-
-
 
         // Commands to low-level controller======================================================================
 
@@ -301,7 +272,7 @@ void LegController::updateCommand(LowlevelCmd* cmd){
 
     }
 
-    // Before initialization, save
+    // Before initialization, save GRW and reference joint state
     grfm.block<6,1>(0,0) = commands[0].feedforwardForce;
     grfm.block<6,1>(6,0) = commands[1].feedforwardForce;
     qref.block<5,1>(0,0) = commands[0].qDes;
@@ -320,7 +291,7 @@ void LegController::updateCommand(LowlevelCmd* cmd){
 }
 
 
-// *** For RL-MPC *****************************************
+// ** RL-MPC interface **
 
 Vec12<double> LegController::get_grw(){
     /// return GRF-M computed by MPC

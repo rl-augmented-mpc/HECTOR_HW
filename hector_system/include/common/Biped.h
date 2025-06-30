@@ -150,7 +150,7 @@ class Biped{
     double pf_z = 0.0; // foot placement z value
 
     // Parameters for slope terrain 
-    double slope_pitch; // slope pitch in radian
+    double slope_pitch = 0.0; // slope pitch in radian
 
     // foot placement planner (pick from here)
     std::string foot_placement_planner = "LIP";

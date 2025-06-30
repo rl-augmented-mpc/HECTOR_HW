@@ -53,11 +53,9 @@ void swingLegController::updateSwingStates(){
 void swingLegController::updateSwingTimes(){
     for(int leg = 0; leg < nLegs; leg++){
         if(firstSwing[leg]){
-            // swingTimes[leg] = _dtSwing * gait->_swing(leg);
             swingTimes[leg] = gait->_swing_durations_sec[leg];
         }
         else{
-            // swingTimes[leg] -= _stepping_frequency * _dtSwing;
             swingTimes[leg] -= _dtSwing;
             if(contactStates[leg] > 0){
                 firstSwing[leg] = true;
@@ -85,21 +83,11 @@ void swingLegController::computeFootPlacement(){
                     lip_controller.update_stance_leg(1-foot, pFoot_w[1-foot].block<2,1>(0,0));
                 }
 
-                // LIP for sagittal
                 lip_controller.update_swing_times(swingTimes[foot], gait->_swing_durations_sec[foot]);
                 lip_controller.compute_icp_init(seResult);
                 lip_controller.compute_icp_final();
                 lip_foot_placement = lip_controller.compute_foot_placement(seResult, stateCommand->data, Vec2<double>{0.0, 0.0});
                 Pf[foot] << lip_foot_placement[0], lip_foot_placement[1], data->_biped->pf_z;
-
-                // // Reibert for lateral
-                // Vec3<double>rb_fps = seResult.position + seResult.rBody.transpose() * (data->_biped->get_hip_offset(foot)) + seResult.vWorld * swingTimes[foot];
-                // double p_rel_max_y =  0.3;
-                // double k_y = 0.1;
-                // double pfy_rel   =  k_y  * (seResult.vWorld[1] - v_des_world[1]);
-                // pfy_rel = fminf(fmaxf(pfy_rel, -p_rel_max_y), p_rel_max_y);
-                // Pf[foot] << lip_foot_placement[0], rb_fps[1] + pfy_rel, data->_biped->pf_z;
-
                 Pf_augmented[foot] << Pf[foot][0] + Pf_residual[foot][0], Pf[foot][1] + Pf_residual[foot][1], data->_biped->pf_z;
 
             }
@@ -163,10 +151,6 @@ void swingLegController::computeFootPlacement(){
         }
     }
 }
-
-
-/******************************************************************************************************/
-/******************************************************************************************************/
 
 void swingLegController::computeFootDesiredPosition(){
     for(int foot = 0; foot < nLegs; foot++){

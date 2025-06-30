@@ -146,8 +146,7 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
     data._stateEstimator->setContactPhase(se_contactState);
   }
 
-  // update sampling time when contact switch happens
-  // gait->updateSamplingTime(data._biped->rl_params._dt_sampling);
+  // // update sampling time at contact switch
   // if ((swingStates(0) == -1 && swing_states_prev(0) != -1) || 
   // (swingStates(1) == -1 && swing_states_prev(1) != -1) || 
   // (swing_states_prev(0)==0 && swing_states_prev(1)==0)){
@@ -365,7 +364,7 @@ void ConvexMPCLocomotion::updateReferenceTrajectory(StateEstimate &seResult, Des
     trajAll[12*i + 2] = seResult.rpy[2] + i * dtMPC * turn_rate_des;
 
     // // combine closed-loop and open-loop trajectory
-    // double alpha = 0.5;
+    // double alpha = 1.0;
     // trajAll[12*i + 3] = alpha * (seResult.position[0] + i * dtMPC * v_des_world[0])
     //                     + (1 - alpha) * (trajInitial[3] + i * dtMPC * v_des_world[0]);
 

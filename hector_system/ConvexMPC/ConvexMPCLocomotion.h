@@ -57,7 +57,13 @@ public:
 
   bool climb = 0;
   bool firstRun = true;
-  // ofstream foot_position;
+
+  int gaitNumber;
+  Vec3<double> v_des_robot = {0, 0, 0};
+  Vec3<double> v_des_world = {0, 0, 0};
+  double turn_rate_des = 0; 
+  Vec3<double> world_position_desired;
+  double yaw_desired;
 
 private:
   void updateMPC(int* mpcTable, ControlFSMData& data, bool omniMode);
@@ -81,13 +87,7 @@ private:
   double swingTimeRemaining[2];
   double stand_traj[6];
   int current_gait;
-  int gaitNumber;
 
-  Vec3<double> v_des_robot = {0, 0, 0};
-  Vec3<double> v_des_world = {0, 0, 0};
-  double turn_rate_des = 0; 
-  Vec3<double> world_position_desired;
-  double yaw_desired;
   Vec3<double> rpy_int;
   Vec3<double> rpy_comp;
   Vec3<double> pFoot[2];

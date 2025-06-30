@@ -63,34 +63,6 @@ double qp_cost = 0;
 char var_elim[2000];
 char con_elim[2000];
 
-Matrix<fpt, 3, 3> euler_to_rotation(fpt roll, fpt pitch, fpt yaw) {
-    
-    fpt r = roll;
-    fpt p = pitch;
-    fpt y = yaw;
-
-    // Calculate rotation matrix
-    Matrix<fpt, 3, 3> Rx, Ry, Rz, Rb;
-    Rx << 1, 0, 0,
-          0, cos(r), -sin(r),
-          0, sin(r), cos(r);
-    Ry << cos(p), 0, sin(p),
-          0, 1, 0,
-          -sin(p), 0, cos(p);
-    Rz << cos(y), -sin(y), 0,
-          sin(y), cos(y), 0,
-          0, 0, 1;
-    // Rb << 1, sin(r)*tan(p), cos(r)*tan(p),
-    //       0, cos(r), -sin(r),
-    //       0, sin(r)/cos(p), cos(r)/cos(p);  
-    Rb << cos(y)*cos(p), -sin(y), 0,
-          sin(y)*cos(p), cos(y), 0,
-          -sin(p), 0, 1; 
-    Matrix<fpt, 3, 3> R = Rb.inverse();
-    // Eigen::Matrix3d R = Rx * Ry * Rz;   
-    return R;
-}
-
 // Returns QP solution
 mfp *get_q_soln()
 {
@@ -112,7 +84,35 @@ s8 near_one(fpt a)
   return near_zero(a - 2);
 }
 
-// Matrix Operations:
+// ** Matrix Operations **
+Matrix<fpt, 3, 3> euler_to_rotation(fpt roll, fpt pitch, fpt yaw) {
+    
+  fpt r = roll;
+  fpt p = pitch;
+  fpt y = yaw;
+
+  // Calculate rotation matrix
+  Matrix<fpt, 3, 3> Rx, Ry, Rz, Rb;
+  Rx << 1, 0, 0,
+        0, cos(r), -sin(r),
+        0, sin(r), cos(r);
+  Ry << cos(p), 0, sin(p),
+        0, 1, 0,
+        -sin(p), 0, cos(p);
+  Rz << cos(y), -sin(y), 0,
+        sin(y), cos(y), 0,
+        0, 0, 1;
+  // Rb << 1, sin(r)*tan(p), cos(r)*tan(p),
+  //       0, cos(r), -sin(r),
+  //       0, sin(r)/cos(p), cos(r)/cos(p);  
+  Rb << cos(y)*cos(p), -sin(y), 0,
+        sin(y)*cos(p), cos(y), 0,
+        -sin(p), 0, 1; 
+  Matrix<fpt, 3, 3> R = Rb.inverse();
+  // Eigen::Matrix3d R = Rx * Ry * Rz;   
+  return R;
+}
+
 inline Matrix<fpt, 3, 3> cross_mat(Matrix<fpt, 3, 3> I_inv, Matrix<fpt, 3, 1> r)
 {
   Matrix<fpt, 3, 3> cm;
@@ -136,7 +136,42 @@ void matrix_to_real(qpOASES::real_t *dst, Matrix<fpt, Dynamic, Dynamic> src, s16
   }
 }
 
-// continuous time state space matrices with residual matrices
+void quat_to_rpy(Quaternionf q, Matrix<fpt, 3, 1> &rpy)
+{
+  // from my MATLAB implementation
+
+  // edge case!
+  fpt as = t_min(2. * (q.w() * q.y() - q.x() * q.z()), .99999);
+  rpy(0) = atan2(2.f * (q.w() * q.x() + q.y() * q.z()), 1. - 2.f * (sq(q.x()) + sq(q.y())));
+  rpy(1) = asin(as);
+  rpy(2) = atan2(2.f * (q.w() * q.z() + q.x() * q.y()), 1. - 2.f * (sq(q.y()) + sq(q.z())));
+  // std::cout << "MPC solver rpy: " << rpy(0) << " " << rpy(1) << " " << rpy(2) << std::endl;
+}
+void print_problem_setup(problem_setup *setup)
+{
+  printf("DT: %.3f\n", setup->dt);
+  printf("Mu: %.3f\n", setup->mu);
+  printf("F_Max: %.3f\n", setup->f_max);
+  printf("Horizon: %d\n", setup->horizon);
+}
+
+void print_update_data(update_data_t *update, s16 horizon)
+{
+  print_named_array("p", update->p, 1, 3);
+  print_named_array("v", update->v, 1, 3);
+  print_named_array("q", update->q, 1, 4);
+  print_named_array("w", update->r, 3, 4);
+  pnv("Yaw", update->yaw);
+  print_named_array("weights", update->weights, 1, 12);
+  print_named_array("trajectory", update->traj, horizon, 12);
+  print_named_array("Alpha", update->Alpha_K, 1, 12);
+  print_named_array("gait", update->gait, horizon, 4);
+}
+
+
+// ** dynamics **
+
+// single rigid body dynamics
 // https://arxiv.org/abs/2104.00065 eq.8-9
 // nonlinear dynamics is linearized around the current state (operating point)
 void ct_ss_mats(Matrix<fpt, 3, 3> I_world, fpt m, Matrix<fpt,13,13> 
@@ -163,6 +198,7 @@ void ct_ss_mats(Matrix<fpt, 3, 3> I_world, fpt m, Matrix<fpt,13,13>
   B += B_residual;
 }
 
+// dynamics constraint in horizon to QP matrices
 void c2qp(Matrix<fpt, 13, 13> Ac, Matrix<fpt, 13, 12> Bc, fpt dt, s16 horizon)
 {
   if (horizon > 19)
@@ -320,38 +356,6 @@ void resize_qp_mats(s16 horizon)
 #endif
 }
 
-void quat_to_rpy(Quaternionf q, Matrix<fpt, 3, 1> &rpy)
-{
-  // from my MATLAB implementation
-
-  // edge case!
-  fpt as = t_min(2. * (q.w() * q.y() - q.x() * q.z()), .99999);
-  rpy(0) = atan2(2.f * (q.w() * q.x() + q.y() * q.z()), 1. - 2.f * (sq(q.x()) + sq(q.y())));
-  rpy(1) = asin(as);
-  rpy(2) = atan2(2.f * (q.w() * q.z() + q.x() * q.y()), 1. - 2.f * (sq(q.y()) + sq(q.z())));
-  // std::cout << "MPC solver rpy: " << rpy(0) << " " << rpy(1) << " " << rpy(2) << std::endl;
-}
-void print_problem_setup(problem_setup *setup)
-{
-  printf("DT: %.3f\n", setup->dt);
-  printf("Mu: %.3f\n", setup->mu);
-  printf("F_Max: %.3f\n", setup->f_max);
-  printf("Horizon: %d\n", setup->horizon);
-}
-
-void print_update_data(update_data_t *update, s16 horizon)
-{
-  print_named_array("p", update->p, 1, 3);
-  print_named_array("v", update->v, 1, 3);
-  print_named_array("q", update->q, 1, 4);
-  print_named_array("w", update->r, 3, 4);
-  pnv("Yaw", update->yaw);
-  print_named_array("weights", update->weights, 1, 12);
-  print_named_array("trajectory", update->traj, horizon, 12);
-  print_named_array("Alpha", update->Alpha_K, 1, 12);
-  print_named_array("gait", update->gait, horizon, 4);
-}
-
 Matrix<fpt, 13, 1> x_0;
 Matrix<fpt, 3, 3> I_world;
 Matrix<fpt, 13, 13> A_ct;
@@ -360,16 +364,6 @@ Matrix<fpt, 13, 12> B_ct_r;
 // Main function:
 void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data)
 {
-
-  Eigen::Matrix<double, 10, 1> q;
-  // for (int i = 0; i < 2; i++)
-  // {
-  //   for (int k = 0; k < 5; k++)
-  //   {
-  //     q(i * 5 + k) = data._legController->data[i].q(k);
-  //   }
-  // }
-
   rs.set(update->p, update->v, update->q, update->w, update->r, update->yaw);
 
   #ifdef K_PRINT_EVERYTHING
@@ -389,26 +383,13 @@ void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data
   // roll pitch yaw
   Matrix<fpt, 3, 1> rpy;
   quat_to_rpy(rs.q, rpy);
-  // Eigen::Matrix3d rot_mat;
   Matrix<fpt, 3, 3> Rb;
   Rb = euler_to_rotation(rpy(0), rpy(1), rpy(2));
   
+  // equality constraint
   x_0 << rpy(0), rpy(1), rpy(2), rs.p, rs.w, rs.v, 1.f;
   I_world = rs.R * setup->I_body * rs.R.transpose();
   ct_ss_mats(I_world, setup->mass, setup->A_residual, setup->B_residual, rs.r_feet, Rb, A_ct, B_ct_r);
- 
-  // Rotation of Foot wrt body:
-  Matrix<fpt, 3, 3> R_foot_L;
-  Matrix<fpt, 3, 3> R_foot_R;
-  // R_foot_L.setIdentity();
-  // R_foot_R.setIdentity();
-  R_foot_L << - 1.0*sin(q(4))*(cos(q(3))*(cos(q(0))*sin(q(2)) + cos(q(2))*sin(q(0))*sin(q(1))) + sin(q(3))*(cos(q(0))*cos(q(2)) - 1.0*sin(q(0))*sin(q(1))*sin(q(2)))) - cos(q(4))*(1.0*sin(q(3))*(cos(q(0))*sin(q(2)) + cos(q(2))*sin(q(0))*sin(q(1))) - cos(q(3))*(cos(q(0))*cos(q(2)) - 1.0*sin(q(0))*sin(q(1))*sin(q(2)))), -1.0*cos(q(1))*sin(q(0)), cos(q(4))*(cos(q(3))*(cos(q(0))*sin(q(2)) + cos(q(2))*sin(q(0))*sin(q(1))) + sin(q(3))*(cos(q(0))*cos(q(2)) - 1.0*sin(q(0))*sin(q(1))*sin(q(2)))) - sin(q(4))*(1.0*sin(q(3))*(cos(q(0))*sin(q(2)) + cos(q(2))*sin(q(0))*sin(q(1))) - cos(q(3))*(cos(q(0))*cos(q(2)) - 1.0*sin(q(0))*sin(q(1))*sin(q(2)))),
-              cos(q(4))*(cos(q(3))*(cos(q(2))*sin(q(0)) + cos(q(0))*sin(q(1))*sin(q(2))) - 1.0*sin(q(3))*(sin(q(0))*sin(q(2)) - 1.0*cos(q(0))*cos(q(2))*sin(q(1)))) - 1.0*sin(q(4))*(sin(q(3))*(cos(q(2))*sin(q(0)) + cos(q(0))*sin(q(1))*sin(q(2))) + cos(q(3))*(sin(q(0))*sin(q(2)) - 1.0*cos(q(0))*cos(q(2))*sin(q(1)))),      cos(q(0))*cos(q(1)), cos(q(4))*(sin(q(3))*(cos(q(2))*sin(q(0)) + cos(q(0))*sin(q(1))*sin(q(2))) + cos(q(3))*(sin(q(0))*sin(q(2)) - 1.0*cos(q(0))*cos(q(2))*sin(q(1)))) + sin(q(4))*(cos(q(3))*(cos(q(2))*sin(q(0)) + cos(q(0))*sin(q(1))*sin(q(2))) - 1.0*sin(q(3))*(sin(q(0))*sin(q(2)) - 1.0*cos(q(0))*cos(q(2))*sin(q(1)))),
-                                                                                                                                                                                                                            -1.0*sin(q(2) + q(3) + q(4))*cos(q(1)),              sin(q(1)),                                                                                                                                                                                                                             cos(q(2) + q(3) + q(4))*cos(q(1));
-  R_foot_R << - 1.0*sin(q(9))*(cos(q(8))*(cos(q(5))*sin(q(7)) + cos(q(7))*sin(q(5))*sin(q(6))) + sin(q(8))*(cos(q(5))*cos(q(7)) - 1.0*sin(q(5))*sin(q(6))*sin(q(7)))) - cos(q(9))*(1.0*sin(q(8))*(cos(q(5))*sin(q(7)) + cos(q(7))*sin(q(5))*sin(q(6))) - cos(q(8))*(cos(q(5))*cos(q(7)) - 1.0*sin(q(5))*sin(q(6))*sin(q(7)))), -1.0*cos(q(6))*sin(q(5)), cos(q(9))*(cos(q(8))*(cos(q(5))*sin(q(7)) + cos(q(7))*sin(q(5))*sin(q(6))) + sin(q(8))*(cos(q(5))*cos(q(7)) - 1.0*sin(q(5))*sin(q(6))*sin(q(7)))) - sin(q(9))*(1.0*sin(q(8))*(cos(q(5))*sin(q(7)) + cos(q(7))*sin(q(5))*sin(q(6))) - cos(q(8))*(cos(q(5))*cos(q(7)) - 1.0*sin(q(5))*sin(q(6))*sin(q(7)))),
-              cos(q(9))*(cos(q(8))*(cos(q(7))*sin(q(5)) + cos(q(5))*sin(q(6))*sin(q(7))) - 1.0*sin(q(8))*(sin(q(5))*sin(q(7)) - 1.0*cos(q(5))*cos(q(7))*sin(q(6)))) - 1.0*sin(q(9))*(sin(q(8))*(cos(q(7))*sin(q(5)) + cos(q(5))*sin(q(6))*sin(q(7))) + cos(q(8))*(sin(q(5))*sin(q(7)) - 1.0*cos(q(5))*cos(q(7))*sin(q(6)))),      cos(q(5))*cos(q(6)), cos(q(9))*(sin(q(8))*(cos(q(7))*sin(q(5)) + cos(q(5))*sin(q(6))*sin(q(7))) + cos(q(8))*(sin(q(5))*sin(q(7)) - 1.0*cos(q(5))*cos(q(7))*sin(q(6)))) + sin(q(9))*(cos(q(8))*(cos(q(7))*sin(q(5)) + cos(q(5))*sin(q(6))*sin(q(7))) - 1.0*sin(q(8))*(sin(q(5))*sin(q(7)) - 1.0*cos(q(5))*cos(q(7))*sin(q(6)))),
-                                                                                                                                                                                                                            -1.0*sin(q(7) + q(8) + q(9))*cos(q(6)),              sin(q(6)),                                                                                                                                                                                                                             cos(q(7) + q(8) + q(9))*cos(q(6));
-
   c2qp(A_ct, B_ct_r, setup->dt, setup->horizon);
 
   // weights
@@ -426,7 +407,7 @@ void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data
     X_d(13 * i + 12, 0) = 1.f;
   }
 
-  // QP Upper Bound
+  // Set QP Upper Bound
   // QP Lower Bound is set to 0 by default
   for(s16 i = 0; i < setup->horizon; i++){
       U_b(0 + 16*i) = BIG_NUMBER;
@@ -456,9 +437,13 @@ void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data
   fpt lt = 0.07; // length of toe from ankle link
   fpt lh = 0.04; // length of heel from ankle link
 
-  // Matrix<fpt,5,3> f_block;
-  Matrix<fpt,10,12> f_blockz;
+  // Rotation of Foot wrt body:
+  double terrain_slope = data._biped->slope_pitch; 
+  Matrix<fpt, 3, 3> R_foot_L = euler_to_rotation(0.0, terrain_slope, 0.0);
+  Matrix<fpt, 3, 3> R_foot_R = euler_to_rotation(0.0, terrain_slope, 0.0);
+  
   Matrix<fpt,16,12> F_control;
+  F_control.setZero();
 
   Matrix<fpt,1,3> lt_vec;
   Matrix<fpt,1,3> lt_3D;
@@ -475,7 +460,7 @@ void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data
   Matrix<fpt,1,3> Moment_selection(1.f, 0, 0);
   Matrix<fpt,1,3> Moment_selection_3D;
 
-  // **** Input constraints ****
+  // ** Input constraints **
   // https://arxiv.org/abs/2312.11868 eq13b-e
   // control input is [F1, F2, M1, M2]
   
@@ -493,9 +478,7 @@ void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data
   // 0 < [0, 0, lh] * R_foot * F - [0, 1, 0] * R_foot.T * M
 
   // Fz constraints
-  // 0 < Fz < maxGRF
-
-  F_control.setZero();
+  // 0 <= Fz <= maxGRF
 
   Matrix<fpt, 1, 3> mu_1; 
   Matrix<fpt, 1, 3> mu_2;
@@ -547,48 +530,6 @@ void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data
   
   F_control.block<1, 12>(15, 0)  //Fz Leg 2
       << 0, 0, 0, 0, 0, 1.f, 0, 0, 0, 0, 0, 0;
-
-  // //leg 1
-  // F_control.block<1, 12>(0, 0) //Friction leg 1
-  //     << -mu, 0, 1.f,   0, 0, 0, 0, 0, 0, 0, 0, 0;
-  // F_control.block<1, 12>(1, 0)
-  //     <<  mu, 0, 1.f,   0, 0, 0, 0, 0, 0, 0, 0, 0;
-  // F_control.block<1, 12>(2, 0)
-  //     <<  0, -mu, 1.f,  0, 0, 0, 0, 0, 0, 0, 0, 0;
-  // F_control.block<1, 12>(3, 0)
-  //     <<  0,  mu, 1.f,  0, 0, 0, 0, 0, 0, 0, 0, 0;
-
-  // F_control.block<1, 12>(4, 0) //Mx Leg 1
-  //     << 0, 0, 0, 0, 0, 0, Moment_selection * R_foot_L.transpose()* rs.R.transpose(), 0, 0, 0;
-
-  // F_control.block<1, 12>(5, 0) //Line Leg 1
-  //     << lt_vec * R_foot_L.transpose()* rs.R.transpose(),   0, 0, 0,    M_vec * R_foot_L.transpose()* rs.R.transpose(),   0, 0, 0;
-  // F_control.block<1, 12>(6, 0)
-  //     << lh_vec * R_foot_L.transpose()* rs.R.transpose(),   0, 0, 0,   -M_vec * R_foot_L.transpose()* rs.R.transpose(),   0, 0, 0;
-      
-  // F_control.block<1, 12>(7, 0) //Fz Leg 1
-  //     << 0, 0, 2.f, 0, 0, 0, 0, 0, 0, 0, 0, 0;
-
-  // //leg 2
-  // F_control.block<1, 12>(8, 0) //Friction leg 2
-  //     <<  0, 0, 0,   -mu, 0, 1.f,   0, 0, 0, 0, 0, 0;
-  // F_control.block<1, 12>(9, 0)
-  //     <<  0, 0, 0,    mu, 0, 1.f,   0, 0, 0, 0, 0, 0;
-  // F_control.block<1, 12>(10, 0)
-  //     <<   0, 0, 0,   0, -mu, 1.f,  0, 0, 0, 0, 0, 0;
-  // F_control.block<1, 12>(11, 0)
-  //     <<   0, 0, 0,   0, mu, 1.f,   0, 0, 0, 0, 0, 0;     
-
-  // F_control.block<1, 12>(12, 0) //Mx Leg 1
-  //     << 0, 0, 0, 0, 0, 0, 0, 0, 0, Moment_selection * R_foot_R.transpose()* rs.R.transpose();
-
-  // F_control.block<1, 12>(13, 0) //Line Leg 2
-  //     << 0, 0, 0,   lt_vec * R_foot_R.transpose()* rs.R.transpose(),   0, 0, 0,    M_vec * R_foot_R.transpose()* rs.R.transpose();
-  // F_control.block<1, 12>(14, 0)
-  //     << 0, 0, 0,   lh_vec * R_foot_R.transpose()* rs.R.transpose(),   0, 0, 0,   -M_vec * R_foot_R.transpose()* rs.R.transpose();  
-  
-  // F_control.block<1, 12>(15, 0)  //Fz Leg 2
-  //     << 0, 0, 0, 0, 0, 2.f, 0, 0, 0, 0, 0, 0;
 
   // Set to fmat QP
   for(s16 i = 0; i < setup->horizon; i++)

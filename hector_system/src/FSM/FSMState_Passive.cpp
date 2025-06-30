@@ -39,7 +39,7 @@ void FSMState_Passive::run()
     angle << std::endl;
 
 
-    Logging();
+    // Logging();
     _data->_legController->updateCommand(_data->_lowCmd);
 
 
