@@ -29,6 +29,7 @@ class FSM{
         ~FSM();
         // void initialize();
         void initialize(std::string _fsm_name);
+        void switch_mode(std::string _fsm_name);
         void run();
         void reset();
 

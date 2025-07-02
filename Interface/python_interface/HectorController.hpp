@@ -39,12 +39,16 @@ class HectorController{
             _controlData->_lowState = state.get();
 
             std::cout << "setup fsm " << std::endl;
-            std::string fsm_name = "walking";
+            std::string fsm_name = "passive";
             fsm = std::make_shared<FSM>(_controlData.get(), _dt, _iterations_between_mpc, _horizon_length, _mpc_decimation, fsm_name);
             std::cout << "=============" << std::endl;
         }
 
         ~HectorController() = default;
+
+        void switch_fsm(std::string fsm_name){
+            fsm->switch_mode(fsm_name);
+        }
 
         void reset(){
             fsm->reset();

@@ -59,8 +59,27 @@ void FSM::initialize(std::string _fsm_name)
     _currentState -> enter();
     _nextState = _currentState;
     _mode = FSMMode::NORMAL;
-
 }
+
+void FSM::switch_mode(std::string _fsm_name){
+    std::cout << "Switching FSM mode to: " << _fsm_name << std::endl;
+    if (_fsm_name == "walking")
+    {
+        _currentState = _stateList.walking;
+    }
+    else if (_fsm_name == "pdStand")
+    {
+        _currentState = _stateList.pdStand;
+    }
+    else
+    {
+        _currentState = _stateList.passive;
+    }
+    _currentState -> enter();
+    _nextState = _currentState;
+    _mode = FSMMode::NORMAL;
+}
+
 
 void FSM::run()
 {

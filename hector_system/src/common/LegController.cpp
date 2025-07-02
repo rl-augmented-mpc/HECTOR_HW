@@ -20,15 +20,17 @@ void LegControllerCommand::zero(){
     kptoe = 0;
     kdtoe = 0;
 
-    qDesDelta = Vec5<double>::Zero();
-    feedforwardForceDelta = Vec6<double>::Zero();
-    footplacementDelta = Vec2<double>::Zero();
     Pf = Vec3<double>::Zero();
     Pf_augmented = Vec3<double>::Zero();
+
     double contact_phase = 0.; 
     double contact_state = 0.; 
     double swing_phase = 0.;
     double swing_state = 0.;
+
+    qDesDelta = Vec5<double>::Zero();
+    feedforwardForceDelta = Vec6<double>::Zero();
+    footplacementDelta = Vec2<double>::Zero();
     //control_mode should be not touched
 
 }
@@ -44,24 +46,46 @@ void LegControllerData::zero(){
     J = Mat65<double>::Zero();
     J2 = Mat35<double>::Zero();
     tau = Vec5<double>::Zero();
+
+    // initial joint posture
+    q[2] = 3.1415 * 0.25; 
+    q[3] = -3.1415 * 0.5; 
+    q[4] = 3.1415 * 0.25;
+    q[7] = 3.1415 * 0.25;
+    q[8] = -3.1415 * 0.5;
+    q[9] = 3.1415 * 0.25;
 }
 
 void LegController::zeroCommand(){
-    for (int i = 0; i<2; i++){
-        commands[i].zero();
+    for (int foot = 0; foot<2; foot++){
+        commands[foot].zero();
 
         // begin with right foot swing
-        if (i==0){
-            commands[i].contact_state = 1.;
-            commands[i].swing_state = 0.;
+        if (foot==0){
+            commands[foot].contact_state = 1.;
+            commands[foot].swing_state = 0.;
         }
         
-        if (i==1){
-            commands[i].swing_state = 1.;
-            commands[i].contact_state = 0.;
+        if (foot==1){
+            commands[foot].swing_state = 1.;
+            commands[foot].contact_state = 0.;
+        }
+
+        // initialize kinematics
+        _biped.forward_kinematics(data[foot].q, foot);
+        _biped.contact_jacobian(foot);
+        data[foot].J = _biped.get_contact_jacobian(foot);
+        data[foot].J2 = data[foot].J.block(0,0, 3,5);
+        data[foot].p = _biped.get_p0e(foot);
+        data[foot].v = data[foot].J2 * data[foot].qd;
+
+        // initialize foot position
+        Vec3<double> root_position = {0.0, 0.0, 0.55};
+        commands[foot].Pf = root_position + data[foot].p; // Changed from commands[i] to commands[foot]
+        commands[foot].Pf_augmented = commands[foot].Pf; // Changed from commands[i] to commands[foot]
+        commands[foot].pDes = data[foot].p; // Changed from commands[i] to commands[foot]
         }
     }
-}
 
 void LegController::updateData(const LowlevelState* state){
     // update robot state (center of mass, foot, joint state)
@@ -140,7 +164,6 @@ void LegController::updateCommand(LowlevelCmd* cmd){
             // commands[leg].kdJoint << 2.0, 2.0, 2.0, 2.0, 1.5;
             commands[leg].kpJoint << 30.0, 20.0, 20.0, 20.0, 15.0;
             commands[leg].kdJoint << 1.0, 0.6, 0.45, 0.45, 0.6;
-            // commands[leg].kdJoint << 0.45, 0.6, 0.45, 0.45, 0.6;
         }
 
 

@@ -10,6 +10,7 @@ PYBIND11_MODULE(hector_control, m) {
       .def(py::init<double, int, int, int>())
 
       // initial setups
+      .def("switch_fsm", &HectorController::switch_fsm, py::arg("fsm_name"))
       .def("reset", &HectorController::reset)
       .def("setGaitNum", &HectorController::setGaitNum, py::arg("gaitnum"))
       .def("updateGaitParameter", &HectorController::updateGaitParameter, py::arg("dsp_durations"), py::arg("ssp_durations"))

@@ -11,6 +11,11 @@ void swingLegController::initSwingLegController(ControlFSMData *_data, Gait *_ga
     gait = _gait;
     _dtSwing = dtSwing;
     updateFootPosition();
+
+    for (int foot=0; foot < nLegs; foot++){
+        Pf[foot] = pFoot_w[foot];
+        Pf_augmented[foot] = Pf[foot];
+    }
 }
 
 void swingLegController::setGait(Gait *_gait){
@@ -91,12 +96,13 @@ void swingLegController::computeFootPlacement(){
                 Pf_augmented[foot] << Pf[foot][0] + Pf_residual[foot][0], Pf[foot][1] + Pf_residual[foot][1], data->_biped->pf_z;
 
             }
-            else{
-                Pf[foot] = pFoot_w[foot];
-                Pf_augmented[foot] = Pf[foot];
-            }
+            // else{
+            //     Pf[foot] = pFoot_w[foot];
+            //     Pf_augmented[foot] = Pf[foot];
+            // }
 
             footSwingTrajectory[foot].setHeight(data->_biped->foot_height);
+            footSwingTrajectory[foot].setPitch(data->_biped->slope_pitch); 
             footSwingTrajectory[foot].setFinalPosition(Pf_augmented[foot]);
 
         }
@@ -139,11 +145,12 @@ void swingLegController::computeFootPlacement(){
                 // add residual
                 Pf_augmented[foot][0] = Pf[foot][0] + Pf_residual[foot][0];
                 Pf_augmented[foot][1] = Pf[foot][1] + Pf_residual[foot][1];
+                Pf_augmented[foot][2] = Pf[foot][2];
             }
-            else{
-                Pf[foot] = pFoot_w[foot];
-                Pf_augmented[foot] = Pf[foot];
-            }
+            // else{
+            //     Pf[foot] = pFoot_w[foot];
+            //     Pf_augmented[foot] = Pf[foot];
+            // }
 
             footSwingTrajectory[foot].setHeight(data->_biped->foot_height);
             footSwingTrajectory[foot].setPitch(data->_biped->slope_pitch); 
@@ -154,6 +161,7 @@ void swingLegController::computeFootPlacement(){
 
 void swingLegController::computeFootDesiredPosition(){
     for(int foot = 0; foot < nLegs; foot++){
+        // std::cout << "swingStates[" << foot << "] = " << swingStates[foot] << std::endl;
         if(swingStates[foot] >= 0){
             if (firstSwing[foot]){
                 firstSwing[foot] = false;
@@ -169,11 +177,11 @@ void swingLegController::computeFootDesiredPosition(){
             Vec3<double> vDesFootWorld = footSwingTrajectory[foot].getVelocity().cast<double>();
             
             pFoot_b[foot] = seResult.rBody * (pDesFootWorld - seResult.position);
-            vFoot_b[foot] = seResult.rBody * (vDesFootWorld * 0 - seResult.vWorld);  
+            vFoot_b[foot] = seResult.rBody * (vDesFootWorld - seResult.vWorld);
         }
         else{
-            pFoot_b[foot] = seResult.rBody * (pFoot_w[foot] - seResult.position);
-            vFoot_b[foot] = seResult.rBody * (pFoot_w[foot] * 0 - seResult.vWorld);  
+            pFoot_b[foot] = seResult.rBody * (Pf_augmented[foot] - seResult.position);
+            vFoot_b[foot] = seResult.rBody * (Pf_augmented[foot] * 0 - seResult.vWorld);
         }
 
         if (pFoot_b[foot].hasNaN()){
@@ -188,10 +196,18 @@ void swingLegController::computeFootDesiredPosition(){
 void swingLegController::setDesiredJointState(){
     for(int leg = 0; leg < nLegs; leg++){
         if(swingStates[leg] >= 0){
+            // ** joint space PD **
             data->_legController->commands[leg].feedforwardForce << 0, 0, 0 , 0 , 0 , 0;
             data->_legController->commands[leg].tau << 0, 0, 0, 0, 0; 
             data->_legController->commands[leg].pDes = pFoot_b[leg];
             data->_legController->commands[leg].vDes = vFoot_b[leg];
+
+            // // ** task space PD **
+            // data->_legController->commands[leg].feedforwardForce << 0, 0, 0 , 0 , 0 , 0;
+            // data->_legController->commands[leg].tau << 0, 0, 0, 0, 0; 
+            // data->_legController->commands[leg].pDes = pFoot_b[leg];
+            // data->_legController->commands[leg].vDes = vFoot_b[leg];
+
             data->_legController->commands[leg].control_mode = int(ControlMode::SWING);
         }
         else{

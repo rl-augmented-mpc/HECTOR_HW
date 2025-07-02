@@ -85,23 +85,23 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
   swing.setFootplacementResidual(data._biped->rl_params.delta_foot_placement.segment(2,2), 1);
   swing.updateFootPlacementPlanner();
 
-  // load LCM leg swing gains
-  Kp << 250, 0, 0,
-      0, 250, 0,
-      0, 0, 200;
-  Kp_stance = 0* Kp;
-
-  Kd << 5, 0, 0,
-      0, 5, 0,
-      0, 0, 5;
-  Kd_stance = 0*Kd;
-
   Vec2<double> contactStates = gait->getContactSubPhase();
   Vec2<double> swingStates = gait->getSwingSubPhase();
-
   if (contactStates(0) == -1 && contactStates(1) == -1){
-    std::cout << "something wrong with contact state" << std::endl;
+    std::cout << "[ERROR] both foot are in the air!" << std::endl;
   }
+
+  // ** update MPC sampling time **
+  // // update at contact switch
+  // if ((swingStates(0) == -1 && swing_states_prev(0) != -1) || 
+  // (swingStates(1) == -1 && swing_states_prev(1) != -1) || 
+  // (swing_states_prev(0)==0 && swing_states_prev(1)==0)){
+  //   gait->updateSamplingTime(data._biped->rl_params._dt_sampling);
+  // }
+  // swing_states_prev = swingStates;
+  
+  // update every control time step
+  gait->updateSamplingTime(data._biped->rl_params._dt_sampling);
 
   // update MPC
   if (iterationCounter % mpc_decimation == 0){
@@ -139,23 +139,9 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
     data._stateEstimator->setContactPhase(se_contactState);
   }
 
-  // // update sampling time at contact switch
-  // if ((swingStates(0) == -1 && swing_states_prev(0) != -1) || 
-  // (swingStates(1) == -1 && swing_states_prev(1) != -1) || 
-  // (swing_states_prev(0)==0 && swing_states_prev(1)==0)){
-  //   gait->updateSamplingTime(data._biped->rl_params._dt_sampling);
-  // }
-  // swing_states_prev = swingStates;
-  
-  // update every control time step
-  gait->updateSamplingTime(data._biped->rl_params._dt_sampling);
-  
-  gait->updatePhase();
-  iterationCounter++;
-
   // update contact state with incremented gait phase
-  contactStates = gait->getContactSubPhase();
-  swingStates = gait->getSwingSubPhase();
+  // contactStates = gait->getContactSubPhase();
+  // swingStates = gait->getSwingSubPhase();
   for (int foot = 0; foot < 2; foot++)
   {
     // push back data to leg controller
@@ -186,6 +172,11 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
 
   // update swing foot traj log
   data._biped->rl_params.reference_foot_position = swing.getReferenceSwingFootPosition();
+
+
+  // increment counter
+  gait->updatePhase();
+  iterationCounter++;
 
 }
 

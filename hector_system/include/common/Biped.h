@@ -192,15 +192,15 @@ class Biped{
     // offset between each links in 0 positions (from URDF)
     double thigh_length = 0.22;
     double calf_length = 0.22;
-    double d_foot = 0.04; // original foot
-    // double d_foot = 0.042; // capstone project foot
+    // double d_foot = 0.04; // original foot
+    double d_foot = 0.0418; // capstone project foot
     Vec3<double> p1{-0.00, 0.047, -0.1265}; // base to hip yaw in frame1
     Vec3<double> p2{0.0465, 0.015, -0.0705}; // hip yaw to hip roll in frame2
     Vec3<double> p3{-0.06, 0.018, 0.0}; // hip roll to hip pitch in frame3
     Vec3<double> p4{0.0, 0.01805, -0.22}; // hip pitch to knee pitch in frame4
     Vec3<double> p5{0.0, 0.0, -0.22}; // knee pitch to angle pitch in frame5
-    Vec4<double> p5e{0.0, 0.0, -0.04, 1.0}; // ankle pitch to foot sole (original foot)
-    // Vec4<double> p5e{0.0, 0.0, -0.042, 1.0}; // ankle pitch to foot sole (capstone project foot)
+    // Vec4<double> p5e{0.0, 0.0, -0.04, 1.0}; // ankle pitch to foot sole (original foot)
+    Vec4<double> p5e{0.0, 0.0, -0.0418, 1.0}; // ankle pitch to foot sole (capstone project foot)
     Vec3<double> z1, z2, z3, z4, z5;
 
     Mat4<double> T01_left, T12p_left, T2p2_left, T23p_left, T3p3_left, T34_left, T45_left; 
