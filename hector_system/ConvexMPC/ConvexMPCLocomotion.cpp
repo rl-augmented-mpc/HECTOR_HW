@@ -126,18 +126,11 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
     if (swingStates(foot) >= 0) // foot is in swing
     {
       se_contactState[foot] = contactStates[foot];
+      data._legController->commands[foot].control_mode = int(ControlMode::SWING);
     }
 
     else if (contactStates(foot) >= 0) // foot is in stance
     { 
-      Vec3<double> pDesLeg = {0, 0, 0};
-      Vec3<double> vDesLeg = {0, 0, 0};
-      data._legController->commands[foot].pDes = pDesLeg;
-      data._legController->commands[foot].vDes = vDesLeg;
-
-      data._legController->commands[foot].kptoe = 0; // not used
-      data._legController->commands[foot].kdtoe = 0; // not used
-
       data._legController->commands[foot].feedforwardForce = f_ff[foot];
       data._legController->commands[foot].tau = data._legController->data[foot].J.transpose()* f_ff[foot];
       data._legController->commands[foot].control_mode = int(ControlMode::STANCE);

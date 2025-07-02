@@ -156,9 +156,9 @@ void swingLegController::computeFootDesiredPosition(){
     for(int foot = 0; foot < nLegs; foot++){
         if(swingStates[foot] >= 0){
             if (firstSwing[foot]){
-              firstSwing[foot] = false;
-              footSwingTrajectory[foot].setInitialPosition(pFoot_w[foot]);
-               }
+                firstSwing[foot] = false;
+                footSwingTrajectory[foot].setInitialPosition(pFoot_w[foot]);
+            }
             //Compute and get the desired foot position and velocity
             footSwingTrajectory[foot].setControlPointCoef(data->_biped->cp1_coef, data->_biped->cp2_coef);
             footSwingTrajectory[foot].computeSwingTrajectoryBezier(
@@ -170,6 +170,10 @@ void swingLegController::computeFootDesiredPosition(){
             
             pFoot_b[foot] = seResult.rBody * (pDesFootWorld - seResult.position);
             vFoot_b[foot] = seResult.rBody * (vDesFootWorld * 0 - seResult.vWorld);  
+        }
+        else{
+            pFoot_b[foot] = seResult.rBody * (pFoot_w[foot] - seResult.position);
+            vFoot_b[foot] = seResult.rBody * (pFoot_w[foot] * 0 - seResult.vWorld);  
         }
 
         if (pFoot_b[foot].hasNaN()){
@@ -187,10 +191,12 @@ void swingLegController::setDesiredJointState(){
             data->_legController->commands[leg].feedforwardForce << 0, 0, 0 , 0 , 0 , 0;
             data->_legController->commands[leg].tau << 0, 0, 0, 0, 0; 
             data->_legController->commands[leg].pDes = pFoot_b[leg];
-            data->_legController->commands[leg].vDes = vFoot_b[leg];           
-            data->_legController->commands[leg].kptoe = 10; // not used
-            data->_legController->commands[leg].kdtoe = 0.2; // not used
+            data->_legController->commands[leg].vDes = vFoot_b[leg];
             data->_legController->commands[leg].control_mode = int(ControlMode::SWING);
+        }
+        else{
+            data->_legController->commands[leg].pDes = pFoot_b[leg];
+            data->_legController->commands[leg].vDes = vFoot_b[leg]; 
         }
     }
 }
@@ -199,6 +205,7 @@ void swingLegController::setDesiredJointState(){
 std::array<Vec3<double>, 10> swingLegController::getReferenceSwingFootPosition(){
     std::array<Vec3<double>, 10> refSwingFootPosition;
     double phase = 0.0;
+    double phase_increment = 0.11; 
     for (int i = 0; i < 10; i++){
         for (int leg = 0; leg < nLegs; leg++){
             if (swingStates[leg] >= 0){
@@ -207,7 +214,7 @@ std::array<Vec3<double>, 10> swingLegController::getReferenceSwingFootPosition()
                     gait->_swing_durations_sec[leg]
                 );
                 refSwingFootPosition[i] = footSwingTrajectory[leg].getPosition().cast<double>();
-                phase += 0.11;
+                phase += phase_increment;
             }
         }
 

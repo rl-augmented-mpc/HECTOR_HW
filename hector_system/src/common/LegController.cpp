@@ -118,8 +118,6 @@ void LegController::updateData(const LowlevelState* state){
         data[leg].J2 = data[leg].J.block(0,0, 3,5);
         data[leg].p = _biped.get_p0e(leg);
         data[leg].v = data[leg].J2 * data[leg].qd;
-
-
     }
 
 
@@ -319,7 +317,7 @@ Vec4<double> LegController::get_foot_placement(){
 Vec6<double> LegController::get_ref_swing_position(){
     // return reference foot position in body frame
     foot_ref_pos.block<3,1>(0,0) = commands[0].pDes; 
-    foot_ref_pos.block<3,1>(3,0) = commands[1].pDes; 
+    foot_ref_pos.block<3,1>(3,0) = commands[1].pDes;
     return foot_ref_pos; 
 }
 
