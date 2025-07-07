@@ -166,7 +166,7 @@ void LegController::updateCommand(LowlevelCmd* cmd){
             // commands[leg].kpJoint << 30.0, 20.0, 20.0, 20.0, 15.0;
             // commands[leg].kdJoint << 1.0, 0.6, 0.45, 0.45, 0.6;
 
-            commands[leg].kpJoint << 30.0, 20.0, 70.0, 70.0, 40.0;
+            commands[leg].kpJoint << 30.0, 40.0, 70.0, 70.0, 40.0;
             commands[leg].kdJoint << 1.0, 0.6, 0.6, 0.6, 0.6;
         }
 
@@ -229,7 +229,6 @@ void LegController::updateCommand(LowlevelCmd* cmd){
         }else if (commands[leg].control_mode == 2){ // stance
 
             commands[leg].kpJoint = Vec5<double>::Zero();
-            // commands[leg].kdJoint[4] *= 3.0; // increase ankle stiffness
 
 
             // Stabilizing the motor control and prevent jittering: Giving D target to 0 joint velocity
@@ -252,7 +251,7 @@ void LegController::updateCommand(LowlevelCmd* cmd){
 
             //desired joint position
             commands[leg].qDes.block(1,0, 3,1) = _biped.analytical_IK(foot_des, leg);
-            commands[leg].qDes(0) = 0;
+            commands[leg].qDes(0) = 0.0;
             commands[leg].qDes(4) = -_biped.slope_pitch - data[leg].q(3) - data[leg].q(2); // Ankle joint parallel to (sloped) ground
             
             // desrired joint velocity
@@ -323,21 +322,27 @@ Vec12<double> LegController::get_grw(){
     return grfm; 
 }
 
-Vec4<double> LegController::get_reibert_foot_placement(){
+Vec6<double> LegController::get_reibert_foot_placement(){
     // return the next foot placement in world frame
     Pfs_rb(0) = commands[0].Pf(0);
     Pfs_rb(1) = commands[0].Pf(1);
-    Pfs_rb(2) = commands[1].Pf(0);
-    Pfs_rb(3) = commands[1].Pf(1);
+    Pfs_rb(2) = commands[0].Pf(2);
+
+    Pfs_rb(3) = commands[1].Pf(0);
+    Pfs_rb(4) = commands[1].Pf(1);
+    Pfs_rb(5) = commands[1].Pf(2);
     return Pfs_rb; 
 }
 
-Vec4<double> LegController::get_foot_placement(){
+Vec6<double> LegController::get_foot_placement(){
     // return the next foot placement in world frame
     Pfs(0) = commands[0].Pf_augmented(0);
     Pfs(1) = commands[0].Pf_augmented(1);
-    Pfs(2) = commands[1].Pf_augmented(0);
-    Pfs(3) = commands[1].Pf_augmented(1);
+    Pfs(2) = commands[0].Pf_augmented(2);
+
+    Pfs(3) = commands[1].Pf_augmented(0);
+    Pfs(4) = commands[1].Pf_augmented(1);
+    Pfs(5) = commands[1].Pf_augmented(2);
     return Pfs; 
 }
 

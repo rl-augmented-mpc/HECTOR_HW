@@ -104,8 +104,8 @@
         Vec2<double> get_swing_phase();
         Vec2<double> get_contact_state();
         Vec2<double> get_swing_state();
-        Vec4<double> get_reibert_foot_placement(); 
-        Vec4<double> get_foot_placement(); 
+        Vec6<double> get_reibert_foot_placement(); 
+        Vec6<double> get_foot_placement(); 
         Vec6<double> get_ref_swing_position();
         Vec6<double> get_swing_position();
 
@@ -119,8 +119,8 @@
         // bookkeeping
         Vec12<double> grfm = Vec12<double>::Zero();
         Vec10<double> qref = Vec10<double>::Zero();
-        Vec4<double> Pfs_rb = Vec4<double>::Zero();
-        Vec4<double> Pfs = Vec4<double>::Zero();
+        Vec6<double> Pfs_rb = Vec6<double>::Zero();
+        Vec6<double> Pfs = Vec6<double>::Zero();
         Vec6<double> foot_ref_pos = Vec6<double>::Zero();
         Vec6<double> foot_pos = Vec6<double>::Zero();
         Vec2<double> contact_phase= Vec2<double>::Zero();

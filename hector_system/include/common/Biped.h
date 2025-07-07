@@ -18,26 +18,6 @@ class Biped{
         f_max = 500; // maximum grf_z
         mass = 13.856;
         I_body << 0.5413, 0.0, 0.0, 0.0, 0.5200, 0.0, 0.0, 0.0, 0.0691;
-
-        // // geometry (NOT USED)
-        // leg_yaw_offset_x = -0.005;
-        // leg_yaw_offset_y = 0.047;
-        // leg_yaw_offset_z = -0.126;
-        // leg_roll_offset_x = -0.0465;
-        // leg_roll_offset_y = 0.015;
-        // leg_roll_offset_z = -0.0705;
-        // hipLinkLength = 0.038;
-        // thighLinkLength = 0.22;
-        // calfLinkLength = 0.22;
-        // L_hipYawLocation = getHipYawLocation(0);
-        // L_hipRollLocation = getHipRollLocation(0);
-        // R_hipYawLocation = getHipYawLocation(1);
-        // R_hipRollLocation = getHipRollLocation(1);
-        // left leg hip yaw offset from com 
-        // leg_offset_x = -0.005;
-        // leg_offset_y = 0.047;
-        // leg_offset_z = -0.126;
-        // ////////////////////////
         
         if (real_flag == 0)
         {
@@ -48,9 +28,8 @@ class Biped{
             }
 
         }else{
-
             // motor id mapping
-            int temp_sequence[] = {4, 5, 6, 7, 8, 1, 2, 9, 10, 11}; // left-right leg
+            int temp_sequence[] = {4, 5, 6, 7, 8, 1, 2, 9, 10, 11}; // left-right leg order
             for (int i = 0; i < 10; ++i) {
                 motor_sequence[i] = temp_sequence[i];
             }
@@ -207,6 +186,7 @@ class Biped{
     Mat4<double> T01_right, T12p_right, T2p2_right, T23p_right, T3p3_right, T34_right, T45_right;
     Mat4<double> T02_left, T03_left, T04_left, T05_left;
     Mat4<double> T02_right, T03_right, T04_right, T05_right;
+    Mat3<double> Rfoot_L, Rfoot_R;
     Vec3<double> p0e_left, p0e_right; // end-effector position in body frame
     Mat65<double> J_left, J_right; // contact jacobian
     Vec3<double> p01_left, p02_left, p03_left, p04_left, p05_left;
@@ -238,6 +218,15 @@ class Biped{
         R << 1, 0,          0,
              0, cos(angle), -sin(angle),
              0, sin(angle),  cos(angle);
+        return R;
+    }
+
+    Mat3<double> rot_y(double angle)
+    {
+        Mat3<double> R;
+        R << cos(angle), 0, sin(angle),
+             0,          1, 0,
+            -sin(angle), 0, cos(angle);
         return R;
     }
 
@@ -309,6 +298,8 @@ class Biped{
 
             p0e_left = (T05_left * p5e).head<3>(); 
 
+            Rfoot_L = rot_y(joint_angles(4)) * rot_y(joint_angles(3)) * rot_y(joint_angles(2)) * rot_x(joint_angles(1)) * rot_z(joint_angles(0)); 
+
         }
         else if (leg == 1){
             Vec3<double> side_vec_1 = {1.0, 1.0, -1.0};
@@ -330,6 +321,8 @@ class Biped{
             T05_right = T04_right * T45_right;
 
             p0e_right = (T05_right * p5e).head<3>();
+
+            Rfoot_R = rot_y(joint_angles(4)) * rot_y(joint_angles(3)) * rot_y(joint_angles(2)) * rot_x(joint_angles(1)) * rot_z(joint_angles(0)); 
         }
     }
 

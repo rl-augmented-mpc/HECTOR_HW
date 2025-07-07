@@ -178,11 +178,11 @@ class HectorController{
             return legController->get_grw();
         }
 
-        Vec4<double> getReibertFootPlacement(){
+        Vec6<double> getReibertFootPlacement(){
             return legController->get_reibert_foot_placement();
         }
 
-        Vec4<double> getFootPlacement(){
+        Vec6<double> getFootPlacement(){
             return legController->get_foot_placement();
         }
 

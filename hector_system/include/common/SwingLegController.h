@@ -76,6 +76,7 @@ class swingLegController {
         double _dtSwing;
         FootSwingTrajectory<double> footSwingTrajectory[nLegs];
         Vec3<double> pFoot_w[nLegs];
+        Vec3<double> pFoot_w_prev[nLegs]; // memory
         Vec3<double> vFoot_w[nLegs]; 
         Vec3<double> pFoot_b[nLegs];
         Vec3<double> vFoot_b[nLegs];                        

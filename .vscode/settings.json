@@ -91,6 +91,7 @@
         "ios": "cpp",
         "locale": "cpp",
         "queue": "cpp",
-        "span": "cpp"
+        "span": "cpp",
+        "__nullptr": "cpp"
     }
 }
