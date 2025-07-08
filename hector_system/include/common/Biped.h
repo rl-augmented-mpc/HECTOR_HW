@@ -186,7 +186,6 @@ class Biped{
     Mat4<double> T01_right, T12p_right, T2p2_right, T23p_right, T3p3_right, T34_right, T45_right;
     Mat4<double> T02_left, T03_left, T04_left, T05_left;
     Mat4<double> T02_right, T03_right, T04_right, T05_right;
-    Mat3<double> Rfoot_L, Rfoot_R;
     Vec3<double> p0e_left, p0e_right; // end-effector position in body frame
     Mat65<double> J_left, J_right; // contact jacobian
     Vec3<double> p01_left, p02_left, p03_left, p04_left, p05_left;
@@ -298,8 +297,6 @@ class Biped{
 
             p0e_left = (T05_left * p5e).head<3>(); 
 
-            Rfoot_L = rot_y(joint_angles(4)) * rot_y(joint_angles(3)) * rot_y(joint_angles(2)) * rot_x(joint_angles(1)) * rot_z(joint_angles(0)); 
-
         }
         else if (leg == 1){
             Vec3<double> side_vec_1 = {1.0, 1.0, -1.0};
@@ -322,7 +319,6 @@ class Biped{
 
             p0e_right = (T05_right * p5e).head<3>();
 
-            Rfoot_R = rot_y(joint_angles(4)) * rot_y(joint_angles(3)) * rot_y(joint_angles(2)) * rot_x(joint_angles(1)) * rot_z(joint_angles(0)); 
         }
     }
 

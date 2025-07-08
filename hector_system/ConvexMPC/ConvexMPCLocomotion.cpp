@@ -201,7 +201,7 @@ void ConvexMPCLocomotion::updateMPC(int *mpcTable, ControlFSMData &data, bool om
   // double Q[12] = {300, 300, 150,   300, 300, 100,   1, 1, 1,   5, 3, 3}; // original hardware
   // double Q[12] = {100, 200, 300,  300, 300, 300,  1, 1, 3.0,  2.0, 2.0, 1};
   // double Q[12] = {100, 100, 500,  100, 100, 100,  1, 1, 5,  5, 5, 1};
-  double Q[12] = {150, 150, 250,  100, 100, 100,  1, 1, 5,  1, 1, 1}; // from paper
+  double Q[12] = {150, 150, 250,  100, 100, 250,  1, 1, 5,  10, 10, 1}; // from paper
   // double Q[12] = {100, 200, 500,  500, 500, 500,  1, 1, 5,  8, 8, 1}; // best?
 
   // double Alpha[12] = {1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,   2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2}; // original hardware

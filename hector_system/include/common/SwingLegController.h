@@ -36,8 +36,8 @@ class swingLegController {
         void reset(){
             firstSwing[0] = true;
             firstSwing[1] = true;
-            Pf_0[0].setZero();
-            Pf_0[1].setZero();
+            Pf_world[0].setZero();
+            Pf_world[1].setZero();
             Pf[0].setZero();
             Pf[1].setZero();
             Pf_augmented[0].setZero();
@@ -84,7 +84,7 @@ class swingLegController {
         Vec2<double> contactStates;
         Vec2<double> swingTimes;
         Vec5<double> qDes[nLegs];
-        Vec3<double> Pf_0[nLegs];
+        Vec3<double> Pf_world[nLegs];
         Vec3<double> Pf[nLegs];
         Vec3<double> Pf_augmented[nLegs];
         Vec2<double> Pf_residual[nLegs];

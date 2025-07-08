@@ -439,11 +439,10 @@ void solve_mpc(update_data_t *update, problem_setup *setup, ControlFSMData &data
 
   // Rotation of Foot wrt body:
   double terrain_slope = data._biped->slope_pitch; 
-  // Matrix<fpt, 3, 3> R_foot_L = euler_to_rotation(0.0, terrain_slope, 0.0);
-  // Matrix<fpt, 3, 3> R_foot_R = euler_to_rotation(0.0, terrain_slope, 0.0);
-  Matrix<fpt, 3, 3> R_terrain = euler_to_rotation(0.0, terrain_slope, 0.0);
-  Matrix<fpt, 3, 3> R_foot_L = data._biped->Rfoot_L.cast<fpt>();
-  Matrix<fpt, 3, 3> R_foot_R = data._biped->Rfoot_R.cast<fpt>();
+  Matrix<fpt, 3, 3> R_foot_L = euler_to_rotation(0.0, terrain_slope, 0.0);
+  Matrix<fpt, 3, 3> R_foot_R = euler_to_rotation(0.0, terrain_slope, 0.0);
+  // Matrix<fpt, 3, 3> R_foot_L = data._biped->Rfoot_L.cast<fpt>();
+  // Matrix<fpt, 3, 3> R_foot_R = data._biped->Rfoot_R.cast<fpt>();
   
   Matrix<fpt,16,12> F_control;
   F_control.setZero();
