@@ -62,7 +62,7 @@ void FSM::initialize(std::string _fsm_name)
 }
 
 void FSM::switch_mode(std::string _fsm_name){
-    std::cout << "Switching FSM mode to: " << _fsm_name << std::endl;
+    // std::cout << "Switching FSM mode to: " << _fsm_name << std::endl;
     if (_fsm_name == "walking")
     {
         _currentState = _stateList.walking;

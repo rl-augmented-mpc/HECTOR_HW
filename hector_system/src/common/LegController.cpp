@@ -229,8 +229,10 @@ void LegController::updateCommand(LowlevelCmd* cmd){
         }else if (commands[leg].control_mode == 2){ // stance
 
             commands[leg].kpJoint = Vec5<double>::Zero();
+            // commands[leg].kpJoint(4) = 50.0; 
 
-
+            // commands[leg].qDes = Vec5<double>::Zero();
+            // commands[leg].qDes(4) = -_biped.slope_pitch - data[leg].q(3) - data[leg].q(2); // Ankle joint parallel to (sloped) ground
             // Stabilizing the motor control and prevent jittering: Giving D target to 0 joint velocity
             commands[leg].qdDes = Vec5<double>::Zero();
 
