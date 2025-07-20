@@ -38,8 +38,8 @@ class swingLegController {
             firstSwing[1] = true;
             Pf_world[0].setZero();
             Pf_world[1].setZero();
-            Pf[0].setZero();
-            Pf[1].setZero();
+            Pf_base[0].setZero();
+            Pf_base[1].setZero();
             Pf_augmented[0].setZero();
             Pf_augmented[1].setZero();
         }
@@ -54,15 +54,13 @@ class swingLegController {
         void updateSwingFootCommand();
         void setFootHeight(double foot_height) { _foot_height = foot_height; }
         
-        /**
-         * @brief Compute an approximate inverse kinematics for 5-DoF swing leg
-         * @param bodyPositionDesired: desired position of the end effector in the body frame
-         * @param leg: leg index (0 for left, 1 for right)  
-         * @param jointAngles: output joint angles
-        */
+
+        // ** interface functions **
         void setFootplacementResidual(Vec2<double> pf_residual, int foot);
-        Vec3<double> getReibertFootPlacement(int foot);
-        Vec3<double> getAugmentedFootPlacement(int foot);
+        Vec3<double> get_foot_placement_in_world(int foot);
+        Vec3<double> get_foot_placement_in_base(int foot);
+        // Vec3<double> getReibertFootPlacement(int foot);
+        // Vec3<double> getAugmentedFootPlacement(int foot);
         std::array<Vec3<double>, 10> getReferenceSwingFootPosition();
         
 
@@ -85,7 +83,7 @@ class swingLegController {
         Vec2<double> swingTimes;
         Vec5<double> qDes[nLegs];
         Vec3<double> Pf_world[nLegs];
-        Vec3<double> Pf[nLegs];
+        Vec3<double> Pf_base[nLegs];
         Vec3<double> Pf_augmented[nLegs];
         Vec2<double> Pf_residual[nLegs];
         bool firstSwing[nLegs] = {true, true};

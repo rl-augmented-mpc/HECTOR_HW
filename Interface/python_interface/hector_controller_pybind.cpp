@@ -16,6 +16,7 @@ PYBIND11_MODULE(hector_control, m) {
       .def("updateGaitParameter", &HectorController::updateGaitParameter, py::arg("dsp_durations"), py::arg("ssp_durations"))
       .def("setFrictionCoefficient", &HectorController::setFrictionCoefficient, py::arg("mu"))
       .def("setFootPlacementPlanner", &HectorController::setFootPlacementPlanner, py::arg("planner_name"))
+      .def("setSwingFootReferenceFrame", &HectorController::setSwingFootReferenceFrame, py::arg("reference_frame"))
       .def("setTargetCommand", &HectorController::setTargetCommand, py::arg("roll_pitch"), py::arg("twist"), py::arg("ref_height"))
 
       // running controller
@@ -47,8 +48,8 @@ PYBIND11_MODULE(hector_control, m) {
       .def("getSwingPhase", &HectorController::getSwingPhase)
       .def("getContactState", &HectorController::getContactState)
       .def("getSwingState", &HectorController::getSwingState)
-      .def("getReibertFootPlacement", &HectorController::getReibertFootPlacement)
       .def("getFootPlacement", &HectorController::getFootPlacement)
+      .def("getFootPlacementBase", &HectorController::getFootPlacementBase)
       .def("getRefFootPosition", &HectorController::getRefFootPosition)
       .def("getFootPosition", &HectorController::getFootPosition)
       .def("getCost", &HectorController::getCost)

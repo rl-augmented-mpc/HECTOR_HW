@@ -38,7 +38,8 @@
         Vec5<double> qDesDelta; 
         Vec6<double> feedforwardForceDelta;
         Vec2<double> footplacementDelta; 
-        Vec3<double> Pf; 
+        Vec3<double> Pf_world; 
+        Vec3<double> Pf_base; 
         Vec3<double> Pf_augmented;
         double contact_phase; 
         double contact_state; 
@@ -104,8 +105,8 @@
         Vec2<double> get_swing_phase();
         Vec2<double> get_contact_state();
         Vec2<double> get_swing_state();
-        Vec6<double> get_reibert_foot_placement(); 
         Vec6<double> get_foot_placement(); 
+        Vec6<double> get_foot_placement_base(); 
         Vec6<double> get_ref_swing_position();
         Vec6<double> get_swing_position();
 

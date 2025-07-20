@@ -20,7 +20,8 @@ void LegControllerCommand::zero(){
     kptoe = 0;
     kdtoe = 0;
 
-    Pf = Vec3<double>::Zero();
+    Pf_world = Vec3<double>::Zero();
+    Pf_base = Vec3<double>::Zero();
     Pf_augmented = Vec3<double>::Zero();
 
     double contact_phase = 0.; 
@@ -81,9 +82,9 @@ void LegController::zeroCommand(){
 
         // initialize foot position
         Vec3<double> root_position = {0.0, 0.0, 0.55};
-        commands[foot].Pf = root_position + data[foot].p; // Changed from commands[i] to commands[foot]
-        commands[foot].Pf_augmented = commands[foot].Pf; // Changed from commands[i] to commands[foot]
-        commands[foot].pDes = data[foot].p; // Changed from commands[i] to commands[foot]
+        commands[foot].Pf_base = data[foot].p;
+        commands[foot].Pf_world = root_position + data[foot].p;
+        commands[foot].pDes = data[foot].p;
         }
     }
 
@@ -166,8 +167,11 @@ void LegController::updateCommand(LowlevelCmd* cmd){
             // commands[leg].kpJoint << 30.0, 20.0, 20.0, 20.0, 15.0;
             // commands[leg].kdJoint << 1.0, 0.6, 0.45, 0.45, 0.6;
 
-            commands[leg].kpJoint << 30.0, 40.0, 70.0, 70.0, 40.0;
-            commands[leg].kdJoint << 1.0, 0.6, 0.6, 0.6, 0.6;
+            commands[leg].kpJoint << 40.0, 40.0, 80.0, 80.0, 50.0;
+            commands[leg].kdJoint << 1.0, 0.6, 0.45, 0.45, 0.6;
+
+            commands[leg].kpCartesian << 500.0, 500.0, 500.0;
+            commands[leg].kdCartesian << 0.5, 0.5, 0.5;
         }
 
 
@@ -228,11 +232,7 @@ void LegController::updateCommand(LowlevelCmd* cmd){
 
         }else if (commands[leg].control_mode == 2){ // stance
 
-            commands[leg].kpJoint = Vec5<double>::Zero();
-            // commands[leg].kpJoint(4) = 50.0; 
-
-            // commands[leg].qDes = Vec5<double>::Zero();
-            // commands[leg].qDes(4) = -_biped.slope_pitch - data[leg].q(3) - data[leg].q(2); // Ankle joint parallel to (sloped) ground
+            commands[leg].kpJoint = Vec5<double>::Zero(); // disable joint position control
             // Stabilizing the motor control and prevent jittering: Giving D target to 0 joint velocity
             commands[leg].qdDes = Vec5<double>::Zero();
 
@@ -250,18 +250,30 @@ void LegController::updateCommand(LowlevelCmd* cmd){
 
             Vec3<double> foot_des = commands[leg].pDes; 
             Vec3<double> foot_v_des = commands[leg].vDes;
+            
 
-            //desired joint position
+            // ** joint space PD control **
             commands[leg].qDes.block(1,0, 3,1) = _biped.analytical_IK(foot_des, leg);
             commands[leg].qDes(0) = 0.0;
             commands[leg].qDes(4) = -_biped.slope_pitch - data[leg].q(3) - data[leg].q(2); // Ankle joint parallel to (sloped) ground
-            
-            // desrired joint velocity
             commands[leg].qdDes = data[leg].J2.transpose() * foot_v_des;
             commands[leg].qdDes(0) = 0; // yaw zero
             commands[leg].qdDes(4) = 0; // ankle zero
 
-            // std::cout << "control_mode 3" << std::endl;
+            // // ** task space PD control ** (NOT FUNCTIONAL!!)
+            // Mat3<double> Kp; 
+            // Kp << commands[leg].kpCartesian(0), 0, 0,
+            //       0, commands[leg].kpCartesian(1), 0,
+            //       0, 0, commands[leg].kpCartesian(2);
+            // Mat3<double> Kd;
+            // Kd << commands[leg].kdCartesian(0), 0, 0,
+            //       0, commands[leg].kdCartesian(1), 0,
+            //       0, 0, commands[leg].kdCartesian(2);
+            // Vec3<double> foot_force = Kp * (foot_des - data[leg].p) + Kd * (foot_v_des - data[leg].v);
+            // commands[leg].feedforwardForce.block(0,0, 3,1) = foot_force;
+            // commands[leg].tau = data[leg].J2.transpose() * foot_force;
+            // commands[leg].kpJoint.setZero();
+            // commands[leg].kdJoint.setZero();
 
         }
 
@@ -324,28 +336,28 @@ Vec12<double> LegController::get_grw(){
     return grfm; 
 }
 
-Vec6<double> LegController::get_reibert_foot_placement(){
-    // return the next foot placement in world frame
-    Pfs_rb(0) = commands[0].Pf(0);
-    Pfs_rb(1) = commands[0].Pf(1);
-    Pfs_rb(2) = commands[0].Pf(2);
-
-    Pfs_rb(3) = commands[1].Pf(0);
-    Pfs_rb(4) = commands[1].Pf(1);
-    Pfs_rb(5) = commands[1].Pf(2);
-    return Pfs_rb; 
-}
-
 Vec6<double> LegController::get_foot_placement(){
     // return the next foot placement in world frame
-    Pfs(0) = commands[0].Pf_augmented(0);
-    Pfs(1) = commands[0].Pf_augmented(1);
-    Pfs(2) = commands[0].Pf_augmented(2);
+    Pfs(0) = commands[0].Pf_world(0);
+    Pfs(1) = commands[0].Pf_world(1);
+    Pfs(2) = commands[0].Pf_world(2);
 
-    Pfs(3) = commands[1].Pf_augmented(0);
-    Pfs(4) = commands[1].Pf_augmented(1);
-    Pfs(5) = commands[1].Pf_augmented(2);
+    Pfs(3) = commands[1].Pf_world(0);
+    Pfs(4) = commands[1].Pf_world(1);
+    Pfs(5) = commands[1].Pf_world(2);
     return Pfs; 
+}
+
+Vec6<double> LegController::get_foot_placement_base(){
+    // return the next foot placement in base frame
+    Pfs_rb(0) = commands[0].Pf_base(0);
+    Pfs_rb(1) = commands[0].Pf_base(1);
+    Pfs_rb(2) = commands[0].Pf_base(2);
+
+    Pfs_rb(3) = commands[1].Pf_base(0);
+    Pfs_rb(4) = commands[1].Pf_base(1);
+    Pfs_rb(5) = commands[1].Pf_base(2);
+    return Pfs_rb; 
 }
 
 Vec6<double> LegController::get_ref_swing_position(){

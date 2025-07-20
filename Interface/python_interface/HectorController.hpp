@@ -62,6 +62,10 @@ class HectorController{
             biped.setFootPlacementPlanner(planner_name);
         }
 
+        void setSwingFootReferenceFrame(std::string reference_frame){
+            biped.setSwingFootReferenceFrame(reference_frame);
+        }
+
         void setGaitNum(int gaitnum){
             // 1: standing
             // 2: walking
@@ -178,12 +182,12 @@ class HectorController{
             return legController->get_grw();
         }
 
-        Vec6<double> getReibertFootPlacement(){
-            return legController->get_reibert_foot_placement();
-        }
-
         Vec6<double> getFootPlacement(){
             return legController->get_foot_placement();
+        }
+
+        Vec6<double> getFootPlacementBase(){
+            return legController->get_foot_placement_base();
         }
 
         Vec6<double> getRefFootPosition(){

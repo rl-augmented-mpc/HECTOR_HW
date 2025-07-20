@@ -13,13 +13,12 @@ void swingLegController::initSwingLegController(ControlFSMData *_data, Gait *_ga
     updateFootPosition();
 
     for (int foot=0; foot < nLegs; foot++){
-        // Old: in world frame
-        // Pf[foot] = pFoot_w[foot];
-        // Pf_augmented[foot] = Pf[foot];
-
-        // MOD: initializationi in base frame
-        Pf[foot] = data->_legController->data[foot].p;
-        Pf_augmented[foot] = Pf[foot];
+        if (data->_biped->swing_foot_reference_frame == "world"){
+            Pf_world[foot] = pFoot_w[foot];
+        }
+        else if (data->_biped->swing_foot_reference_frame == "base"){
+            Pf_base[foot] = data->_legController->data[foot].p;
+        }
     }
 }
 
@@ -97,18 +96,15 @@ void swingLegController::computeFootPlacement(){
                 lip_controller.compute_icp_init(seResult);
                 lip_controller.compute_icp_final();
                 lip_foot_placement = lip_controller.compute_foot_placement(seResult, stateCommand->data, Vec2<double>{0.0, 0.0});
-                Pf[foot] << lip_foot_placement[0], lip_foot_placement[1], data->_biped->pf_z;
-                Pf_augmented[foot] << Pf[foot][0] + Pf_residual[foot][0], Pf[foot][1] + Pf_residual[foot][1], data->_biped->pf_z;
+                Pf_world[foot] << lip_foot_placement[0], lip_foot_placement[1], data->_biped->pf_z;
 
             }
             // else{
             //     Pf[foot] = pFoot_w[foot];
-            //     Pf_augmented[foot] = Pf[foot];
             // }
 
             footSwingTrajectory[foot].setHeight(data->_biped->foot_height);
-            footSwingTrajectory[foot].setPitch(data->_biped->slope_pitch); 
-            footSwingTrajectory[foot].setFinalPosition(Pf_augmented[foot]);
+            footSwingTrajectory[foot].setFinalPosition(Pf_world[foot]);
 
         }
     }
@@ -147,40 +143,55 @@ void swingLegController::computeFootPlacement(){
                 Pf_world[foot][1] = Pf_world[foot][1] + pfy_rel; 
                 Pf_world[foot][2] = data->_biped->pf_z;
 
-                // MOD: transform foothold to floating base frame
-                Pf[foot] = seResult.rBody * (Pf_world[foot] - seResult.position);
-                Pf_augmented[foot] = seResult.rBody * (Pf_world[foot] - seResult.position);
-                // z position same as initial foot z pos
-                Pf[foot][2] = footSwingTrajectory[foot].getInitialPosition()[2];
-                Pf_augmented[foot][2] = footSwingTrajectory[foot].getInitialPosition()[2];
+                if (data->_biped->swing_foot_reference_frame == "world"){
+                    Pf_world[foot] = Pf_world[foot];
+                    Pf_base[foot] = seResult.rBody * (Pf_world[foot] - seResult.position);
+                }
+                else if (data->_biped->swing_foot_reference_frame == "base"){
+                    Pf_base[foot] = seResult.rBody * (Pf_world[foot] - seResult.position);
+                    // foothold z position is same as initial foot z pos
+                    Pf_base[foot][2] = footSwingTrajectory[foot].getInitialPosition()[2];
+                }
             }
 
             else{
-                // MOD: transform foothold to floating base frame
-                Pf[foot] = seResult.rBody * (Pf_world[foot] - seResult.position);
-                Pf_augmented[foot] = seResult.rBody * (Pf_world[foot] - seResult.position);
-                // z position same as initial foot z pos
-                Pf[foot][2] = footSwingTrajectory[foot].getInitialPosition()[2];
-                Pf_augmented[foot][2] = footSwingTrajectory[foot].getInitialPosition()[2];
+                if (data->_biped->swing_foot_reference_frame == "world"){
+                    // Pf_world[foot] = Pf_world[foot];
+                    Pf_base[foot] = seResult.rBody * (Pf_world[foot] - seResult.position);
+                }
+                else if (data->_biped->swing_foot_reference_frame == "base"){
+                    // recompute foothold for stance leg with the current base pose
+                    Pf_base[foot] = seResult.rBody * (Pf_world[foot] - seResult.position);
+                    // z position same as initial foot z pos
+                    Pf_base[foot][2] = footSwingTrajectory[foot].getInitialPosition()[2];
+                }
             }
 
             footSwingTrajectory[foot].setHeight(data->_biped->foot_height);
-            footSwingTrajectory[foot].setPitch(data->_biped->slope_pitch);
-            footSwingTrajectory[foot].setFinalPosition(Pf_augmented[foot]);
+
+            if (data->_biped->swing_foot_reference_frame == "world"){
+                footSwingTrajectory[foot].setFinalPosition(Pf_world[foot]);
+            }
+            else if (data->_biped->swing_foot_reference_frame == "base"){
+                footSwingTrajectory[foot].setFinalPosition(Pf_base[foot]);
+            }
         }
     }
 }
 
 void swingLegController::computeFootDesiredPosition(){
     for(int foot = 0; foot < nLegs; foot++){
-        if(swingStates[foot] >= 0){
+        if(swingStates[foot] >= 0){ // swing phase
             if (firstSwing[foot]){
                 firstSwing[foot] = false;
-                // Old: in world frame
-                // footSwingTrajectory[foot].setInitialPosition(pFoot_w[foot]);
-                // MOD: initial foot pos in base frame
-                footSwingTrajectory[foot].setInitialPosition(data->_legController->data[foot].p);
+                if (data->_biped->swing_foot_reference_frame == "world"){
+                    footSwingTrajectory[foot].setInitialPosition(pFoot_w[foot]);
+                }
+                else if (data->_biped->swing_foot_reference_frame == "base"){
+                    footSwingTrajectory[foot].setInitialPosition(data->_legController->data[foot].p);
+                }
             }
+
             //Compute and get the desired foot position and velocity
             footSwingTrajectory[foot].setControlPointCoef(data->_biped->cp1_coef, data->_biped->cp2_coef);
             footSwingTrajectory[foot].computeSwingTrajectoryBezier(
@@ -188,24 +199,26 @@ void swingLegController::computeFootDesiredPosition(){
                 gait->_swing_durations_sec[foot]
             );
 
-            // Old: in world frame
-            // Vec3<double> pDesFootWorld = footSwingTrajectory[foot].getPosition().cast<double>();
-            // Vec3<double> vDesFootWorld = footSwingTrajectory[foot].getVelocity().cast<double>();
-            // pFoot_b[foot] = seResult.rBody * (pDesFootWorld - seResult.position);
-            // vFoot_b[foot] = seResult.rBody * (vDesFootWorld - seResult.vWorld);
-
-            // MOD: transform foot position and velocity to base frame
-            pFoot_b[foot] = footSwingTrajectory[foot].getPosition().cast<double>();
-            vFoot_b[foot] = footSwingTrajectory[foot].getVelocity().cast<double>();
+            if (data->_biped->swing_foot_reference_frame == "world"){
+                Vec3<double> pDesFootWorld = footSwingTrajectory[foot].getPosition().cast<double>();
+                Vec3<double> vDesFootWorld = footSwingTrajectory[foot].getVelocity().cast<double>();
+                pFoot_b[foot] = seResult.rBody * (pDesFootWorld - seResult.position);
+                vFoot_b[foot] = seResult.rBody * (vDesFootWorld - seResult.vWorld);
+            }
+            else if (data->_biped->swing_foot_reference_frame == "base"){
+                pFoot_b[foot] = footSwingTrajectory[foot].getPosition().cast<double>();
+                vFoot_b[foot] = footSwingTrajectory[foot].getVelocity().cast<double>();
+            }
         }
-        else{
-            // Old: in world frame
-            // pFoot_b[foot] = seResult.rBody * (Pf_augmented[foot] - seResult.position);
-            // vFoot_b[foot] = seResult.rBody * (Pf_augmented[foot] * 0 - seResult.vWorld);
-
-            // MOD: transform foot position and velocity to base frame
-            pFoot_b[foot] = Pf_augmented[foot];
-            vFoot_b[foot] = Pf_augmented[foot] * 0;
+        else{ // stance phase
+            if (data->_biped->swing_foot_reference_frame == "world"){
+                pFoot_b[foot] = seResult.rBody * (Pf_world[foot] - seResult.position);
+                vFoot_b[foot] = seResult.rBody * (Pf_world[foot] * 0 - seResult.vWorld);
+            }
+            else if (data->_biped->swing_foot_reference_frame == "base"){
+                pFoot_b[foot] = Pf_base[foot];
+                vFoot_b[foot] = Pf_base[foot] * 0;
+            }
         }
 
         if (pFoot_b[foot].hasNaN()){
@@ -265,11 +278,14 @@ void swingLegController::setFootplacementResidual(Vec2<double> pf_residual, int 
     Pf_residual[foot] = pf_residual;
 }
 
-Vec3<double> swingLegController::getReibertFootPlacement(int foot){
-    return Pf[foot];
+Vec3<double> swingLegController::get_foot_placement_in_world(int foot){
+    return Pf_world[foot];
 }
 
-Vec3<double> swingLegController::getAugmentedFootPlacement(int foot){
-    return Pf_augmented[foot];
+Vec3<double> swingLegController::get_foot_placement_in_base(int foot){
+    return Pf_base[foot];
 }
 
+// Vec3<double> swingLegController::getAugmentedFootPlacement(int foot){
+//     return Pf_augmented[foot];
+// }

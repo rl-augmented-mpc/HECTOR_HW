@@ -58,14 +58,6 @@ public:
     _height = h;
   }
 
-  /*!
-   * Set the pitch of the foot
-   * @param pitch : the pitch of the foot
-   */
-  void setPitch(T pitch){
-    _pitch = pitch;
-  }
-
   void setControlPointCoef(T cp1_coef, T cp2_coef){
     _cp1_coef = cp1_coef;
     _cp2_coef = cp2_coef;

@@ -130,7 +130,7 @@ setup(
     version="0.0.1",
     author="Junnosuke Kamohara",
     author_email="jkamohara3@gatech.edu",
-    description="A test project using pybind11 and CMake",
+    description="Optimal Controller for bipedal locomotion.",
     long_description="",
     ext_modules=[CMakeExtension("hector_control")],
     cmdclass={"build_ext": CMakeBuild},

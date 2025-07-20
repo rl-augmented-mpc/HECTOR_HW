@@ -147,11 +147,12 @@ void ConvexMPCLocomotion::run(ControlFSMData &data)
     // push back data to leg controller
     double contactState = contactStates(foot);
     double swingState = swingStates(foot);
-    Vec3<double> raibert_footplacement = swing.getReibertFootPlacement(foot);
-    Vec3<double> augmented_footplacement = swing.getAugmentedFootPlacement(foot);
 
-    data._legController->commands[foot].Pf = raibert_footplacement;
-    data._legController->commands[foot].Pf_augmented = augmented_footplacement;
+    Vec3<double> foothold_in_world = swing.get_foot_placement_in_world(foot);
+    Vec3<double> foothold_in_base = swing.get_foot_placement_in_base(foot);
+
+    data._legController->commands[foot].Pf_world = foothold_in_world;
+    data._legController->commands[foot].Pf_base = foothold_in_base;
 
     data._legController->commands[foot].contact_phase = contactState;
     data._legController->commands[foot].swing_phase = swingState;
@@ -201,7 +202,7 @@ void ConvexMPCLocomotion::updateMPC(int *mpcTable, ControlFSMData &data, bool om
   // double Q[12] = {300, 300, 150,   300, 300, 100,   1, 1, 1,   5, 3, 3}; // original hardware
   // double Q[12] = {100, 200, 300,  300, 300, 300,  1, 1, 3.0,  2.0, 2.0, 1};
   // double Q[12] = {100, 100, 500,  100, 100, 100,  1, 1, 5,  5, 5, 1};
-  double Q[12] = {150, 150, 250,  100, 100, 250,  1, 1, 5,  10, 10, 1}; // from paper
+  double Q[12] = {150, 150, 250,  100, 100, 500,  1, 1, 5,  10, 10, 1}; // from paper
   // double Q[12] = {100, 200, 500,  500, 500, 500,  1, 1, 5,  8, 8, 1}; // best?
 
   // double Alpha[12] = {1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,   2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2}; // original hardware
