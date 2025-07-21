@@ -82,9 +82,12 @@ class HectorController{
         }
 
         // Set target roll_pitch, 2D twist (vx, vy, wz), and height
-        void setTargetCommand(Vec2<double> roll_pitch, Vec3<double> twist, double ref_height)
-        {
-            fsm->setStateCommands(roll_pitch, twist, ref_height);
+        void setTargetCommand(Vec2<float> roll_pitch, Vec3<float> twist, float ref_height)
+        {   
+            Vec2<double> _roll_pitch = roll_pitch.cast<double>();
+            Vec3<double> _twist = twist.cast<double>();
+            double _ref_height = static_cast<double>(ref_height);
+            fsm->setStateCommands(_roll_pitch, _twist, _ref_height);
         }
 
         // set ground truth state to state estimator
