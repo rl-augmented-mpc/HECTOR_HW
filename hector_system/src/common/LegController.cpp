@@ -167,8 +167,9 @@ void LegController::updateCommand(LowlevelCmd* cmd){
             // commands[leg].kpJoint << 30.0, 20.0, 20.0, 20.0, 15.0;
             // commands[leg].kdJoint << 1.0, 0.6, 0.45, 0.45, 0.6;
 
-            commands[leg].kpJoint << 40.0, 40.0, 80.0, 80.0, 50.0;
-            commands[leg].kdJoint << 1.0, 0.6, 0.45, 0.45, 0.6;
+            commands[leg].kpJoint << 40.0, 40.0, 70.0, 70.0, 40.0;
+            // commands[leg].kdJoint << 1.0, 0.6, 0.45, 0.45, 0.6;
+            commands[leg].kdJoint << 1.0, 1.0, 0.7, 0.7, 0.7;
 
             commands[leg].kpCartesian << 500.0, 500.0, 500.0;
             commands[leg].kdCartesian << 0.5, 0.5, 0.5;

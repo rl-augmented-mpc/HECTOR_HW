@@ -76,8 +76,9 @@ class HectorController{
             biped.updateGaitParameter(dsp_durations, ssp_durations);
         }
 
-        void updateSamplingTime(double dt_sampling){
-            biped.rl_params.update_sampling_dt(dt_sampling);
+        void updateSamplingTime(float dt_sampling){
+            double _dt_sampling = static_cast<double>(dt_sampling);
+            biped.rl_params.update_sampling_dt(_dt_sampling);
         }
 
         // Set target roll_pitch, 2D twist (vx, vy, wz), and height
@@ -105,19 +106,23 @@ class HectorController{
         }
 
         void setFootHeight(float foot_height){
-            biped.setFootHeight(foot_height);
+            double _foot_height = static_cast<double>(foot_height);
+            biped.setFootHeight(_foot_height);
         }
 
         void setSlopePitch(float slope_pitch){
             biped.updateSlope(slope_pitch);
         }
 
-        void setSwingFootControlPoint(double cp1_coef, double cp2_coef){
-            biped.setSwingFootControlPoint(cp1_coef, cp2_coef);
+        void setSwingFootControlPoint(float cp1_coef, float cp2_coef){
+            double _cp1_coef = static_cast<double>(cp1_coef);
+            double _cp2_coef = static_cast<double>(cp2_coef);
+            biped.setSwingFootControlPoint(_cp1_coef, _cp2_coef);
         }
 
-        void setFootPlacementZ(double pf_z){
-            biped.setFootPlacementZ(pf_z);
+        void setFootPlacementZ(float pf_z){
+            double _pf_z = static_cast<double>(pf_z);
+            biped.setFootPlacementZ(_pf_z);
         }
 
         void setSRBDResidual(Eigen::Matrix<float, 13, 13> A_residual, Eigen::Matrix<float, 13, 12> B_residual){
@@ -178,44 +183,44 @@ class HectorController{
             return torque;
         }
 
-        Vec12<double> getGRFM(){
-            return legController->get_grw();
+        Vec12<float> getGRFM(){
+            return legController->get_grw().cast<float>();
         }
 
-        Vec6<double> getFootPlacement(){
-            return legController->get_foot_placement();
+        Vec6<float> getFootPlacement(){
+            return legController->get_foot_placement().cast<float>();
         }
 
-        Vec6<double> getFootPlacementBase(){
-            return legController->get_foot_placement_base();
+        Vec6<float> getFootPlacementBase(){
+            return legController->get_foot_placement_base().cast<float>();
         }
 
-        Vec6<double> getRefFootPosition(){
-            return legController->get_ref_swing_position();
+        Vec6<float> getRefFootPosition(){
+            return legController->get_ref_swing_position().cast<float>();
         }
 
-        Vec6<double> getFootPosition(){
-            return legController->get_swing_position();
+        Vec6<float> getFootPosition(){
+            return legController->get_swing_position().cast<float>();
         }
 
-        Vec2<double> getContactPhase(){
-            return legController->get_contact_phase();
+        Vec2<float> getContactPhase(){
+            return legController->get_contact_phase().cast<float>();
         }
 
-        Vec2<double> getSwingPhase(){
-            return legController->get_swing_phase();
+        Vec2<float> getSwingPhase(){
+            return legController->get_swing_phase().cast<float>();
         }
 
-        Vec2<double> getContactState(){
-            return legController->get_contact_state();
+        Vec2<float> getContactState(){
+            return legController->get_contact_state().cast<float>();
         }
 
-        Vec2<double> getSwingState(){
-            return legController->get_swing_state();
+        Vec2<float> getSwingState(){
+            return legController->get_swing_state().cast<float>();
         }
 
-        double getCost(){
-            return biped.mpc_cost; 
+        float getCost(){
+            return static_cast<float>(biped.mpc_cost);
         }
 
         pybind11::array_t<double> getReferencePositionTrajectory(){
