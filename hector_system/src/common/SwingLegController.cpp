@@ -265,7 +265,12 @@ std::array<Vec3<double>, 10> swingLegController::getReferenceSwingFootPosition()
         }
 
         if (contactStates[0] >= 0 && contactStates[1] >= 0){
-            refSwingFootPosition[i] = pFoot_w[0]; 
+            if (data->_biped->swing_foot_reference_frame == "world"){
+                refSwingFootPosition[i] = pFoot_w[0]; 
+            }
+            else if (data->_biped->swing_foot_reference_frame == "base"){
+                refSwingFootPosition[i] = data->_legController->data[0].p;
+            }
         }
     }
     return refSwingFootPosition;
