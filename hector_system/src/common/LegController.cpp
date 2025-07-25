@@ -351,14 +351,14 @@ Vec6<double> LegController::get_foot_placement(){
 
 Vec6<double> LegController::get_foot_placement_base(){
     // return the next foot placement in base frame
-    Pfs_rb(0) = commands[0].Pf_base(0);
-    Pfs_rb(1) = commands[0].Pf_base(1);
-    Pfs_rb(2) = commands[0].Pf_base(2);
+    Pfs_base(0) = commands[0].Pf_base(0);
+    Pfs_base(1) = commands[0].Pf_base(1);
+    Pfs_base(2) = commands[0].Pf_base(2);
 
-    Pfs_rb(3) = commands[1].Pf_base(0);
-    Pfs_rb(4) = commands[1].Pf_base(1);
-    Pfs_rb(5) = commands[1].Pf_base(2);
-    return Pfs_rb; 
+    Pfs_base(3) = commands[1].Pf_base(0);
+    Pfs_base(4) = commands[1].Pf_base(1);
+    Pfs_base(5) = commands[1].Pf_base(2);
+    return Pfs_base; 
 }
 
 Vec6<double> LegController::get_ref_swing_position(){

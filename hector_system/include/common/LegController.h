@@ -120,7 +120,7 @@
         // bookkeeping
         Vec12<double> grfm = Vec12<double>::Zero();
         Vec10<double> qref = Vec10<double>::Zero();
-        Vec6<double> Pfs_rb = Vec6<double>::Zero();
+        Vec6<double> Pfs_base = Vec6<double>::Zero();
         Vec6<double> Pfs = Vec6<double>::Zero();
         Vec6<double> foot_ref_pos = Vec6<double>::Zero();
         Vec6<double> foot_pos = Vec6<double>::Zero();
