@@ -3,7 +3,13 @@
 /******************************************************************************************************/
 /******************************************************************************************************/
 swingLegController::swingLegController():
-    lip_controller(0.55){}
+    lip_controller(0.55){
+        // updateFootPosition();
+        // Pf_world[0].setZero();
+        // Pf_world[1].setZero();
+        // Pf_base[0].setZero();
+        // Pf_base[1].setZero();
+    }
 
 void swingLegController::initSwingLegController(ControlFSMData *_data, Gait *_gait, double dtSwing)
 {
@@ -15,8 +21,10 @@ void swingLegController::initSwingLegController(ControlFSMData *_data, Gait *_ga
     for (int foot=0; foot < nLegs; foot++){
         if (data->_biped->swing_foot_reference_frame == "world"){
             Pf_world[foot] = pFoot_w[foot];
+            Pf_base[foot] = data->_legController->data[foot].p;
         }
         else if (data->_biped->swing_foot_reference_frame == "base"){
+            Pf_world[foot] = pFoot_w[foot];
             Pf_base[foot] = data->_legController->data[foot].p;
         }
     }
@@ -112,7 +120,7 @@ void swingLegController::computeFootPlacement(){
     else if (plannar == "Raibert"){
         // // Raibert heuristic
         for(int foot = 0; foot < nLegs; foot++){
-            if(swingStates[foot] >= 0){
+            if(swingStates[foot] >= 0){ // in swing
 
                 // Raibert heuristic: Pf = p_hip + v * \Delta{t}/2 + k * (v - v_ref)
                 // eq.7.4 https://www.ri.cmu.edu/pub_files/pub3/raibert_marc_h_1983_1/raibert_marc_h_1983_1.pdf
@@ -152,9 +160,17 @@ void swingLegController::computeFootPlacement(){
                     // foothold z position is same as initial foot z pos
                     Pf_base[foot][2] = footSwingTrajectory[foot].getInitialPosition()[2];
                 }
+
+                // block nan 
+                if (Pf_world[foot].hasNaN()){
+                    Pf_world[foot] << 0, 0, 0;
+                }
+                if (Pf_base[foot].hasNaN()){
+                    Pf_base[foot] << 0, 0, 0;
+                }
             }
 
-            else{
+            else{ // in stance
                 if (data->_biped->swing_foot_reference_frame == "world"){
                     // Pf_world[foot] = Pf_world[foot];
                     Pf_base[foot] = seResult.rBody * (Pf_world[foot] - seResult.position);
@@ -164,6 +180,16 @@ void swingLegController::computeFootPlacement(){
                     Pf_base[foot] = seResult.rBody * (Pf_world[foot] - seResult.position);
                     // z position same as initial foot z pos
                     Pf_base[foot][2] = footSwingTrajectory[foot].getInitialPosition()[2];
+                }
+
+                // block nan 
+                if (Pf_world[foot].hasNaN()){
+                    // std::cout << "has nan Pf_world!" << std::endl;
+                    Pf_world[foot] << 0, 0, 0;
+                }
+                if (Pf_base[foot].hasNaN()){
+                    // std::cout << "has nan Pf_base!" << std::endl;
+                    Pf_base[foot] << 0, 0, 0;
                 }
             }
 

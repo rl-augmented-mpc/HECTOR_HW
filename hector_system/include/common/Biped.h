@@ -17,6 +17,7 @@ class Biped{
         mu = 0.3; // friction coefficient
         f_max = 500; // maximum grf_z
         mass = 13.856;
+        // mass = 11.856;
         I_body << 0.5413, 0.0, 0.0, 0.0, 0.5200, 0.0, 0.0, 0.0, 0.0691;
         
         if (real_flag == 0)

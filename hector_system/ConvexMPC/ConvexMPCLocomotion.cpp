@@ -236,7 +236,7 @@ void ConvexMPCLocomotion::updateMPC(int *mpcTable, ControlFSMData &data, bool om
       GRF[axis] = get_solution(leg * 3 + axis);
       GRM[axis] = get_solution(leg * 3 + axis + 6);
     }
-    // std::cout << "GRF: " << GRF.transpose() << std::endl;
+    // std::cout << "GRF " << leg << ": " << GRF.transpose() << std::endl;
     GRF_R = -seResult.rBody * GRF;
     GRM_R = -seResult.rBody * GRM;
 
