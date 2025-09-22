@@ -163,10 +163,10 @@ void swingLegController::computeFootPlacement(){
 
                 // block nan 
                 if (Pf_world[foot].hasNaN()){
-                    Pf_world[foot] << 0, 0, 0;
+                    Pf_world[foot] = pFoot_w[foot];
                 }
                 if (Pf_base[foot].hasNaN()){
-                    Pf_base[foot] << 0, 0, 0;
+                    Pf_base[foot] = data->_legController->data[foot].p;
                 }
             }
 
@@ -185,11 +185,11 @@ void swingLegController::computeFootPlacement(){
                 // block nan 
                 if (Pf_world[foot].hasNaN()){
                     // std::cout << "has nan Pf_world!" << std::endl;
-                    Pf_world[foot] << 0, 0, 0;
+                    Pf_world[foot] = pFoot_w[foot];
                 }
                 if (Pf_base[foot].hasNaN()){
                     // std::cout << "has nan Pf_base!" << std::endl;
-                    Pf_base[foot] << 0, 0, 0;
+                    Pf_base[foot] = data->_legController->data[foot].p;
                 }
             }
 
@@ -248,10 +248,12 @@ void swingLegController::computeFootDesiredPosition(){
         }
 
         if (pFoot_b[foot].hasNaN()){
-            pFoot_b[foot] << 0, 0, 0;
+            // pFoot_b[foot] << 0, 0, 0;
+            pFoot_b[foot] = data->_legController->data[foot].p;
         }
         if (vFoot_b[foot].hasNaN()){
-            vFoot_b[foot] << 0, 0, 0;
+            // vFoot_b[foot] << 0, 0, 0;
+            vFoot_b[foot] = data->_legController->data[foot].v;
         }
     } 
 }
